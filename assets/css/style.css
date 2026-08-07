@@ -1,0 +1,603 @@
+/* ==========================================================================
+   Google Drive / Material 3 Design System Stylesheet
+   For: Idle Land for Community Gardening System
+   ========================================================================== */
+
+:root {
+    --drive-canvas: #eef5f0;
+    --drive-surface: #ffffff;
+    --drive-surface-hover: #e3efe7;
+    --drive-surface-active: #cbeed6;
+    --drive-surface-selected: #e8f7ec;
+    --drive-primary: #198754;
+    --drive-primary-hover: #146c43;
+    --drive-primary-text: #0f5132;
+    --drive-text-main: #191c1a;
+    --drive-text-sub: #404943;
+    --drive-text-muted: #707973;
+    --drive-border: #e1e3e1;
+    --drive-radius-lg: 24px;
+    --drive-radius-md: 16px;
+    --drive-radius-sm: 8px;
+    --drive-font: 'Google Sans', 'Outfit', 'Inter', 'Roboto', sans-serif;
+}
+
+body {
+    background-color: var(--drive-canvas) !important;
+    color: var(--drive-text-main) !important;
+    font-family: var(--drive-font);
+    overflow-x: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* ==========================================================================
+   Global: Remove all drop shadows
+   ========================================================================== */
+*, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Outer Shell Layout */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 0 1rem 1rem 1rem;
+}
+
+/* Sidebar Navigation (Hidden, replaced by bottom floating dock) */
+.sidebar {
+    display: none !important;
+}
+
+/* Google Drive-like "+ New" Floating Button */
+.btn-new-drive {
+    background-color: var(--drive-surface);
+    color: var(--drive-text-main);
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--drive-radius-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(225, 227, 225, 0.5);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.btn-new-drive:hover {
+    background-color: #f8faff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Navigation Links */
+.nav-link-drive {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1.25rem;
+    height: 40px;
+    border-radius: 50rem;
+    text-decoration: none;
+    color: var(--drive-text-sub);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-link-drive:hover {
+    background-color: var(--drive-surface-hover);
+    color: var(--drive-text-main);
+}
+
+.nav-link-drive.active {
+    background-color: var(--drive-surface-active);
+    color: var(--drive-primary-text);
+    font-weight: 600;
+}
+
+.nav-link-drive i {
+    font-size: 1.25rem;
+}
+
+/* Workspace Area */
+.workspace-surface {
+    flex: 1;
+    background-color: var(--drive-surface);
+    border-radius: var(--drive-radius-lg);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--drive-border);
+}
+
+/* Header & Search Bar */
+.top-header {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    z-index: 10;
+}
+
+.search-bar-container {
+    flex: 1;
+    max-width: 720px;
+    margin: 0 1rem;
+}
+
+.search-bar-pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: var(--drive-surface-hover);
+    border: 1px solid transparent;
+    border-radius: 50rem;
+    transition: all 0.2s ease;
+    padding: 0 0.5rem;
+}
+
+.search-bar-pill:focus-within {
+    background-color: var(--drive-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08);
+    border-color: var(--drive-border);
+}
+
+.search-bar-pill input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--drive-text-main);
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.search-bar-pill input::placeholder {
+    color: var(--drive-text-sub);
+}
+
+.icon-btn-pill {
+    padding: 0.5rem;
+    color: var(--drive-text-sub);
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn-pill:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--drive-text-main);
+}
+
+/* Drive Activity/Storage Widget */
+.activity-widget {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    color: var(--drive-text-sub);
+}
+
+.activity-progress {
+    height: 4px;
+    background-color: var(--drive-border);
+    border-radius: 50rem;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.activity-progress-bar {
+    background-color: var(--drive-primary);
+    height: 100%;
+}
+
+/* Action Toolbar */
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    border-b: 1px solid var(--drive-border);
+}
+
+/* Card & Border Green Scheme Override */
+.card,
+.border,
+.border-bottom,
+.border-top,
+.border-start,
+.border-end {
+    border-color: var(--drive-border) !important;
+}
+
+/* File Grid / Cards */
+.drive-card {
+    border: 1px solid var(--drive-border);
+    background-color: var(--drive-surface);
+    border-radius: var(--drive-radius-md);
+    padding: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.drive-card:hover {
+    background-color: var(--drive-surface-hover);
+    border-color: var(--drive-primary) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.drive-card-thumbnail {
+    height: 120px;
+    background-color: #f8fafd;
+    border-radius: var(--drive-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(225, 227, 225, 0.4);
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.drive-card-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-cover: cover;
+}
+
+/* List Row */
+.drive-list-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--drive-canvas);
+    font-size: 0.875rem;
+    color: var(--drive-text-main);
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+}
+
+.drive-list-row:hover {
+    background-color: #f8faff;
+}
+
+/* Scrollable Inner Content */
+.workspace-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+/* Google-inspired Forms & Modals */
+.drive-form-control {
+    border: 1px solid var(--drive-border);
+    border-radius: var(--drive-radius-sm);
+    padding: 0.6rem 0.8rem;
+    font-size: 0.875rem;
+    color: var(--drive-text-main);
+    background-color: var(--drive-surface);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.drive-form-control:focus {
+    border-color: var(--drive-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+}
+
+.drive-modal-content {
+    border-radius: var(--drive-radius-lg) !important;
+    border: none !important;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15) !important;
+    background-color: var(--drive-surface) !important;
+}
+
+.btn-drive-primary {
+    background-color: var(--drive-primary) !important;
+    color: #ffffff !important;
+    border-radius: 50rem !important;
+    padding: 0.5rem 1.5rem !important;
+    font-weight: 500 !important;
+    border: none !important;
+    transition: background-color 0.2s !important;
+}
+
+.btn-drive-primary:hover {
+    background-color: var(--drive-primary-hover) !important;
+}
+
+.btn-drive-secondary {
+    background-color: transparent !important;
+    color: var(--drive-primary) !important;
+    border-radius: 50rem !important;
+    padding: 0.5rem 1.5rem !important;
+    font-weight: 500 !important;
+    border: 1px solid var(--drive-border) !important;
+    transition: background-color 0.2s !important;
+}
+
+.btn-drive-secondary:hover {
+    background-color: var(--drive-surface-hover) !important;
+}
+
+/* Google Login UI Card */
+.google-login-card {
+    background: #ffffff;
+    border: 1px solid var(--drive-border);
+    border-radius: 28px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   Responsive / Mobile Styles
+   ========================================================================== */
+@media (max-width: 768px) {
+    .main-layout {
+        padding: 0.5rem;
+    }
+
+    /* Make the workspace cover full screen width */
+    .workspace-surface {
+        border-radius: var(--drive-radius-md);
+        margin: 0;
+        border: none;
+    }
+
+    /* Transform sidebar into a slide-in drawer */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -270px;
+        /* Hide sidebar offscreen */
+        width: 260px;
+        height: 100vh;
+        background-color: var(--drive-surface) !important;
+        border-right: 1px solid var(--drive-border);
+        z-index: 1050;
+        padding: 1.5rem 1rem;
+        transition: left 0.3s ease;
+        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .sidebar.show {
+        left: 0;
+    }
+
+    /* Backdrop overlay when sidebar is open */
+    .sidebar-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1040;
+        display: none;
+    }
+
+    .sidebar-backdrop.show {
+        display: block;
+    }
+
+    /* Minimize search bar container space on small screens */
+    .search-bar-container {
+        display: none;
+        /* Hide standard center search bar */
+    }
+
+    .top-header {
+        padding: 0 0.5rem;
+    }
+
+    .toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .drive-list-row {
+        height: auto;
+        min-height: 48px;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .workspace-scroll {
+        padding-bottom: 7rem !important;
+        /* Prevent floating nav overlap with scrolling content */
+    }
+}
+
+/* Floating Bottom Navigation Dock */
+.floating-dock {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--drive-border);
+    border-radius: 50rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 1.5rem;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dock-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--drive-text-sub);
+    font-size: 0.725rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 0.35rem 0.85rem;
+    border-radius: 50rem;
+    gap: 2px;
+}
+
+.dock-link i {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.dock-link:hover {
+    color: var(--drive-text-main);
+}
+
+.dock-link:hover i {
+    transform: translateY(-2px);
+}
+
+.dock-link.active {
+    color: var(--drive-primary-text);
+    background-color: var(--drive-surface-active);
+    font-weight: 600;
+}
+
+/* Floating Dock Action Circular Plus Button */
+.dock-action-btn {
+    width: 48px;
+    height: 48px;
+    background-color: var(--drive-primary) !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
+    transition: all 0.2s ease;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.dock-action-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    background-color: var(--drive-primary-hover) !important;
+    box-shadow: 0 6px 14px rgba(25, 135, 84, 0.4);
+}
+
+/* Responsive adjustments for narrow screens */
+@media (max-width: 576px) {
+    .floating-dock {
+        width: calc(100% - 1.5rem);
+        bottom: 1rem;
+        padding: 0.4rem 0.75rem;
+        gap: 0.25rem;
+    }
+
+    .dock-link {
+        padding: 0.35rem 0.5rem;
+    }
+
+    .dock-link span {
+        display: none;
+        /* Icon-only on very narrow mobile screens */
+    }
+
+}
+
+/* ==========================================================================
+   Global Status Badge Styles — Light, Low-Contrast
+   ========================================================================== */
+
+/* Override Bootstrap badge colors to be lighter and softer */
+.badge.bg-success,
+.badge.bg-success-subtle {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    color: #0f6c43 !important;
+    font-weight: 500;
+}
+
+.badge.bg-warning,
+.badge.bg-warning-subtle {
+    background-color: rgba(255, 193, 7, 0.12) !important;
+    color: #8a6700 !important;
+    font-weight: 500;
+}
+
+.badge.bg-danger,
+.badge.bg-danger-subtle {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    color: #a52535 !important;
+    font-weight: 500;
+}
+
+.badge.bg-secondary,
+.badge.bg-secondary-subtle {
+    background-color: rgba(108, 117, 125, 0.1) !important;
+    color: #495057 !important;
+    font-weight: 500;
+}
+
+.badge.bg-info,
+.badge.bg-info-subtle {
+    background-color: rgba(13, 202, 240, 0.1) !important;
+    color: #0a7d97 !important;
+    font-weight: 500;
+}
+
+.badge.bg-primary,
+.badge.bg-primary-subtle {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+    color: var(--drive-primary-text) !important;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   Global Link Styles — No Blue, Use Muted Tones
+   ========================================================================== */
+
+a:not(.btn):not(.nav-link):not(.dock-link):not(.nav-link-drive):not([class*="badge"]) {
+    color: var(--drive-text-sub);
+    text-decoration: none;
+}
+
+a:not(.btn):not(.nav-link):not(.dock-link):not(.nav-link-drive):not([class*="badge"]):hover {
+    color: var(--drive-primary);
+    text-decoration: none;
+}
+
+/* Inline text links that use text-primary explicitly */
+.text-primary {
+    color: var(--drive-primary) !important;
+}
+
+a.text-primary,
+a.text-decoration-none {
+    color: var(--drive-text-sub) !important;
+}
+
+a.text-decoration-none:hover {
+    color: var(--drive-primary) !important;
+}
