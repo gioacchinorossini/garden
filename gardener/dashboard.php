@@ -308,6 +308,45 @@ unset($land);
     let currentGardenerFilterType = 'all';
     let selectedCropFilterVal = 'all';
 
+    const CROP_ICON_MAP = {
+        'tomato': 'tomato/tomato.svg',
+        'lettuce': 'romaine/romaine.svg',
+        'leafy greens': 'romaine/romaine.svg',
+        'romaine': 'romaine/romaine.svg',
+        'herbs': 'basil/basil.svg',
+        'basil': 'basil/basil.svg',
+        'pepper': 'red-bell-pepper/red-bell-pepper.svg',
+        'carrot': 'carrot/carrot.svg',
+        'root vegetables': 'carrot/carrot.svg',
+        'tuber crops': 'russet-potato/russet-potato.svg',
+        'potato': 'russet-potato/russet-potato.svg',
+        'eggplant': 'eggplant/eggplant.svg',
+        'cucumber': 'cucumber/cucumber.svg',
+        'spinach': 'spinach/spinach.svg',
+        'beans': 'broad-bean/broad-bean.svg',
+        'legumes': 'broad-bean/broad-bean.svg',
+        'squash': 'yellow-squash/yellow-squash.svg',
+        'onion': 'red-onion/red-onion.svg',
+        'corn': 'corn/corn.svg',
+        'garlic': 'garlic/garlic.svg',
+        'mushroom': 'generic-mushroom/generic-mushroom.svg',
+        'peas': 'snap-pea/snap-pea.svg',
+        'fruits': 'strawberry/strawberry.svg',
+        'strawberry': 'strawberry/strawberry.svg',
+        'broccoli': 'broccoli/broccoli.svg'
+    };
+
+    function getCropIconPath(cropName) {
+        if (!cropName) return 'generic-plant/generic-plant.svg';
+        const lower = cropName.toLowerCase().trim();
+        for (const key in CROP_ICON_MAP) {
+            if (lower.includes(key) || key.includes(lower)) {
+                return CROP_ICON_MAP[key];
+            }
+        }
+        return 'generic-plant/generic-plant.svg';
+    }
+
     function navigateGardenCard(direction) {
         if (!landsData || landsData.length === 0) return;
         let currentIndex = landsData.findIndex(l => l.id == currentLandId);
@@ -526,45 +565,6 @@ unset($land);
         if (bounds.length) {
             gardenerMap.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
         }
-    }
-
-    const CROP_ICON_MAP = {
-        'tomato': 'tomato/tomato.svg',
-        'lettuce': 'romaine/romaine.svg',
-        'leafy greens': 'romaine/romaine.svg',
-        'romaine': 'romaine/romaine.svg',
-        'herbs': 'basil/basil.svg',
-        'basil': 'basil/basil.svg',
-        'pepper': 'red-bell-pepper/red-bell-pepper.svg',
-        'carrot': 'carrot/carrot.svg',
-        'root vegetables': 'carrot/carrot.svg',
-        'tuber crops': 'russet-potato/russet-potato.svg',
-        'potato': 'russet-potato/russet-potato.svg',
-        'eggplant': 'eggplant/eggplant.svg',
-        'cucumber': 'cucumber/cucumber.svg',
-        'spinach': 'spinach/spinach.svg',
-        'beans': 'broad-bean/broad-bean.svg',
-        'legumes': 'broad-bean/broad-bean.svg',
-        'squash': 'yellow-squash/yellow-squash.svg',
-        'onion': 'red-onion/red-onion.svg',
-        'corn': 'corn/corn.svg',
-        'garlic': 'garlic/garlic.svg',
-        'mushroom': 'generic-mushroom/generic-mushroom.svg',
-        'peas': 'snap-pea/snap-pea.svg',
-        'fruits': 'strawberry/strawberry.svg',
-        'strawberry': 'strawberry/strawberry.svg',
-        'broccoli': 'broccoli/broccoli.svg'
-    };
-
-    function getCropIconPath(cropName) {
-        if (!cropName) return 'generic-plant/generic-plant.svg';
-        const lower = cropName.toLowerCase().trim();
-        for (const key in CROP_ICON_MAP) {
-            if (lower.includes(key) || key.includes(lower)) {
-                return CROP_ICON_MAP[key];
-            }
-        }
-        return 'generic-plant/generic-plant.svg';
     }
 
     function openLandCardSheet(land) {
