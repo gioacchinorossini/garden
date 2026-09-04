@@ -1,169 +1,690 @@
 <?php
 $base_path = '../';
-$page_title = "Gardener Overview";
+$page_title = "Gardens & Plots Map";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 
-// Prepare session defaults for gardener
-if (session_status() == PHP_SESSION_NONE) {
+if (session_status() == PHP_SESSION_NONE)
     session_start();
-}
 $_SESSION['active_role'] = 'gardener';
-$_SESSION['user_name'] = 'Mary Gardener';
+if (!isset($_SESSION['user_name']))
+    $_SESSION['user_name'] = 'Mary Gardener';
+
+if (!isset($_SESSION['mock_lands'])) {
+    $_SESSION['mock_lands'] = [
+        ['id' => 1, 'title' => 'Sunnyvale Gardening Lot', 'landowner' => 'John Landowner', 'address' => '124 Green Ave, Sunnyvale', 'latitude' => 14.5995, 'longitude' => 120.9842, 'area' => 250.00, 'status' => 'approved', 'reason' => '', 'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.', 'crops' => ['Root Vegetables', 'Tuber Crops']],
+        ['id' => 2, 'title' => 'Downtown Rooftop Garden', 'landowner' => 'John Landowner', 'address' => '45 Main St, Business District', 'latitude' => 14.6010, 'longitude' => 120.9890, 'area' => 85.50, 'status' => 'approved', 'reason' => '', 'description' => 'An elevated deck prepared with planters and drip irrigation, ideal for leafy greens and culinary herbs.', 'crops' => ['Leafy Greens', 'Herbs']],
+        ['id' => 3, 'title' => 'Riverdale Acres', 'landowner' => 'Robert Johnson', 'address' => 'Riverside Dr, Block B', 'latitude' => 14.5950, 'longitude' => 120.9780, 'area' => 500.00, 'status' => 'approved', 'reason' => '', 'description' => 'Large idle pasture near the riverbed. High soil quality, direct sunlight access. Excellent for fruits, tomatoes and legumes.', 'crops' => ['Fruits', 'Legumes', 'Leafy Greens']],
+        ['id' => 4, 'title' => 'Eastside Clay Meadows', 'landowner' => 'Sarah Connor', 'address' => '789 East Blvd, Clay District', 'latitude' => 14.6120, 'longitude' => 121.0020, 'area' => 180.00, 'status' => 'approved', 'reason' => '', 'description' => 'Rich heavy clay loam soil retaining moisture well. Best suited for cabbage, broccoli, and tuber crops.', 'crops' => ['Cruciferous', 'Tuber Crops']],
+    ];
+}
+if (!isset($_SESSION['mock_plots'])) {
+    $_SESSION['mock_plots'] = [
+        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg'],
+        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Romaine', 'crop_icon' => 'romaine/romaine.svg'],
+        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available', 'crop' => 'Carrot', 'crop_icon' => 'carrot/carrot.svg'],
+        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available', 'crop' => 'Basil', 'crop_icon' => 'basil/basil.svg'],
+        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available', 'crop' => 'Strawberry', 'crop_icon' => 'strawberry/strawberry.svg'],
+        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available', 'crop' => 'Broccoli', 'crop_icon' => 'broccoli/broccoli.svg'],
+        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available', 'crop' => 'Corn', 'crop_icon' => 'corn/corn.svg'],
+    ];
+}
+
+$lands_data = $_SESSION['mock_lands'];
+$plots_data = $_SESSION['mock_plots'];
+foreach ($lands_data as &$land) {
+    $lp = array_filter($plots_data, fn($p) => $p['land_id'] == $land['id']);
+    $land['total_plots'] = count($lp);
+    $land['occupied_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'occupied'));
+    $land['available_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'available'));
+}
+unset($land);
 ?>
 
-<main class="workspace-surface">
-    <!-- Toolbar/Title Bar -->
-    <div class="toolbar border-bottom">
-        <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Overview</h1>
-        </div>
+<style>
+    /* Filter chips positioned at top of map on desktop */
+    .mobile-map-chips-bar {
+        top: 14px !important;
+    }
+
+    .leaflet-top.leaflet-right {
+        top: 60px !important;
+    }
+
+    /* Mobile edge-to-edge view */
+    @media (max-width: 768px) {
+        header {
+            display: none !important;
+        }
+
+        body {
+            overflow: hidden !important;
+        }
+
+        .flex.flex-1 {
+            padding: 0 !important;
+            height: 100vh !important;
+        }
+
+        .workspace-surface.gardener-map-page {
+            height: 100vh !important;
+            border-radius: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .mobile-map-chips-bar {
+            top: 64px !important;
+        }
+
+        .leaflet-top.leaflet-right {
+            top: 110px !important;
+        }
+    }
+</style>
+
+<main class="workspace-surface gardener-map-page d-flex flex-column overflow-hidden h-100">
+
+    <!-- Desktop Toolbar -->
+    <div class="toolbar border-bottom d-none d-md-flex align-items-center justify-content-between px-4 py-2.5 bg-white flex-shrink-0">
+        <h1 class="fs-5 fw-semibold m-0 text-dark d-flex align-items-center gap-2">
+            <i data-lucide="map-pin" class="text-success" style="width:20px;height:20px;"></i>
+            Gardens & Plots Map
+        </h1>
         <div class="d-flex align-items-center gap-2">
-            <a href="browse.php" class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2">
-                <i data-lucide="search" style="width: 16px; height: 16px;"></i>
-                <span>Browse Lands</span>
+            <a href="browse.php" class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill">
+                <i data-lucide="search" style="width:15px;height:15px;"></i> Browse All Lands
             </a>
         </div>
     </div>
 
-    <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll">
-        <!-- 1. Stats Row -->
-        <div class="row g-3 mb-4">
-            <!-- Stat 1: Plots leased -->
-            <div class="col-md-4">
-                <div class="drive-card d-flex align-items-center gap-3 p-3">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center"
-                        style="width: 52px; height: 52px; min-width: 52px; background-color: #e8f0fe; color: #1a73e8;">
-                        <i data-lucide="layout-grid" style="width: 28px; height: 28px;"></i>
-                    </div>
-                    <div>
-                        <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Leased Plots</span>
-                        <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;">2</h3>
-                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Active plots</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Stat 2: Yield Recorded -->
-            <div class="col-md-4">
-                <div class="drive-card d-flex align-items-center gap-3 p-3">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center"
-                        style="width: 52px; height: 52px; min-width: 52px; background-color: #f3e5f5; color: #8e24aa;">
-                        <i data-lucide="shopping-bag" style="width: 28px; height: 28px;"></i>
-                    </div>
-                    <div>
-                        <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Total Yield</span>
-                        <h3 class="fw-bold m-0 mt-1" style="font-size: 1.5rem; color: #8e24aa;">57.5 <span
-                                style="font-size: 0.9rem; font-weight: normal; color: var(--bs-secondary-color);">kg</span>
-                        </h3>
-                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Total harvested</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Stat 3: Scheduled Tasks -->
-            <div class="col-md-4">
-                <div class="drive-card d-flex align-items-center gap-3 p-3">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis"
-                        style="width: 52px; height: 52px; min-width: 52px;">
-                        <i data-lucide="calendar" style="width: 28px; height: 28px;"></i>
-                    </div>
-                    <div>
-                        <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Pending Tasks</span>
-                        <h3 class="fw-bold m-0 mt-1 text-warning" style="font-size: 1.5rem;">2</h3>
-                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Upcoming tasks</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Map Container -->
+    <div class="flex-grow-1 position-relative overflow-hidden w-100 h-100" style="min-height:0;">
+        <div class="landowner-map-wrapper">
 
-        <!-- Environmental Contribution Tracker -->
-        <?php include '../includes/eco_tracker.php'; ?>
-
-        <!-- 2. Active Plot Folders -->
-        <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">My Plots</h2>
-        <div class="row g-3 mb-4">
-            <!-- Plot Card 1 -->
-            <div class="col-md-6">
-                <div class="drive-card">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="../assets/crop-icons/tomato/tomato.svg" style="width: 22px; height: 22px;" alt="Tomato">
-                            <span class="fw-semibold text-dark">Downtown Rooftop - Plot B-1</span>
+            <!-- Floating Brand Overlay (Mobile Only) -->
+            <div class="floating-map-header d-md-none">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm" style="width:32px;height:32px;object-fit:cover;">
+                    <div>
+                        <div class="fw-bold text-dark font-['Outfit'] d-flex align-items-center gap-1.5" style="font-size:0.92rem;line-height:1;">
+                            <span class="text-success">Idle</span>Land
+                            <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5" style="font-size:0.68rem;font-weight:600;">Gardener Map</span>
                         </div>
-                        <span class="badge rounded-pill"
-                            style="font-size: 10px; background-color: #e8f0fe; color: #1a73e8;">Leased</span>
-                    </div>
-                    <p class="text-muted mb-2" style="font-size: 0.8rem;">Cultivating: <strong>Organic Tomatoes</strong></p>
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                        <span class="text-secondary d-flex align-items-center gap-1" style="font-size: 0.75rem;"><i data-lucide="maximize-2" style="width: 12px; height: 12px;"></i> 20 m²</span>
-                        <a href="harvests.php" class="btn btn-sm btn-drive-primary">Record Yield</a>
                     </div>
                 </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <a href="browse.php" class="btn btn-drive-primary btn-sm rounded-pill px-3 py-1.5 text-xs d-flex align-items-center gap-1 shadow-sm">
+                        <i data-lucide="search" style="width:14px;height:14px;"></i>
+                        <span>Browse</span>
+                    </a>
+                </div>
             </div>
-            <!-- Plot Card 2 -->
-            <div class="col-md-6">
-                <div class="drive-card">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="../assets/crop-icons/romaine/romaine.svg" style="width: 22px; height: 22px;" alt="Lettuce">
-                            <span class="fw-semibold text-dark">Downtown Rooftop - Plot B-2</span>
+
+            <!-- Filter chips -->
+            <div class="mobile-map-chips-bar" id="mapChipsBar">
+                <button type="button" class="map-chip active" onclick="filterGardenerMapLands('all',this)">
+                    All Gardens (<?php echo count($lands_data); ?>)
+                </button>
+                <button type="button" class="map-chip" onclick="filterGardenerMapLands('available',this)">
+                    <i class="bi bi-check-circle-fill me-1" style="color:#198754;"></i>Available Plots
+                </button>
+                <button type="button" class="map-chip" onclick="filterGardenerMapLands('my',this)">
+                    <i class="bi bi-heart-fill me-1" style="color:#e8a000;"></i>My Leased
+                </button>
+            </div>
+
+            <!-- Leaflet Map -->
+            <div id="gardenerMainMap" style="width:100%;height:100%;min-height:450px;z-index:1;"></div>
+
+            <!-- Desktop FAB stack (right side) -->
+            <div class="position-absolute d-flex flex-column gap-2" style="bottom:28px;right:16px;z-index:1001;">
+                <button type="button" class="map-fab-btn" onclick="recenterGardenerMap()" title="Fit all gardens">
+                    <i data-lucide="locate" style="width:19px;height:19px;" class="text-success"></i>
+                </button>
+            </div>
+
+            <!-- Backdrop (mobile, dims map behind sheet) -->
+            <div class="map-sheet-backdrop" id="mapSheetBackdrop" onclick="closeLandCardSheet()"></div>
+
+            <!-- Bottom Sheet -->
+            <div id="mobileLandCardSheet" class="mobile-land-sheet hidden">
+                <!-- Color status strip -->
+                <div id="sheetStatusStrip" class="sheet-status-strip" style="background:#198754;"></div>
+
+                <!-- Drag handle -->
+                <div class="sheet-drag-handle"></div>
+
+                <!-- Header row -->
+                <div class="d-flex align-items-start justify-content-between mb-2 px-1">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span id="sheetStatusBadge" class="badge rounded-pill text-white px-2 py-1"
+                                style="font-size:0.68rem;background:#198754;">Available</span>
+                            <span id="sheetOwnerBadge" class="badge rounded-pill border text-secondary px-2 py-1"
+                                style="font-size:0.68rem;background:#f8f9fa;">Landowner</span>
                         </div>
-                        <span class="badge rounded-pill"
-                            style="font-size: 10px; background-color: #e8f0fe; color: #1a73e8;">Leased</span>
+                        <h3 id="sheetLandTitle" class="fw-bold text-dark mb-0" style="font-size:1rem;line-height:1.2;">
+                            Land Title</h3>
+                        <p id="sheetLandAddress" class="text-secondary mb-0 d-flex align-items-center gap-1 mt-1"
+                            style="font-size:0.75rem;">
+                            <i data-lucide="map-pin" style="width:12px;height:12px;"
+                                class="text-success flex-shrink-0"></i>
+                            Address here
+                        </p>
                     </div>
-                    <p class="text-muted mb-2" style="font-size: 0.8rem;">Cultivating: <strong>Romaine Lettuce</strong></p>
-                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                        <span class="text-secondary d-flex align-items-center gap-1" style="font-size: 0.75rem;"><i data-lucide="maximize-2" style="width: 12px; height: 12px;"></i> 20 m²</span>
-                        <a href="harvests.php" class="btn btn-sm btn-drive-primary">Record Yield</a>
+                    <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                            style="width:30px;height:30px;" onclick="navigateGardenCard(-1)" title="Previous Garden">
+                            <i data-lucide="chevron-left" style="width:16px;height:16px;" class="text-dark"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                            style="width:30px;height:30px;" onclick="navigateGardenCard(1)" title="Next Garden">
+                            <i data-lucide="chevron-right" style="width:16px;height:16px;" class="text-dark"></i>
+                        </button>
+                        <button type="button" class="btn-close ms-1" style="font-size:0.7rem;"
+                            onclick="closeLandCardSheet()"></button>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 3. Immediate Upcoming Schedule Assigned Tasks -->
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <h2 class="fs-6 fw-semibold text-secondary m-0" style="letter-spacing: 0.5px; text-transform: uppercase;">
-                Upcoming Tasks</h2>
-            <a href="schedules.php" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1"
-                style="font-size: 0.8rem; font-weight: 500;">View Schedule <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></a>
-        </div>
-
-        <div class="border rounded-4 bg-white overflow-hidden border-light-subtle">
-            <!-- Header Row -->
-            <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-light border-bottom text-secondary"
-                style="font-size: 0.75rem; font-weight: 600;">
-                <div class="w-30">TASK</div>
-                <div class="w-30">LOCATION</div>
-                <div class="w-25">SCHEDULED</div>
-                <div class="w-15 text-end">TYPE</div>
-            </div>
-
-            <!-- Row 1 -->
-            <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom hover:bg-[#f8faff] text-sm text-dark transition-colors"
-                style="height: 48px;">
-                <div class="w-30 fw-semibold d-flex align-items-center gap-2"><i data-lucide="droplet" style="color: #1a73e8; width: 16px; height: 16px;"></i> Water the tomato plant</div>
-                <div class="w-30 text-secondary">Downtown Rooftop (B-1, B-2)</div>
-                <div class="w-25 text-secondary">Tomorrow, 09:00 AM</div>
-                <div class="w-15 text-end"><span
-                        class="badge rounded-pill px-2" style="background-color: #e8f0fe; color: #1a73e8;">Watering</span></div>
-            </div>
-
-            <!-- Row 2 -->
-            <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom hover:bg-[#f8faff] text-sm text-dark transition-colors"
-                style="height: 48px;">
-                <div class="w-30 fw-semibold d-flex align-items-center gap-2"><i data-lucide="file-text" style="color: #8e24aa; width: 16px; height: 16px;"></i> Tomato Seedling Planting
+                <!-- Stat tiles -->
+                <div class="d-flex gap-2 mb-3 mt-1">
+                    <div class="sheet-stat-tile">
+                        <span class="stat-label">Area</span>
+                        <span id="sheetLandArea" class="stat-value">— m²</span>
+                    </div>
+                    <div class="sheet-stat-tile">
+                        <span class="stat-label">Plots</span>
+                        <span id="sheetPlotsCount" class="stat-value" style="color:#198754;">— / —</span>
+                    </div>
+                    <div class="sheet-stat-tile">
+                        <span class="stat-label">Crops</span>
+                        <span id="sheetCropsCount" class="stat-value" style="font-size:0.72rem;color:#6c757d;">—</span>
+                    </div>
                 </div>
-                <div class="w-30 text-secondary">Downtown Rooftop (A-1)</div>
-                <div class="w-25 text-secondary">Aug 09, 07:00 AM</div>
-                <div class="w-15 text-end"><span
-                        class="badge rounded-pill px-2" style="background-color: #f3e5f5; color: #8e24aa;">Planting</span></div>
+
+                <!-- Description -->
+                <p id="sheetLandDesc" class="text-secondary mb-2"
+                    style="font-size:0.78rem;line-height:1.5;max-height:48px;overflow:hidden;"></p>
+
+                <!-- Partition Plots Grid -->
+                <div class="mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-secondary fw-semibold" style="font-size:0.7rem;letter-spacing:0.5px;text-transform:uppercase;">Partition Plots Grid</span>
+                        <span id="sheetPlotsSummary" class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5" style="font-size:0.65rem;"></span>
+                    </div>
+                    <div id="sheetPlotsGrid" class="row g-2" style="max-height: 140px; overflow-y: auto;"></div>
+                </div>
+
+                <!-- CTA buttons for Gardener -->
+                <div class="d-flex gap-2">
+                    <a id="sheetBrowseBtn" href="browse.php"
+                        class="btn btn-drive-primary btn-sm rounded-pill flex-grow-1 d-flex align-items-center justify-content-center gap-1"
+                        style="padding:10px;">
+                        <i data-lucide="shopping-bag" style="width:14px;height:14px;"></i> Rent a Plot
+                    </a>
+                    <a href="schedules.php"
+                        class="btn btn-drive-secondary btn-sm rounded-pill d-flex align-items-center gap-1 px-3"
+                        style="padding:10px;">
+                        <i data-lucide="calendar" style="width:14px;height:14px;"></i>
+                        <span class="d-none d-sm-inline">Schedules</span>
+                    </a>
+                    <a href="harvests.php" class="btn btn-sm rounded-pill d-flex align-items-center gap-1 px-3"
+                        style="padding:10px;background:#f0fdf4;border:1px solid #c3e6cb;color:#198754;" title="Harvests">
+                        <i data-lucide="sprout" style="width:14px;height:14px;"></i>
+                    </a>
+                </div>
             </div>
+
         </div>
     </div>
 </main>
+
+<script>
+    const landsData = <?php echo json_encode($lands_data); ?>;
+    const plotsData = <?php echo json_encode($plots_data); ?>;
+    let currentLandId = null;
+    let gardenerMap = null;
+    let mapMarkers = [];
+    let activePlotLayers = [];
+
+    function navigateGardenCard(direction) {
+        if (!landsData || landsData.length === 0) return;
+        let currentIndex = landsData.findIndex(l => l.id == currentLandId);
+        if (currentIndex === -1) currentIndex = 0;
+
+        let nextIndex = (currentIndex + direction + landsData.length) % landsData.length;
+        openLandCardSheet(landsData[nextIndex]);
+    }
+
+    function focusOnSpecificPlot(landId, plotId) {
+        const land = landsData.find(l => l.id == landId);
+        if (!land) return;
+
+        const landPlots = plotsData.filter(p => p.land_id == land.id);
+        const plotIndex = landPlots.findIndex(p => p.id == plotId);
+        if (plotIndex === -1) return;
+
+        const lat = parseFloat(land.latitude);
+        const lng = parseFloat(land.longitude);
+        const totalArea = parseFloat(land.area) || 100;
+        const sideMeters = Math.sqrt(totalArea);
+        const halfSide = sideMeters / 2;
+        const deltaLat = halfSide / 111320;
+        const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+
+        const N = landPlots.length;
+        const cols = Math.ceil(Math.sqrt(N));
+        const rows = Math.ceil(N / cols);
+        const plotW = (deltaLng * 2) / cols;
+        const plotH = (deltaLat * 2) / rows;
+
+        const c = plotIndex % cols;
+        const r = Math.floor(plotIndex / cols);
+
+        const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+        const pMaxLat = (lat + deltaLat) - (r * plotH);
+        const pMinLng = (lng - deltaLng) + (c * plotW);
+        const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+
+        const pCenterLat = (pMinLat + pMaxLat) / 2;
+        const pCenterLng = (pMinLng + pMaxLng) / 2;
+
+        const activeMap = gardenerMap;
+        if (!activeMap) return;
+
+        const targetZoom = 21;
+        const isMobile = window.innerWidth <= 768;
+        const targetPoint = activeMap.project([pCenterLat, pCenterLng], targetZoom);
+
+        if (isMobile) {
+            targetPoint.y += 140;
+        } else {
+            targetPoint.x -= 240;
+            targetPoint.y += 40;
+        }
+
+        const offsetTarget = activeMap.unproject(targetPoint, targetZoom);
+        activeMap.flyTo(offsetTarget, targetZoom, {
+            animate: true,
+            duration: 1.2
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initGardenerMap);
+
+    function initGardenerMap() {
+        const el = document.getElementById('gardenerMainMap');
+        if (!el) return;
+
+        gardenerMap = L.map('gardenerMainMap', { zoomControl: false })
+            .setView([14.6010, 120.9890], 13);
+
+        L.control.zoom({ position: 'topright' }).addTo(gardenerMap);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 21,
+            maxNativeZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(gardenerMap);
+
+        renderGardenerMapPins(landsData);
+
+        // Check if URL has ?id=X parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramId = urlParams.get('id');
+        if (paramId) {
+            const targetLand = landsData.find(l => l.id == paramId);
+            if (targetLand) {
+                setTimeout(() => openLandCardSheet(targetLand), 300);
+            }
+        }
+
+        gardenerMap.on('click', closeLandCardSheet);
+    }
+
+    function renderGardenerMapPins(list) {
+        if (!gardenerMap) return;
+
+        mapMarkers.forEach(m => gardenerMap.removeLayer(m));
+        mapMarkers = [];
+        if (activePlotLayers) {
+            activePlotLayers.forEach(l => gardenerMap.removeLayer(l));
+        }
+        activePlotLayers = [];
+
+        const bounds = [];
+
+        list.forEach(land => {
+            const lat = parseFloat(land.latitude);
+            const lng = parseFloat(land.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+            bounds.push([lat, lng]);
+
+            const pinColor = '#198754';
+
+            // 1. Garden Square Perimeter
+            const totalArea = parseFloat(land.area) || 100;
+            const sideMeters = Math.sqrt(totalArea);
+            const halfSide = sideMeters / 2;
+            const deltaLat = halfSide / 111320;
+            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+
+            const boundsSquare = [
+                [lat + deltaLat, lng - deltaLng],
+                [lat + deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng - deltaLng]
+            ];
+
+            const gardenSquare = L.polygon(boundsSquare, {
+                color: pinColor,
+                weight: 2,
+                fillColor: pinColor,
+                fillOpacity: 0.12,
+                dashArray: '5, 5'
+            }).addTo(gardenerMap);
+            mapMarkers.push(gardenSquare);
+
+            // 2. Main Garden Pin
+            const icon = L.divIcon({
+                className: '',
+                html: `<div class="land-map-pin" style="background:${pinColor};">
+                       <i class="bi bi-tree-fill"></i>
+                   </div>`,
+                iconSize: [42, 42],
+                iconAnchor: [21, 42]
+            });
+
+            const marker = L.marker([lat, lng], { icon }).addTo(gardenerMap);
+            marker.on('click', () => openLandCardSheet(land));
+            mapMarkers.push(marker);
+
+            // 3. Partition Plots Square Grid on Dashboard Map
+            const landPlots = plotsData.filter(p => p.land_id == land.id);
+            if (landPlots.length > 0) {
+                const N = landPlots.length;
+                const cols = Math.ceil(Math.sqrt(N));
+                const rows = Math.ceil(N / cols);
+                const plotW = (deltaLng * 2) / cols;
+                const plotH = (deltaLat * 2) / rows;
+
+                landPlots.forEach((p, idx) => {
+                    const c = idx % cols;
+                    const r = Math.floor(idx / cols);
+
+                    const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+                    const pMaxLat = (lat + deltaLat) - (r * plotH);
+                    const pMinLng = (lng - deltaLng) + (c * plotW);
+                    const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+
+                    const plotSquare = [
+                        [pMaxLat, pMinLng],
+                        [pMaxLat, pMaxLng],
+                        [pMinLat, pMaxLng],
+                        [pMinLat, pMinLng]
+                    ];
+
+                    const isAvail = p.status === 'available';
+                    const isOccupied = p.status === 'occupied';
+                    const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
+                    const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
+
+                    const plotPoly = L.polygon(plotSquare, {
+                        color: plotColor,
+                        weight: 1.5,
+                        fillColor: plotFill,
+                        fillOpacity: 0.28
+                    }).addTo(gardenerMap);
+
+                    plotPoly.bindTooltip(
+                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
+                            <strong>${p.plot_number}</strong> (${p.area} m²)<br>
+                            <span class="text-secondary">${land.title}</span><br>
+                            <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;margin-top:2px;">${p.status}</span>
+                        </div>`,
+                        { permanent: false, direction: 'center' }
+                    );
+                    plotPoly.on('click', () => openLandCardSheet(land));
+                    mapMarkers.push(plotPoly);
+                });
+            }
+        });
+
+        if (bounds.length) {
+            gardenerMap.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+        }
+    }
+
+    function openLandCardSheet(land) {
+        currentLandId = land.id;
+        const sheet = document.getElementById('mobileLandCardSheet');
+        const backdrop = document.getElementById('mapSheetBackdrop');
+        if (!sheet) return;
+
+        // Ultra high detail zoom level 20 animation
+        const lat = parseFloat(land.latitude);
+        const lng = parseFloat(land.longitude);
+        const targetZoom = 20;
+
+        if (!isNaN(lat) && !isNaN(lng) && gardenerMap) {
+            const isMobile = window.innerWidth <= 768;
+            const targetPoint = gardenerMap.project([lat, lng], targetZoom);
+
+            if (isMobile) {
+                const sheetHeight = sheet ? sheet.offsetHeight : 340;
+                targetPoint.y += (sheetHeight / 2) + 30;
+            } else {
+                targetPoint.x -= 220;
+                targetPoint.y += 40;
+            }
+
+            const offsetTarget = gardenerMap.unproject(targetPoint, targetZoom);
+
+            gardenerMap.flyTo(offsetTarget, targetZoom, {
+                animate: true,
+                duration: 1.2
+            });
+        }
+
+        document.getElementById('sheetStatusStrip').style.background = '#198754';
+        document.getElementById('sheetStatusBadge').textContent = `${land.available_plots ?? 0} Plots Available`;
+        document.getElementById('sheetStatusBadge').style.background = '#198754';
+        document.getElementById('sheetStatusBadge').style.color = '#fff';
+        document.getElementById('sheetOwnerBadge').textContent = land.landowner || 'Landowner';
+        document.getElementById('sheetLandTitle').textContent = land.title;
+        document.getElementById('sheetLandAddress').innerHTML =
+            `<i data-lucide="map-pin" style="width:12px;height:12px;" class="text-success flex-shrink-0"></i> ${land.address}`;
+        document.getElementById('sheetLandArea').textContent = `${parseFloat(land.area).toFixed(0)} m²`;
+        document.getElementById('sheetPlotsCount').textContent = `${land.occupied_plots ?? 0} / ${land.total_plots ?? 0}`;
+        const crops = Array.isArray(land.crops) ? land.crops.slice(0, 2).join(', ') : (land.crops || '—');
+        document.getElementById('sheetCropsCount').textContent = crops;
+        document.getElementById('sheetLandDesc').textContent = land.description || '';
+        document.getElementById('sheetBrowseBtn').href = `browse.php?id=${land.id}`;
+
+        // Render Partition Plots Grid in sheet
+        const landPlots = plotsData.filter(p => p.land_id == land.id);
+        const availPlots = landPlots.filter(p => p.status === 'available').length;
+        const summaryBadge = document.getElementById('sheetPlotsSummary');
+        if (summaryBadge) {
+            summaryBadge.textContent = `${availPlots} / ${landPlots.length} Available`;
+        }
+
+        const plotsGridEl = document.getElementById('sheetPlotsGrid');
+        if (plotsGridEl) {
+            if (landPlots.length === 0) {
+                plotsGridEl.innerHTML = `<div class="col-12 text-center text-muted py-2" style="font-size:0.75rem;">No partition plots configured yet.</div>`;
+            } else {
+                plotsGridEl.innerHTML = landPlots.map(p => {
+                    const isAvail = p.status === 'available';
+                    const isOccupied = p.status === 'occupied';
+                    const bgClass = isAvail ? 'bg-success-subtle border-success-subtle text-success' : (isOccupied ? 'bg-primary-subtle border-primary-subtle text-primary' : 'bg-light border text-secondary');
+                    const badgeText = isAvail ? 'Available' : (isOccupied ? 'Leased' : 'Maintenance');
+                    const cropImg = p.crop_icon
+                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:18px;height:18px;object-fit:contain;" alt="${p.crop || 'Plant'}">`
+                        : `<i class="bi bi-sprout-fill text-success" style="font-size:12px;"></i>`;
+
+                    return `
+                        <div class="col-6 col-sm-4" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;">
+                            <div class="p-2 rounded-3 border ${bgClass} d-flex flex-column justify-content-between h-100 shadow-xs hover-elevate transition-all">
+                                <div class="fw-bold d-flex align-items-center justify-content-between">
+                                    <span class="d-flex align-items-center gap-1">
+                                        ${cropImg}
+                                        <span style="font-size:0.75rem;">${p.plot_number}</span>
+                                    </span>
+                                    <span class="badge ${isAvail ? 'bg-success' : (isOccupied ? 'bg-primary' : 'bg-secondary')} rounded-circle" style="width:6px;height:6px;padding:0;"></span>
+                                </div>
+                                <div class="mt-1 d-flex justify-content-between align-items-center text-muted" style="font-size:0.68rem;">
+                                    <span>${parseFloat(p.area).toFixed(0)} m²</span>
+                                    <span class="fw-medium text-capitalize">${p.crop ? p.crop : badgeText}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Draw High Detail Plot Grid Polygons on Leaflet map
+        if (activePlotLayers) {
+            activePlotLayers.forEach(l => gardenerMap.removeLayer(l));
+        }
+        activePlotLayers = [];
+
+        if (landPlots.length > 0 && !isNaN(lat) && !isNaN(lng) && gardenerMap) {
+            const totalArea = parseFloat(land.area) || 100;
+            const sideMeters = Math.sqrt(totalArea);
+            const halfSide = sideMeters / 2;
+            const deltaLat = halfSide / 111320;
+            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+
+            // Outer boundary square polygon
+            const boundsSquare = [
+                [lat + deltaLat, lng - deltaLng],
+                [lat + deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng - deltaLng]
+            ];
+
+            const outerSquare = L.polygon(boundsSquare, {
+                color: '#198754',
+                weight: 3,
+                fillColor: '#198754',
+                fillOpacity: 0.08,
+                dashArray: '6, 6'
+            }).addTo(gardenerMap);
+            activePlotLayers.push(outerSquare);
+
+            // Sub-partition square plot grid polygons
+            const N = landPlots.length;
+            const cols = Math.ceil(Math.sqrt(N));
+            const rows = Math.ceil(N / cols);
+            const plotW = (deltaLng * 2) / cols;
+            const plotH = (deltaLat * 2) / rows;
+
+            landPlots.forEach((p, idx) => {
+                const c = idx % cols;
+                const r = Math.floor(idx / cols);
+
+                const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+                const pMaxLat = (lat + deltaLat) - (r * plotH);
+                const pMinLng = (lng - deltaLng) + (c * plotW);
+                const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+
+                const plotSquare = [
+                    [pMaxLat, pMinLng],
+                    [pMaxLat, pMaxLng],
+                    [pMinLat, pMaxLng],
+                    [pMinLat, pMinLng]
+                ];
+
+                const isAvail = p.status === 'available';
+                const isOccupied = p.status === 'occupied';
+                const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
+                const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
+
+                const plotPoly = L.polygon(plotSquare, {
+                    color: plotColor,
+                    weight: 2,
+                    fillColor: plotFill,
+                    fillOpacity: 0.38
+                }).addTo(gardenerMap);
+
+                const cropBadge = p.crop_icon
+                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
+                    : '';
+
+                plotPoly.bindTooltip(
+                    `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
+                        <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
+                        ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
+                        <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${p.status}</span>
+                    </div>`,
+                    { permanent: false, direction: 'center' }
+                );
+                plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                activePlotLayers.push(plotPoly);
+
+                // Center Plot Tag Marker with Plant Icon
+                const pCenterLat = (pMinLat + pMaxLat) / 2;
+                const pCenterLng = (pMinLng + pMaxLng) / 2;
+
+                const cropImgTag = p.crop_icon
+                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
+                    : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
+
+                const plotTagIcon = L.divIcon({
+                    className: '',
+                    html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
+                        style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
+                        ${cropImgTag}
+                        <span>${p.plot_number}</span>
+                    </div>`,
+                    iconSize: [84, 26],
+                    iconAnchor: [42, 13]
+                });
+
+                const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(gardenerMap);
+                plotTagMarker.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                activePlotLayers.push(plotTagMarker);
+            });
+        }
+
+        sheet.classList.remove('hidden');
+        if (backdrop) backdrop.classList.add('show');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function closeLandCardSheet() {
+        const sheet = document.getElementById('mobileLandCardSheet');
+        const backdrop = document.getElementById('mapSheetBackdrop');
+        if (sheet) sheet.classList.add('hidden');
+        if (backdrop) backdrop.classList.remove('show');
+
+        if (activePlotLayers) {
+            activePlotLayers.forEach(l => gardenerMap.removeLayer(l));
+            activePlotLayers = [];
+        }
+    }
+
+    function recenterGardenerMap() {
+        renderGardenerMapPins(landsData);
+        closeLandCardSheet();
+    }
+
+    function filterGardenerMapLands(type, btn) {
+        document.querySelectorAll('.map-chip').forEach(c => c.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        const map = {
+            available: l => (l.available_plots ?? 0) > 0,
+            my: l => (l.occupied_plots ?? 0) > 0
+        };
+        renderGardenerMapPins(type === 'all' ? landsData : landsData.filter(map[type] || (() => true)));
+        closeLandCardSheet();
+    }
+</script>
 
 <?php include '../includes/footer.php'; ?>

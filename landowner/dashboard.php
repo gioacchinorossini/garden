@@ -21,13 +21,13 @@ if (!isset($_SESSION['mock_lands'])) {
 }
 if (!isset($_SESSION['mock_plots'])) {
     $_SESSION['mock_plots'] = [
-        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied'],
-        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied'],
-        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available'],
-        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available'],
-        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available'],
-        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available'],
-        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available'],
+        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg'],
+        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Romaine', 'crop_icon' => 'romaine/romaine.svg'],
+        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available', 'crop' => 'Carrot', 'crop_icon' => 'carrot/carrot.svg'],
+        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available', 'crop' => 'Basil', 'crop_icon' => 'basil/basil.svg'],
+        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available', 'crop' => 'Strawberry', 'crop_icon' => 'strawberry/strawberry.svg'],
+        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available', 'crop' => 'Broccoli', 'crop_icon' => 'broccoli/broccoli.svg'],
+        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available', 'crop' => 'Corn', 'crop_icon' => 'corn/corn.svg'],
     ];
 }
 
@@ -185,8 +185,18 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                             Address here
                         </p>
                     </div>
-                    <button type="button" class="btn-close ms-2 flex-shrink-0" style="font-size:0.7rem;"
-                        onclick="closeLandCardSheet()"></button>
+                    <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                            style="width:30px;height:30px;" onclick="navigateGardenCard(-1)" title="Previous Garden">
+                            <i data-lucide="chevron-left" style="width:16px;height:16px;" class="text-dark"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                            style="width:30px;height:30px;" onclick="navigateGardenCard(1)" title="Next Garden">
+                            <i data-lucide="chevron-right" style="width:16px;height:16px;" class="text-dark"></i>
+                        </button>
+                        <button type="button" class="btn-close ms-1" style="font-size:0.7rem;"
+                            onclick="closeLandCardSheet()"></button>
+                    </div>
                 </div>
 
                 <!-- Stat tiles -->
@@ -245,9 +255,73 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 <script>
     const landsData = <?php echo json_encode($lands_data); ?>;
     const plotsData = <?php echo json_encode($plots_data); ?>;
+    let currentLandId = null;
     let landownerMap = null;
     let mapMarkers = [];
     let activePlotLayers = [];
+
+    function navigateGardenCard(direction) {
+        if (!landsData || landsData.length === 0) return;
+        let currentIndex = landsData.findIndex(l => l.id == currentLandId);
+        if (currentIndex === -1) currentIndex = 0;
+
+        let nextIndex = (currentIndex + direction + landsData.length) % landsData.length;
+        openLandCardSheet(landsData[nextIndex]);
+    }
+
+    function focusOnSpecificPlot(landId, plotId) {
+        const land = landsData.find(l => l.id == landId);
+        if (!land) return;
+
+        const landPlots = plotsData.filter(p => p.land_id == land.id);
+        const plotIndex = landPlots.findIndex(p => p.id == plotId);
+        if (plotIndex === -1) return;
+
+        const lat = parseFloat(land.latitude);
+        const lng = parseFloat(land.longitude);
+        const totalArea = parseFloat(land.area) || 100;
+        const sideMeters = Math.sqrt(totalArea);
+        const halfSide = sideMeters / 2;
+        const deltaLat = halfSide / 111320;
+        const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+
+        const N = landPlots.length;
+        const cols = Math.ceil(Math.sqrt(N));
+        const rows = Math.ceil(N / cols);
+        const plotW = (deltaLng * 2) / cols;
+        const plotH = (deltaLat * 2) / rows;
+
+        const c = plotIndex % cols;
+        const r = Math.floor(plotIndex / cols);
+
+        const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+        const pMaxLat = (lat + deltaLat) - (r * plotH);
+        const pMinLng = (lng - deltaLng) + (c * plotW);
+        const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+
+        const pCenterLat = (pMinLat + pMaxLat) / 2;
+        const pCenterLng = (pMinLng + pMaxLng) / 2;
+
+        const activeMap = landownerMap;
+        if (!activeMap) return;
+
+        const targetZoom = 21;
+        const isMobile = window.innerWidth <= 768;
+        const targetPoint = activeMap.project([pCenterLat, pCenterLng], targetZoom);
+
+        if (isMobile) {
+            targetPoint.y += 140;
+        } else {
+            targetPoint.x -= 240;
+            targetPoint.y += 40;
+        }
+
+        const offsetTarget = activeMap.unproject(targetPoint, targetZoom);
+        activeMap.flyTo(offsetTarget, targetZoom, {
+            animate: true,
+            duration: 1.2
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', initLandownerMap);
 
@@ -261,7 +335,8 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         L.control.zoom({ position: 'topright' }).addTo(landownerMap);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            maxZoom: 21,
+            maxNativeZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(landownerMap);
 
@@ -303,17 +378,28 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             const approved = land.status === 'approved';
             const pinColor = approved ? '#198754' : '#e8a000';
 
-            // 1. Garden Perimeter Circle
-            const baseRadius = Math.sqrt((parseFloat(land.area) || 100) / Math.PI);
-            const gardenCircle = L.circle([lat, lng], {
-                radius: baseRadius,
+            // 1. Garden Square Perimeter
+            const totalArea = parseFloat(land.area) || 100;
+            const sideMeters = Math.sqrt(totalArea);
+            const halfSide = sideMeters / 2;
+            const deltaLat = halfSide / 111320;
+            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+
+            const boundsSquare = [
+                [lat + deltaLat, lng - deltaLng],
+                [lat + deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng - deltaLng]
+            ];
+
+            const gardenSquare = L.polygon(boundsSquare, {
                 color: pinColor,
                 weight: 2,
                 fillColor: pinColor,
                 fillOpacity: 0.12,
                 dashArray: '5, 5'
             }).addTo(landownerMap);
-            mapMarkers.push(gardenCircle);
+            mapMarkers.push(gardenSquare);
 
             // 2. Main Garden Pin
             const icon = L.divIcon({
@@ -329,61 +415,91 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             marker.on('click', () => openLandCardSheet(land));
             mapMarkers.push(marker);
 
-            // 3. Partition Plots Grid on Dashboard Map
+            // 3. Partition Plots Square Grid on Dashboard Map
             const landPlots = plotsData.filter(p => p.land_id == land.id);
             if (landPlots.length > 0) {
+                const N = landPlots.length;
+                const cols = Math.ceil(Math.sqrt(N));
+                const rows = Math.ceil(N / cols);
+                const plotW = (deltaLng * 2) / cols;
+                const plotH = (deltaLat * 2) / rows;
+
                 landPlots.forEach((p, idx) => {
-                    const angle = (idx / landPlots.length) * 2 * Math.PI;
-                    const dist = baseRadius * 0.65;
-                    const offsetLat = lat + ((dist * Math.sin(angle)) / 111320);
-                    const offsetLng = lng + ((dist * Math.cos(angle)) / (111320 * Math.cos(lat * Math.PI / 180)));
+                    const c = idx % cols;
+                    const r = Math.floor(idx / cols);
+
+                    const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+                    const pMaxLat = (lat + deltaLat) - (r * plotH);
+                    const pMinLng = (lng - deltaLng) + (c * plotW);
+                    const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+
+                    const plotSquare = [
+                        [pMaxLat, pMinLng],
+                        [pMaxLat, pMaxLng],
+                        [pMinLat, pMaxLng],
+                        [pMinLat, pMinLng]
+                    ];
 
                     const isAvail = p.status === 'available';
-                    const plotBg = isAvail ? '#198754' : (p.status === 'occupied' ? '#0d6efd' : '#6c757d');
+                    const isOccupied = p.status === 'occupied';
+                    const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
+                    const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
 
-                    const plotPin = L.divIcon({
-                        className: '',
-                        html: `<div class="shadow-sm d-flex align-items-center justify-content-center fw-bold text-white rounded-circle" 
-                            style="background:${plotBg};width:24px;height:24px;font-size:8.5px;border:2px solid #fff;box-shadow: 0 2px 5px rgba(0,0,0,0.25);">
-                            ${p.plot_number.replace('Plot ', '')}
-                        </div>`,
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 12]
-                    });
+                    const plotPoly = L.polygon(plotSquare, {
+                        color: plotColor,
+                        weight: 1.5,
+                        fillColor: plotFill,
+                        fillOpacity: 0.28
+                    }).addTo(landownerMap);
 
-                    const plotMarker = L.marker([offsetLat, offsetLng], { icon: plotPin }).addTo(landownerMap);
-                    plotMarker.bindTooltip(
+                    plotPoly.bindTooltip(
                         `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
                             <strong>${p.plot_number}</strong> (${p.area} m²)<br>
                             <span class="text-secondary">${land.title}</span><br>
                             <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;margin-top:2px;">${p.status}</span>
                         </div>`,
-                        { permanent: false, direction: 'top' }
+                        { permanent: false, direction: 'center' }
                     );
-                    plotMarker.on('click', () => openLandCardSheet(land));
-                    mapMarkers.push(plotMarker);
+                    plotPoly.on('click', () => openLandCardSheet(land));
+                    mapMarkers.push(plotPoly);
                 });
             }
         });
 
         if (bounds.length) {
-            landownerMap.fitBounds(bounds, { padding: [80, 80], maxZoom: 15 });
+            landownerMap.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
         }
     }
 
     function openLandCardSheet(land) {
+        currentLandId = land.id;
         const sheet = document.getElementById('mobileLandCardSheet');
         const backdrop = document.getElementById('mapSheetBackdrop');
         const fab = document.getElementById('registerFab');
         if (!sheet) return;
 
-        // Smooth zoom in to selected garden
+        // Ultra high detail zoom level 20 animation
         const lat = parseFloat(land.latitude);
         const lng = parseFloat(land.longitude);
+        const targetZoom = 20;
+
         if (!isNaN(lat) && !isNaN(lng) && landownerMap) {
-            landownerMap.flyTo([lat, lng], 17, {
+            const isMobile = window.innerWidth <= 768;
+            const targetPoint = landownerMap.project([lat, lng], targetZoom);
+
+            if (isMobile) {
+                const sheetHeight = sheet ? sheet.offsetHeight : 340;
+                targetPoint.y += (sheetHeight / 2) + 30;
+            } else {
+                targetPoint.x -= 220;
+                targetPoint.y += 40;
+            }
+
+            const offsetTarget = landownerMap.unproject(targetPoint, targetZoom);
+
+            landownerMap.flyTo(offsetTarget, targetZoom, {
                 animate: true,
-                duration: 1.0
+                duration: 1.2
             });
         }
 
@@ -423,16 +539,23 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     const isOccupied = p.status === 'occupied';
                     const bgClass = isAvail ? 'bg-success-subtle border-success-subtle text-success' : (isOccupied ? 'bg-primary-subtle border-primary-subtle text-primary' : 'bg-light border text-secondary');
                     const badgeText = isAvail ? 'Available' : (isOccupied ? 'Occupied' : 'Maintenance');
+                    const cropImg = p.crop_icon
+                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:18px;height:18px;object-fit:contain;" alt="${p.crop || 'Plant'}">`
+                        : `<i class="bi bi-sprout-fill text-success" style="font-size:12px;"></i>`;
+
                     return `
-                        <div class="col-6 col-sm-4">
-                            <div class="p-2 rounded-3 border ${bgClass} d-flex flex-column justify-content-between h-100" style="font-size:0.75rem;">
+                        <div class="col-6 col-sm-4" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;">
+                            <div class="p-2 rounded-3 border ${bgClass} d-flex flex-column justify-content-between h-100 shadow-xs hover-elevate transition-all">
                                 <div class="fw-bold d-flex align-items-center justify-content-between">
-                                    <span>${p.plot_number}</span>
+                                    <span class="d-flex align-items-center gap-1">
+                                        ${cropImg}
+                                        <span style="font-size:0.75rem;">${p.plot_number}</span>
+                                    </span>
                                     <span class="badge ${isAvail ? 'bg-success' : (isOccupied ? 'bg-primary' : 'bg-secondary')} rounded-circle" style="width:6px;height:6px;padding:0;"></span>
                                 </div>
                                 <div class="mt-1 d-flex justify-content-between align-items-center text-muted" style="font-size:0.68rem;">
                                     <span>${parseFloat(p.area).toFixed(0)} m²</span>
-                                    <span class="fw-medium">${badgeText}</span>
+                                    <span class="fw-medium text-capitalize">${p.crop ? p.crop : badgeText}</span>
                                 </div>
                             </div>
                         </div>
@@ -441,47 +564,108 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             }
         }
 
-        // Draw Plot Grid markers on Leaflet map around garden location
+        // Draw High Detail Plot Grid Polygons on Leaflet map
         if (activePlotLayers) {
             activePlotLayers.forEach(l => landownerMap.removeLayer(l));
         }
         activePlotLayers = [];
 
         if (landPlots.length > 0 && !isNaN(lat) && !isNaN(lng) && landownerMap) {
-            const baseRadius = Math.sqrt((parseFloat(land.area) || 100) / Math.PI);
+            const totalArea = parseFloat(land.area) || 100;
+            const sideMeters = Math.sqrt(totalArea);
+            const halfSide = sideMeters / 2;
+            const deltaLat = halfSide / 111320;
+            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
 
-            // Outer boundary circle
-            const gardenCircle = L.circle([lat, lng], {
-                radius: baseRadius,
+            // Outer boundary square polygon
+            const boundsSquare = [
+                [lat + deltaLat, lng - deltaLng],
+                [lat + deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng + deltaLng],
+                [lat - deltaLat, lng - deltaLng]
+            ];
+
+            const outerSquare = L.polygon(boundsSquare, {
                 color: '#198754',
-                weight: 2.5,
+                weight: 3,
                 fillColor: '#198754',
-                fillOpacity: 0.12,
-                dashArray: '5, 5'
+                fillOpacity: 0.08,
+                dashArray: '6, 6'
             }).addTo(landownerMap);
-            activePlotLayers.push(gardenCircle);
+            activePlotLayers.push(outerSquare);
 
-            // Plot markers grid
+            // Sub-partition square plot grid polygons
+            const N = landPlots.length;
+            const cols = Math.ceil(Math.sqrt(N));
+            const rows = Math.ceil(N / cols);
+            const plotW = (deltaLng * 2) / cols;
+            const plotH = (deltaLat * 2) / rows;
+
             landPlots.forEach((p, idx) => {
-                const angle = (idx / landPlots.length) * 2 * Math.PI;
-                const dist = baseRadius * 0.55;
-                const offsetLat = lat + ((dist * Math.sin(angle)) / 111320);
-                const offsetLng = lng + ((dist * Math.cos(angle)) / (111320 * Math.cos(lat * Math.PI / 180)));
+                const c = idx % cols;
+                const r = Math.floor(idx / cols);
+
+                const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+                const pMaxLat = (lat + deltaLat) - (r * plotH);
+                const pMinLng = (lng - deltaLng) + (c * plotW);
+                const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+
+                const plotSquare = [
+                    [pMaxLat, pMinLng],
+                    [pMaxLat, pMaxLng],
+                    [pMinLat, pMaxLng],
+                    [pMinLat, pMinLng]
+                ];
 
                 const isAvail = p.status === 'available';
-                const plotPin = L.divIcon({
-                    className: '',
-                    html: `<div class="shadow-sm d-flex align-items-center justify-content-center fw-bold text-white rounded-circle" 
-                        style="background:${isAvail ? '#198754' : '#0d6efd'};width:26px;height:26px;font-size:9px;border:2px solid #fff;">
-                        ${p.plot_number.replace('Plot ', '')}
+                const isOccupied = p.status === 'occupied';
+                const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
+                const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
+
+                const plotPoly = L.polygon(plotSquare, {
+                    color: plotColor,
+                    weight: 2,
+                    fillColor: plotFill,
+                    fillOpacity: 0.38
+                }).addTo(landownerMap);
+
+                const cropBadge = p.crop_icon
+                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
+                    : '';
+
+                plotPoly.bindTooltip(
+                    `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
+                        <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
+                        ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
+                        <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${p.status}</span>
                     </div>`,
-                    iconSize: [26, 26],
-                    iconAnchor: [13, 13]
+                    { permanent: false, direction: 'center' }
+                );
+                plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                activePlotLayers.push(plotPoly);
+
+                // Center Plot Tag Marker with Plant Icon
+                const pCenterLat = (pMinLat + pMaxLat) / 2;
+                const pCenterLng = (pMinLng + pMaxLng) / 2;
+
+                const cropImgTag = p.crop_icon
+                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
+                    : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
+
+                const plotTagIcon = L.divIcon({
+                    className: '',
+                    html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
+                        style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
+                        ${cropImgTag}
+                        <span>${p.plot_number}</span>
+                    </div>`,
+                    iconSize: [84, 26],
+                    iconAnchor: [42, 13]
                 });
 
-                const plotMarker = L.marker([offsetLat, offsetLng], { icon: plotPin }).addTo(landownerMap);
-                plotMarker.bindTooltip(`<b>${p.plot_number}</b> (${p.area} m²)<br><span class="text-capitalize">${p.status}</span>`, { permanent: false, direction: 'top' });
-                activePlotLayers.push(plotMarker);
+                const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(landownerMap);
+                plotTagMarker.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                activePlotLayers.push(plotTagMarker);
             });
         }
 

@@ -829,14 +829,17 @@ a.text-decoration-none:hover {
     will-change: transform;
 }
 
-/* On desktop keep it as a floating card */
+/* On desktop keep it as a floating side card in bottom-left corner */
 @media (min-width: 769px) {
     .mobile-land-sheet {
-        bottom: 16px;
-        left: 12px;
-        right: 12px;
+        bottom: 24px;
+        left: 24px;
+        right: auto;
+        width: 440px;
+        max-width: calc(100vw - 48px);
         border-radius: 24px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16), 0 2px 10px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.06);
     }
 }
 
