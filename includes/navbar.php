@@ -49,7 +49,7 @@ if (isset($_GET['switch_role'])) {
 }
 ?>
 <!-- Top Navigation Bar -->
-<header class="h-16 flex items-center justify-between px-6 bg-drive-canvas z-10">
+<header class="h-16 flex items-center justify-between px-6 bg-white border-b border-drive-border z-10">
     <!-- Left: Branding -->
     <a href="<?php echo $bp; ?>index.php" class="flex items-center gap-2 text-decoration-none" style="min-width: 240px;">
         <img src="<?php echo $bp; ?>logo.jpeg" alt="IdleLand Logo" class="h-9 w-9 object-contain rounded-full">
@@ -57,39 +57,6 @@ if (isset($_GET['switch_role'])) {
             <span class="text-drive-primary">Idle</span>Land
         </span>
     </a>
-
-    <!-- Center: Google Drive Search Bar -->
-    <div class="flex-1 max-w-[720px] mx-4 hidden md:block">
-        <?php
-        $search_action = "";
-        if ($role === 'gardener') {
-            $search_action = $bp . "gardener/search.php";
-        } elseif ($role === 'landowner') {
-            $search_action = $bp . "landowner/lands.php";
-        } else {
-            $search_action = $bp . "admin/lands.php";
-        }
-        ?>
-        <form action="<?php echo $search_action; ?>" method="GET" class="m-0">
-            <div
-                class="relative flex items-center bg-drive-surface-hover focus-within:bg-white focus-within:shadow-md border border-transparent focus-within:border-drive-border rounded-full transition-all duration-200 h-12 px-2">
-                <button type="submit"
-                    class="p-2 text-drive-text-sub hover:bg-black/5 rounded-full flex items-center justify-center w-10 h-10">
-                    <i class="bi bi-search"></i>
-                </button>
-                <input type="text" name="search" placeholder="Search lands, requests, or crops..."
-                    value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
-                    class="w-full bg-transparent text-drive-text-main placeholder-drive-text-sub focus:outline-none text-sm py-2 px-1"
-                    autocomplete="off" />
-                <button type="button"
-                    class="p-2 text-drive-text-sub hover:bg-black/5 rounded-full flex items-center justify-center w-10 h-10"
-                    data-bs-toggle="tooltip" data-bs-placement="bottom" title="Filters"
-                    onclick="window.location.href='<?php echo $bp; ?>gardener/search.php'">
-                    <i class="bi bi-sliders"></i>
-                </button>
-            </div>
-        </form>
-    </div>
 
     <!-- Right: Account Details & Role Switcher -->
     <div class="flex items-center gap-3">
@@ -136,4 +103,4 @@ if (isset($_GET['switch_role'])) {
         </div>
     </div>
 </header>
-<div class="flex flex-1 overflow-hidden pb-4 pr-4 h-[calc(100vh-4rem)]">
+<div class="flex flex-1 overflow-hidden h-[calc(100vh-4rem)]">

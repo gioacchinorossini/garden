@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const paramLandId = urlParams.get('id');
                 if (paramLandId) {
                     const matchLand = landsList.find(l => l.id == paramLandId);
-                    if (matchLand && matchLand.status === 'approved') {
+                    if (matchLand) {
                         openManagePlotsModal(matchLand.id, matchLand.title);
                     }
                 } else if (selectedLandId) {
@@ -87,9 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const isSelected = selectedLandId == land.id;
             const cardBorderClass = isSelected ? 'border-success shadow-sm' : '';
 
-            const managePlotsBtn = (land.status === 'approved')
-                ? `<button class="btn btn-sm btn-drive-primary rounded-pill px-3" onclick="openManagePlotsModal(${land.id}, '${land.title.replace(/'/g, "\\'")}')">Manage Plots <i class="bi bi-arrow-right ms-1"></i></button>`
-                : `<button class="btn btn-sm btn-drive-secondary rounded-pill px-3" disabled>Plots locked</button>`;
+            const managePlotsBtn = `<button class="btn btn-sm btn-drive-primary rounded-pill px-3" onclick="openManagePlotsModal(${land.id}, '${land.title.replace(/'/g, "\\'")}')">Manage Plots <i class="bi bi-arrow-right ms-1"></i></button>`;
 
             return `
                 <div class="col-md-6 col-xl-4">
@@ -314,6 +312,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // Helper for crop icons in lands JS
+    function getPlotCropIconPath(cropName) {
+        if (!cropName) return '../assets/crop-icons/tomato/tomato.svg';
+        const name = cropName.toLowerCase();
+        if (name.includes('tomato')) return '../assets/crop-icons/tomato/tomato.svg';
+        if (name.includes('lettuce') || name.includes('leafy')) return '../assets/crop-icons/romaine/romaine.svg';
+        if (name.includes('herb') || name.includes('basil')) return '../assets/crop-icons/basil/basil.svg';
+        if (name.includes('pepper')) return '../assets/crop-icons/red-bell-pepper/red-bell-pepper.svg';
+        if (name.includes('carrot') || name.includes('root')) return '../assets/crop-icons/carrot/carrot.svg';
+        if (name.includes('eggplant')) return '../assets/crop-icons/eggplant/eggplant.svg';
+        if (name.includes('cucumber')) return '../assets/crop-icons/cucumber/cucumber.svg';
+        if (name.includes('spinach')) return '../assets/crop-icons/spinach/spinach.svg';
+        if (name.includes('bean') || name.includes('legume')) return '../assets/crop-icons/broad-bean/broad-bean.svg';
+        if (name.includes('squash')) return '../assets/crop-icons/yellow-squash/yellow-squash.svg';
+        if (name.includes('onion')) return '../assets/crop-icons/red-onion/red-onion.svg';
+        if (name.includes('corn')) return '../assets/crop-icons/corn/corn.svg';
+        if (name.includes('garlic')) return '../assets/crop-icons/garlic/garlic.svg';
+        if (name.includes('potato') || name.includes('tuber')) return '../assets/crop-icons/russet-potato/russet-potato.svg';
+        return '../assets/crop-icons/tomato/tomato.svg';
+    }
+
     // Render partition plots inside the Manage Plots modal
     function renderPlotsModal(landId) {
         if (!modalPlotsContainer) return;
@@ -330,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        let html = '<div class="d-grid gap-2">';
+        let html = '<div class="d-grid gap-2.5">';
         landPlots.forEach(plot => {
             let statusBadge = '';
             if (plot.status === 'available') {
@@ -341,14 +360,36 @@ document.addEventListener("DOMContentLoaded", function () {
                 statusBadge = '<span class="badge bg-secondary rounded-pill px-2.5 py-1" style="font-size: 10px;">Under Maintenance</span>';
             }
 
+            const allowedCrops = (plot.crops && plot.crops.length > 0) 
+                ? plot.crops 
+                : (plot.crop ? [plot.crop] : ['Tomato', 'Lettuce']);
+
+            let cropsBadgesHtml = allowedCrops.map(c => `
+                <span class="d-inline-flex align-items-center gap-1.5 px-2 py-0.5 rounded-pill bg-white border text-xs text-dark font-medium shadow-2xs" style="font-size: 11px;">
+                    <img src="${getPlotCropIconPath(c)}" alt="${c}" style="width:14px;height:14px;object-fit:contain;">
+                    <span>${c}</span>
+                </span>
+            `).join('');
+
             html += `
                 <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 bg-light hover:bg-white transition-colors">
                     <div>
-                        <div class="fw-bold text-dark mb-1" style="font-size:0.95rem;">${plot.plot_number}</div>
-                        <div class="text-muted" style="font-size: 0.78rem;"><i class="bi bi-rulers me-1"></i>Area: ${parseFloat(plot.area).toFixed(1)} m²</div>
+                        <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-2" style="font-size:0.95rem;">
+                            <span>${plot.plot_number}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="text-muted mb-2" style="font-size: 0.78rem;">
+                            <i class="bi bi-rulers me-1"></i>Area: ${parseFloat(plot.area).toFixed(1)} m²
+                        </div>
+                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                            <span class="text-muted uppercase text-[10px] font-bold me-1">Permitted Crops:</span>
+                            ${cropsBadgesHtml}
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        ${statusBadge}
+                    <div class="d-flex align-items-center gap-2">
+                        <button onclick="openEditPlotCropsModal(${plot.id}, '${plot.plot_number.replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 text-xs d-flex align-items-center gap-1 font-semibold">
+                            <i class="bi bi-sprout"></i> Set Permitted Crops
+                        </button>
                         <button onclick="deletePlot(${plot.id})" class="btn icon-btn-pill btn-sm text-danger" title="Delete Plot">
                             <i class="bi bi-trash fs-6"></i>
                         </button>
@@ -360,18 +401,283 @@ document.addEventListener("DOMContentLoaded", function () {
         modalPlotsContainer.innerHTML = html;
     }
 
+    // Permitted Crops Modal Logic for Individual Plot
+    const currentPlotSelectedCrops = new Map();
+    let currentEditingPlotId = null;
+
+    window.openEditPlotCropsModal = function(plotId, plotNumber) {
+        currentEditingPlotId = plotId;
+        const plotIdInput = document.getElementById('edit_plot_id');
+        if (plotIdInput) plotIdInput.value = plotId;
+
+        const titleEl = document.getElementById('modalPlotTitle');
+        if (titleEl) titleEl.textContent = plotNumber;
+
+        const plot = plotsList.find(p => p.id == plotId);
+        currentPlotSelectedCrops.clear();
+
+        const allowedCrops = (plot && plot.crops && plot.crops.length > 0) 
+            ? plot.crops 
+            : (plot && plot.crop ? [plot.crop] : []);
+
+        document.querySelectorAll('.plot-crop-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label');
+            const icon = chip.getAttribute('data-icon');
+            const checkIcon = chip.querySelector('.plot-crop-check-icon');
+
+            const isSelected = allowedCrops.some(c => c.toLowerCase() === val.toLowerCase() || c.toLowerCase() === label.toLowerCase());
+
+            if (isSelected) {
+                currentPlotSelectedCrops.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#198754';
+                if (checkIcon) checkIcon.classList.remove('d-none');
+            } else {
+                chip.classList.remove('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('d-none');
+            }
+        });
+
+        const countEl = document.getElementById('plotSelectedCropCount');
+        if (countEl) countEl.textContent = currentPlotSelectedCrops.size;
+
+        const modalEl = document.getElementById('editPlotCropsModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    };
+
+    window.togglePlotCropSelection = function(val, label, icon, element) {
+        const checkIcon = element.querySelector('.plot-crop-check-icon');
+        if (currentPlotSelectedCrops.has(val)) {
+            currentPlotSelectedCrops.delete(val);
+            element.classList.remove('border-primary', 'bg-blue-50/50');
+            element.style.borderColor = 'var(--drive-border)';
+            if (checkIcon) checkIcon.classList.add('d-none');
+        } else {
+            currentPlotSelectedCrops.set(val, { value: val, label: label, icon: icon });
+            element.classList.add('border-primary', 'bg-blue-50/50');
+            element.style.borderColor = '#198754';
+            if (checkIcon) checkIcon.classList.remove('d-none');
+        }
+        const countEl = document.getElementById('plotSelectedCropCount');
+        if (countEl) countEl.textContent = currentPlotSelectedCrops.size;
+    };
+
+    window.savePlotCrops = async function() {
+        if (!currentEditingPlotId) return;
+
+        const crops = Array.from(currentPlotSelectedCrops.values()).map(c => c.label);
+        const primaryCrop = crops[0] || 'General';
+        const primaryIcon = (currentPlotSelectedCrops.values().next().value || {}).icon || '';
+
+        try {
+            const response = await fetch('../api/lands.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'update_plot_crops',
+                    plot_id: currentEditingPlotId,
+                    crops: crops,
+                    crop: primaryCrop,
+                    crop_icon: primaryIcon
+                })
+            });
+
+            const res = await response.json();
+            if (res.status === 'success') {
+                const plot = plotsList.find(p => p.id == currentEditingPlotId);
+                if (plot) {
+                    plot.crops = crops;
+                    plot.crop = primaryCrop;
+                    plot.crop_icon = primaryIcon;
+                }
+
+                const modalEl = document.getElementById('editPlotCropsModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                if (selectedLandId) renderPlotsModal(selectedLandId);
+            } else {
+                alert(res.message || 'Failed to save plot crops.');
+            }
+        } catch (err) {
+            console.error("Error saving plot crops:", err);
+        }
+    };
+
+    // Edit Land Crops state
+    const editSelectedCrops = new Map();
+    let editPickerMapInstance = null;
+    let editPickerMarker = null;
+
+    window.toggleEditCropSelection = function(val, label, icon, element) {
+        const checkIcon = element.querySelector('.edit-crop-check-icon');
+        if (editSelectedCrops.has(val)) {
+            editSelectedCrops.delete(val);
+            element.classList.remove('border-primary', 'bg-blue-50/50');
+            element.style.borderColor = 'var(--drive-border)';
+            if (checkIcon) checkIcon.classList.add('d-none');
+        } else {
+            editSelectedCrops.set(val, { value: val, label: label, icon: icon });
+            element.classList.add('border-primary', 'bg-blue-50/50');
+            element.style.borderColor = '#1a73e8';
+            if (checkIcon) checkIcon.classList.remove('d-none');
+        }
+        renderEditSelectedCropsSummary();
+    };
+
+    window.selectAllEditCrops = function(select) {
+        document.querySelectorAll('.edit-modal-crop-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label');
+            const icon = chip.getAttribute('data-icon');
+            const checkIcon = chip.querySelector('.edit-crop-check-icon');
+
+            if (select) {
+                editSelectedCrops.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#1a73e8';
+                if (checkIcon) checkIcon.classList.remove('d-none');
+            } else {
+                editSelectedCrops.delete(val);
+                chip.classList.remove('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('d-none');
+            }
+        });
+        renderEditSelectedCropsSummary();
+    };
+
+    window.filterEditCropChips = function() {
+        const query = (document.getElementById('editCropSearchInput')?.value || '').toLowerCase().trim();
+        document.querySelectorAll('.edit-crop-grid-item').forEach(item => {
+            const name = item.getAttribute('data-name');
+            if (!query || name.includes(query)) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+    };
+
+    function renderEditSelectedCropsSummary() {
+        const summaryBox = document.getElementById('editSelectedCropsSummary');
+        const hiddenInputs = document.getElementById('editHiddenSeedInputs');
+        const countText = document.getElementById('editSelectedCountText');
+
+        if (countText) countText.textContent = editSelectedCrops.size;
+
+        if (!summaryBox) return;
+
+        if (editSelectedCrops.size === 0) {
+            summaryBox.innerHTML = `<span class="text-muted text-xs italic" id="editEmptyCropsNotice">No specific crops selected (All crops permitted by default).</span>`;
+            if (hiddenInputs) hiddenInputs.innerHTML = '';
+            return;
+        }
+
+        let summaryHtml = '';
+        let inputsHtml = '';
+
+        editSelectedCrops.forEach((crop) => {
+            summaryHtml += `
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 border rounded-pill bg-white text-xs fw-semibold text-dark shadow-xs" style="border-color: var(--drive-border) !important;">
+                    <img src="${crop.icon}" alt="${crop.label}" style="width:16px;height:16px;object-fit:contain;">
+                    <span>${crop.label}</span>
+                    <button type="button" class="btn-close text-xs ms-1" style="width: 10px; height: 10px;" onclick="toggleEditCropSelection('${crop.value}', '${crop.label}', '${crop.icon}', document.querySelector('.edit-modal-crop-chip[data-value=\"${crop.value}\"]'))"></button>
+                </div>
+            `;
+            inputsHtml += `<input type="checkbox" name="allowed_seeds[]" value="${crop.value}" checked class="d-none">`;
+        });
+
+        summaryBox.innerHTML = summaryHtml;
+        if (hiddenInputs) hiddenInputs.innerHTML = inputsHtml;
+    }
+
     // Open Edit Land Modal
     window.openEditLandModal = function (id) {
-        const land = landsList.find(l => l.id === id);
+        const land = landsList.find(l => l.id == id);
         if (!land) return;
 
         document.getElementById('edit_land_id').value = land.id;
-        document.getElementById('edit_title').value = land.title;
-        document.getElementById('edit_address').value = land.address;
-        document.getElementById('edit_description').value = land.description;
+        document.getElementById('edit_title').value = land.title || '';
+        document.getElementById('edit_address').value = land.address || '';
+        document.getElementById('edit_area').value = land.area || 100;
+        
+        const lat = parseFloat(land.latitude) || 14.5995;
+        const lng = parseFloat(land.longitude) || 120.9842;
+        document.getElementById('edit_latitude').value = lat;
+        document.getElementById('edit_longitude').value = lng;
+        document.getElementById('edit_description').value = land.description || '';
+
+        // Pre-select crops
+        editSelectedCrops.clear();
+        const existingCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+        
+        document.querySelectorAll('.edit-modal-crop-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label');
+            const icon = chip.getAttribute('data-icon');
+            const checkIcon = chip.querySelector('.edit-crop-check-icon');
+
+            const isMatched = existingCrops.some(c => c.toLowerCase().includes(val.toLowerCase()) || val.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(label.toLowerCase()));
+
+            if (isMatched) {
+                editSelectedCrops.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#1a73e8';
+                if (checkIcon) checkIcon.classList.remove('d-none');
+            } else {
+                chip.classList.remove('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('d-none');
+            }
+        });
+        renderEditSelectedCropsSummary();
 
         const modal = new bootstrap.Modal(editLandModalEl);
         modal.show();
+
+        // Initialize Map Picker inside modal after visible
+        setTimeout(() => {
+            if (typeof L === 'undefined') return;
+
+            const mapContainer = document.getElementById('editPickerMap');
+            if (!mapContainer) return;
+
+            if (editPickerMapInstance) {
+                editPickerMapInstance.remove();
+                editPickerMapInstance = null;
+            }
+
+            editPickerMapInstance = L.map('editPickerMap').setView([lat, lng], 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(editPickerMapInstance);
+
+            editPickerMarker = L.marker([lat, lng]).addTo(editPickerMapInstance);
+
+            editPickerMapInstance.on('click', function (e) {
+                const clickLat = e.latlng.lat.toFixed(6);
+                const clickLng = e.latlng.lng.toFixed(6);
+
+                document.getElementById('edit_latitude').value = clickLat;
+                document.getElementById('edit_longitude').value = clickLng;
+
+                if (editPickerMarker) {
+                    editPickerMarker.setLatLng(e.latlng);
+                } else {
+                    editPickerMarker = L.marker(e.latlng).addTo(editPickerMapInstance);
+                }
+            });
+
+            editPickerMapInstance.invalidateSize();
+        }, 300);
     };
 
     // Submit Edit Land form
@@ -379,12 +685,18 @@ document.addEventListener("DOMContentLoaded", function () {
         editLandForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
+            const selectedCropsArr = Array.from(editSelectedCrops.values()).map(c => c.label);
+
             const payload = {
                 action: 'update_land',
                 land_id: parseInt(document.getElementById('edit_land_id').value),
                 title: document.getElementById('edit_title').value,
                 address: document.getElementById('edit_address').value,
-                description: document.getElementById('edit_description').value
+                area: parseFloat(document.getElementById('edit_area').value),
+                latitude: parseFloat(document.getElementById('edit_latitude').value),
+                longitude: parseFloat(document.getElementById('edit_longitude').value),
+                description: document.getElementById('edit_description').value,
+                crops: selectedCropsArr.length > 0 ? selectedCropsArr : ['General Gardening']
             };
 
             try {

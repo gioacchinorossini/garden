@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         </div>
 
         <div class="flex justify-between items-center">
-            <a href="#" class="text-xs font-semibold text-drive-primary hover:underline text-decoration-none">Create account</a>
+            <a href="create_account.php" class="text-xs font-semibold text-drive-primary hover:underline text-decoration-none">Create account</a>
             <button type="submit" class="bg-drive-primary hover:bg-drive-primary-hover active:scale-95 text-white font-semibold text-sm px-6 py-2.5 rounded-full shadow-md transition-all">Next</button>
         </div>
     </form>

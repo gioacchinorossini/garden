@@ -16,7 +16,7 @@ if (!isset($_SESSION['mock_lands'])) {
             'latitude' => 14.5995,
             'longitude' => 120.9842,
             'area' => 250.00,
-            'status' => 'pending',
+            'status' => 'approved',
             'reason' => '',
             'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.',
             'crops' => ['Root Vegetables', 'Tuber Crops']
@@ -65,13 +65,13 @@ if (!isset($_SESSION['mock_lands'])) {
 
 if (!isset($_SESSION['mock_plots'])) {
     $_SESSION['mock_plots'] = [
-        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied'],
-        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied'],
-        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available'],
-        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available'],
-        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available'],
-        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available'],
-        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available']
+        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg', 'crops' => ['Tomato', 'Herbs']],
+        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Lettuce', 'crop_icon' => 'romaine/romaine.svg', 'crops' => ['Lettuce', 'Spinach']],
+        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available', 'crop' => 'Herbs', 'crop_icon' => 'basil/basil.svg', 'crops' => ['Herbs', 'Tomato']],
+        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available', 'crop' => 'Carrot', 'crop_icon' => 'carrot/carrot.svg', 'crops' => ['Carrot', 'Potato']],
+        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg', 'crops' => ['Tomato', 'Pepper']],
+        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available', 'crop' => 'Potato', 'crop_icon' => 'russet-potato/russet-potato.svg', 'crops' => ['Potato', 'Carrot']],
+        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available', 'crop' => 'Beans', 'crop_icon' => 'broad-bean/broad-bean.svg', 'crops' => ['Beans', 'Squash']]
     ];
 }
 
@@ -143,6 +143,10 @@ if ($method === 'POST') {
         $title = isset($input['title']) ? htmlspecialchars(trim($input['title'])) : '';
         $address = isset($input['address']) ? htmlspecialchars(trim($input['address'])) : '';
         $description = isset($input['description']) ? htmlspecialchars(trim($input['description'])) : '';
+        $area = isset($input['area']) ? floatval($input['area']) : null;
+        $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
+        $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
+        $crops = isset($input['crops']) ? $input['crops'] : null;
 
         if (!$land_id || empty($title) || empty($address)) {
             http_response_code(400);
@@ -159,6 +163,10 @@ if ($method === 'POST') {
                 $land['title'] = $title;
                 $land['address'] = $address;
                 $land['description'] = $description;
+                if ($area !== null && $area > 0) $land['area'] = $area;
+                if ($latitude !== null && $latitude != 0) $land['latitude'] = $latitude;
+                if ($longitude !== null && $longitude != 0) $land['longitude'] = $longitude;
+                if ($crops !== null) $land['crops'] = $crops;
                 $found = true;
                 break;
             }
@@ -232,12 +240,19 @@ if ($method === 'POST') {
             exit;
         }
 
+        $crops = isset($input['crops']) ? (array)$input['crops'] : [];
+        $crop = isset($input['crop']) ? htmlspecialchars(trim($input['crop'])) : (isset($crops[0]) ? htmlspecialchars(trim($crops[0])) : 'Tomato');
+        $crop_icon = isset($input['crop_icon']) ? htmlspecialchars(trim($input['crop_icon'])) : 'tomato/tomato.svg';
+
         $newPlot = [
             'id' => count($_SESSION['mock_plots']) + 1,
             'land_id' => $land_id,
             'plot_number' => $plot_number,
             'area' => $area,
-            'status' => 'available'
+            'status' => 'available',
+            'crop' => $crop,
+            'crop_icon' => $crop_icon,
+            'crops' => $crops
         ];
 
         $_SESSION['mock_plots'][] = $newPlot;
@@ -247,6 +262,41 @@ if ($method === 'POST') {
             'message' => 'Plot partition created successfully!',
             'data' => $newPlot
         ]);
+        exit;
+    }
+
+    if ($action === 'update_plot_crops') {
+        $plot_id = isset($input['plot_id']) ? intval($input['plot_id']) : 0;
+        $crops = isset($input['crops']) ? (array)$input['crops'] : [];
+        $crop = isset($input['crop']) ? htmlspecialchars(trim($input['crop'])) : (isset($crops[0]) ? htmlspecialchars(trim($crops[0])) : '');
+        $crop_icon = isset($input['crop_icon']) ? htmlspecialchars(trim($input['crop_icon'])) : '';
+
+        if (!$plot_id) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Plot ID is required.']);
+            exit;
+        }
+
+        $found = false;
+        foreach ($_SESSION['mock_plots'] as &$plot) {
+            if ($plot['id'] === $plot_id) {
+                $plot['crops'] = $crops;
+                if ($crop) $plot['crop'] = $crop;
+                if ($crop_icon) $plot['crop_icon'] = $crop_icon;
+                $found = true;
+                break;
+            }
+        }
+
+        if ($found) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Plot crop permissions updated successfully!'
+            ]);
+        } else {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'message' => 'Plot partition not found.']);
+        }
         exit;
     }
 

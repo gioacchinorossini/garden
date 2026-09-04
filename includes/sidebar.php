@@ -7,7 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $bp = isset($base_path) ? $base_path : '';
 ?>
 <!-- Left Sidebar -->
-<aside class="w-64 flex-shrink-0 px-3 flex flex-col justify-between hidden md:flex h-full pb-4">
+<aside class="w-64 flex-shrink-0 px-3 py-4 flex flex-col justify-between hidden md:flex h-full bg-white border-r border-drive-border">
     <div>
         <!-- Floating + New Action Button (Dynamic based on role)
         <div class="mb-4">

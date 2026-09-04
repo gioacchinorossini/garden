@@ -13,11 +13,16 @@ if (!isset($_SESSION['user_name']))
 
 if (!isset($_SESSION['mock_lands'])) {
     $_SESSION['mock_lands'] = [
-        ['id' => 1, 'title' => 'Sunnyvale Gardening Lot', 'landowner' => 'John Landowner', 'address' => '124 Green Ave, Sunnyvale', 'latitude' => 14.5995, 'longitude' => 120.9842, 'area' => 250.00, 'status' => 'pending', 'reason' => '', 'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.', 'crops' => ['Root Vegetables', 'Tuber Crops']],
+        ['id' => 1, 'title' => 'Sunnyvale Gardening Lot', 'landowner' => 'John Landowner', 'address' => '124 Green Ave, Sunnyvale', 'latitude' => 14.5995, 'longitude' => 120.9842, 'area' => 250.00, 'status' => 'approved', 'reason' => '', 'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.', 'crops' => ['Root Vegetables', 'Tuber Crops']],
         ['id' => 2, 'title' => 'Downtown Rooftop Garden', 'landowner' => 'John Landowner', 'address' => '45 Main St, Business District', 'latitude' => 14.6010, 'longitude' => 120.9890, 'area' => 85.50, 'status' => 'approved', 'reason' => '', 'description' => 'An elevated deck prepared with planters and drip irrigation, ideal for leafy greens and culinary herbs.', 'crops' => ['Leafy Greens', 'Herbs']],
         ['id' => 3, 'title' => 'Riverdale Acres', 'landowner' => 'Robert Johnson', 'address' => 'Riverside Dr, Block B', 'latitude' => 14.5950, 'longitude' => 120.9780, 'area' => 500.00, 'status' => 'approved', 'reason' => '', 'description' => 'Large idle pasture near the riverbed. High soil quality, direct sunlight access. Excellent for fruits, tomatoes and legumes.', 'crops' => ['Fruits', 'Legumes', 'Leafy Greens']],
         ['id' => 4, 'title' => 'Eastside Clay Meadows', 'landowner' => 'Sarah Connor', 'address' => '789 East Blvd, Clay District', 'latitude' => 14.6120, 'longitude' => 121.0020, 'area' => 180.00, 'status' => 'approved', 'reason' => '', 'description' => 'Rich heavy clay loam soil retaining moisture well. Best suited for cabbage, broccoli, and tuber crops.', 'crops' => ['Cruciferous', 'Tuber Crops']],
     ];
+} else {
+    foreach ($_SESSION['mock_lands'] as &$ml) {
+        $ml['status'] = 'approved';
+    }
+    unset($ml);
 }
 if (!isset($_SESSION['mock_plots'])) {
     $_SESSION['mock_plots'] = [
@@ -125,7 +130,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             </div>
 
             <!-- Filter chips -->
-            <div class="mobile-map-chips-bar" id="mapChipsBar">
+            <div class="mobile-map-chips-bar d-flex align-items-center gap-2" id="mapChipsBar">
                 <button type="button" class="map-chip active" onclick="filterMapLands('all',this)">
                     All (<?php echo count($lands_data); ?>)
                 </button>
@@ -135,9 +140,56 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 <button type="button" class="map-chip" onclick="filterMapLands('approved',this)">
                     <i class="bi bi-check-circle-fill me-1" style="color:#198754;"></i>Approved
                 </button>
-                <button type="button" class="map-chip" onclick="filterMapLands('pending',this)">
-                    <i class="bi bi-clock-fill me-1" style="color:#ffc107;"></i>Pending
-                </button>
+
+                <!-- Crop Filter Dropdown -->
+                <div class="dropdown d-inline-block">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5 border-0" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius:20px;padding:5px 12px;background:#fff;font-weight:500;box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                        <img id="selectedCropFilterIcon" src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;object-fit:contain;">
+                        <span id="selectedCropFilterLabel">All Crops</span>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown" style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1050;">
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2 active" href="#" onclick="selectCropFilter('all', 'All Crops', 'generic-plant/generic-plant.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;"> <span>All Crops</span>
+                        </a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('tomato', 'Tomato', 'tomato/tomato.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/tomato/tomato.svg" style="width:16px;height:16px;"> <span>Tomato</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('lettuce', 'Lettuce / Greens', 'romaine/romaine.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/romaine/romaine.svg" style="width:16px;height:16px;"> <span>Lettuce / Greens</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('herbs', 'Herbs / Basil', 'basil/basil.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/basil/basil.svg" style="width:16px;height:16px;"> <span>Herbs / Basil</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('carrot', 'Carrot / Root Vegs', 'carrot/carrot.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/carrot/carrot.svg" style="width:16px;height:16px;"> <span>Carrot / Root Vegs</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('potato', 'Potato / Tubers', 'russet-potato/russet-potato.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/russet-potato/russet-potato.svg" style="width:16px;height:16px;"> <span>Potato / Tubers</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('pepper', 'Pepper', 'red-bell-pepper/red-bell-pepper.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/red-bell-pepper/red-bell-pepper.svg" style="width:16px;height:16px;"> <span>Pepper</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('eggplant', 'Eggplant', 'eggplant/eggplant.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/eggplant/eggplant.svg" style="width:16px;height:16px;"> <span>Eggplant</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('cucumber', 'Cucumber', 'cucumber/cucumber.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/cucumber/cucumber.svg" style="width:16px;height:16px;"> <span>Cucumber</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('spinach', 'Spinach', 'spinach/spinach.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/spinach/spinach.svg" style="width:16px;height:16px;"> <span>Spinach</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('beans', 'Beans / Legumes', 'broad-bean/broad-bean.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/broad-bean/broad-bean.svg" style="width:16px;height:16px;"> <span>Beans / Legumes</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('corn', 'Corn', 'corn/corn.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/corn/corn.svg" style="width:16px;height:16px;"> <span>Corn</span>
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('strawberry', 'Fruits / Berries', 'strawberry/strawberry.svg', this)">
+                            <img src="<?php echo $base_path; ?>assets/crop-icons/strawberry/strawberry.svg" style="width:16px;height:16px;"> <span>Fruits / Berries</span>
+                        </a></li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Leaflet Map -->
@@ -200,7 +252,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 </div>
 
                 <!-- Stat tiles -->
-                <div class="d-flex gap-2 mb-3 mt-1">
+                <div class="d-flex gap-2 mb-2 mt-1">
                     <div class="sheet-stat-tile">
                         <span class="stat-label">Area</span>
                         <span id="sheetLandArea" class="stat-value">— m²</span>
@@ -209,10 +261,14 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                         <span class="stat-label">Plots</span>
                         <span id="sheetPlotsCount" class="stat-value" style="color:#198754;">— / —</span>
                     </div>
-                    <div class="sheet-stat-tile">
-                        <span class="stat-label">Crops</span>
-                        <span id="sheetCropsCount" class="stat-value" style="font-size:0.72rem;color:#6c757d;">—</span>
+                </div>
+
+                <!-- Permitted Crops Section with Icons -->
+                <div class="mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="text-secondary fw-semibold" style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Permitted Crops</span>
                     </div>
+                    <div id="sheetPermittedCropsContainer" class="d-flex flex-wrap gap-1.5 align-items-center"></div>
                 </div>
 
                 <!-- Description -->
@@ -253,6 +309,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 </main>
 
 <script>
+    const basePath = '<?php echo $base_path; ?>';
     const landsData = <?php echo json_encode($lands_data); ?>;
     const plotsData = <?php echo json_encode($plots_data); ?>;
     let currentLandId = null;
@@ -401,14 +458,22 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             }).addTo(landownerMap);
             mapMarkers.push(gardenSquare);
 
-            // 2. Main Garden Pin
+            // 2. Main Garden Pin with Plant Icon Badge support
+            const activeCropIcon = selectedCropFilterVal !== 'all' 
+                ? getCropIconPath(selectedCropFilterVal)
+                : (land.crops && land.crops[0] ? getCropIconPath(land.crops[0]) : null);
+
+            const cropPinContent = activeCropIcon
+                ? `<img src="${basePath}assets/crop-icons/${activeCropIcon}" style="width:24px;height:24px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;box-shadow: 0 2px 6px rgba(0,0,0,0.3);" alt="Crop Icon">`
+                : `<i class="bi ${approved ? 'bi-tree-fill' : 'bi-clock-fill'}"></i>`;
+
             const icon = L.divIcon({
                 className: '',
-                html: `<div class="land-map-pin" style="background:${pinColor};">
-                       <i class="bi ${approved ? 'bi-tree-fill' : 'bi-clock-fill'}"></i>
+                html: `<div class="land-map-pin d-flex align-items-center justify-content-center" style="background:${pinColor};width:42px;height:42px;border-radius:50%;border:3px solid #fff;box-shadow: 0 4px 12px rgba(0,0,0,0.25);cursor:pointer;">
+                       ${cropPinContent}
                    </div>`,
                 iconSize: [42, 42],
-                iconAnchor: [21, 42]
+                iconAnchor: [21, 21]
             });
 
             const marker = L.marker([lat, lng], { icon }).addTo(landownerMap);
@@ -466,9 +531,43 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             }
         });
 
-        if (bounds.length) {
-            landownerMap.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+    const CROP_ICON_MAP = {
+        'tomato': 'tomato/tomato.svg',
+        'lettuce': 'romaine/romaine.svg',
+        'leafy greens': 'romaine/romaine.svg',
+        'romaine': 'romaine/romaine.svg',
+        'herbs': 'basil/basil.svg',
+        'basil': 'basil/basil.svg',
+        'pepper': 'red-bell-pepper/red-bell-pepper.svg',
+        'carrot': 'carrot/carrot.svg',
+        'root vegetables': 'carrot/carrot.svg',
+        'tuber crops': 'russet-potato/russet-potato.svg',
+        'potato': 'russet-potato/russet-potato.svg',
+        'eggplant': 'eggplant/eggplant.svg',
+        'cucumber': 'cucumber/cucumber.svg',
+        'spinach': 'spinach/spinach.svg',
+        'beans': 'broad-bean/broad-bean.svg',
+        'legumes': 'broad-bean/broad-bean.svg',
+        'squash': 'yellow-squash/yellow-squash.svg',
+        'onion': 'red-onion/red-onion.svg',
+        'corn': 'corn/corn.svg',
+        'garlic': 'garlic/garlic.svg',
+        'mushroom': 'generic-mushroom/generic-mushroom.svg',
+        'peas': 'snap-pea/snap-pea.svg',
+        'fruits': 'strawberry/strawberry.svg',
+        'strawberry': 'strawberry/strawberry.svg',
+        'broccoli': 'broccoli/broccoli.svg'
+    };
+
+    function getCropIconPath(cropName) {
+        if (!cropName) return 'generic-plant/generic-plant.svg';
+        const lower = cropName.toLowerCase().trim();
+        for (const key in CROP_ICON_MAP) {
+            if (lower.includes(key) || key.includes(lower)) {
+                return CROP_ICON_MAP[key];
+            }
         }
+        return 'generic-plant/generic-plant.svg';
     }
 
     function openLandCardSheet(land) {
@@ -516,8 +615,26 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             `<i data-lucide="map-pin" style="width:12px;height:12px;" class="text-success flex-shrink-0"></i> ${land.address}`;
         document.getElementById('sheetLandArea').textContent = `${parseFloat(land.area).toFixed(0)} m²`;
         document.getElementById('sheetPlotsCount').textContent = `${land.occupied_plots ?? 0} / ${land.total_plots ?? 0}`;
-        const crops = Array.isArray(land.crops) ? land.crops.slice(0, 2).join(', ') : (land.crops || '—');
-        document.getElementById('sheetCropsCount').textContent = crops;
+
+        // Render Permitted Crops as SVG icons inside sheet
+        const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+        const cropsContainer = document.getElementById('sheetPermittedCropsContainer');
+        if (cropsContainer) {
+            if (!rawCrops || rawCrops.length === 0) {
+                cropsContainer.innerHTML = `<span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size:0.72rem;"><img src="${basePath}assets/crop-icons/generic-plant/generic-plant.svg" style="width:14px;height:14px;margin-right:4px;">All Crops Permitted</span>`;
+            } else {
+                cropsContainer.innerHTML = rawCrops.map(crop => {
+                    const iconPath = getCropIconPath(crop);
+                    return `
+                        <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size:0.72rem;font-weight:500;">
+                            <img src="${basePath}assets/crop-icons/${iconPath}" style="width:15px;height:15px;object-fit:contain;" alt="${crop}">
+                            <span>${crop}</span>
+                        </span>
+                    `;
+                }).join('');
+            }
+        }
+
         document.getElementById('sheetLandDesc').textContent = land.description || '';
         document.getElementById('sheetManageBtn').href = `lands.php?id=${land.id}`;
 
@@ -538,24 +655,38 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     const isAvail = p.status === 'available';
                     const isOccupied = p.status === 'occupied';
                     const bgClass = isAvail ? 'bg-success-subtle border-success-subtle text-success' : (isOccupied ? 'bg-primary-subtle border-primary-subtle text-primary' : 'bg-light border text-secondary');
-                    const badgeText = isAvail ? 'Available' : (isOccupied ? 'Occupied' : 'Maintenance');
-                    const cropImg = p.crop_icon
-                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:18px;height:18px;object-fit:contain;" alt="${p.crop || 'Plant'}">`
-                        : `<i class="bi bi-sprout-fill text-success" style="font-size:12px;"></i>`;
+                    const badgeText = isAvail ? 'Available' : (isOccupied ? 'Leased (Locked)' : 'Maintenance');
+                    const lockIcon = isOccupied ? `<i class="bi bi-lock-fill text-primary" style="font-size:10px;" title="Leased Plot (Locked)"></i>` : (isAvail ? `<i class="bi bi-check-circle-fill text-success" style="font-size:10px;"></i>` : `<i class="bi bi-tools text-secondary" style="font-size:10px;"></i>`);
+                    
+                    const allowedCrops = (p.crops && p.crops.length > 0) ? p.crops : (p.crop ? [p.crop] : []);
+                    let cropsBadgesHtml = allowedCrops.slice(0, 3).map(c => `
+                        <img src="${basePath}assets/crop-icons/${getCropIconPath(c)}" style="width:14px;height:14px;object-fit:contain;" title="Permitted: ${c}" alt="${c}">
+                    `).join('');
+                    if (allowedCrops.length === 0) {
+                        cropsBadgesHtml = `<span style="font-size:9px;" class="text-muted">All Permitted</span>`;
+                    }
 
                     return `
-                        <div class="col-6 col-sm-4" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;">
+                        <div class="col-6 col-sm-4" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;" title="${badgeText}">
                             <div class="p-2 rounded-3 border ${bgClass} d-flex flex-column justify-content-between h-100 shadow-xs hover-elevate transition-all">
                                 <div class="fw-bold d-flex align-items-center justify-content-between">
                                     <span class="d-flex align-items-center gap-1">
-                                        ${cropImg}
+                                        <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:12px;"></i>
                                         <span style="font-size:0.75rem;">${p.plot_number}</span>
                                     </span>
-                                    <span class="badge ${isAvail ? 'bg-success' : (isOccupied ? 'bg-primary' : 'bg-secondary')} rounded-circle" style="width:6px;height:6px;padding:0;"></span>
+                                    ${lockIcon}
                                 </div>
-                                <div class="mt-1 d-flex justify-content-between align-items-center text-muted" style="font-size:0.68rem;">
+                                <div class="mt-1 mb-1 d-flex align-items-center gap-1 flex-wrap bg-white px-1.5 py-1 rounded border border-drive-border">
+                                    <span class="text-muted uppercase" style="font-size:8px;font-weight:700;">Permitted:</span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        ${cropsBadgesHtml}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center text-muted" style="font-size:0.68rem;">
                                     <span>${parseFloat(p.area).toFixed(0)} m²</span>
-                                    <span class="fw-medium text-capitalize">${p.crop ? p.crop : badgeText}</span>
+                                    <a href="lands.php?id=${land.id}" onclick="event.stopPropagation();" class="text-success text-decoration-none font-semibold hover:underline" style="font-size:0.65rem;" title="Edit Permitted Crops">
+                                        <i class="bi bi-pencil"></i> Crops
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -633,18 +764,20 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
                     : '';
 
+                const lockBadgeText = isOccupied ? '🔒 Leased (Locked)' : (isAvail ? '🟢 Available' : '⚙️ Maintenance');
+
                 plotPoly.bindTooltip(
                     `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
                         <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
                         ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
-                        <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${p.status}</span>
+                        <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${lockBadgeText}</span>
                     </div>`,
                     { permanent: false, direction: 'center' }
                 );
                 plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
                 activePlotLayers.push(plotPoly);
 
-                // Center Plot Tag Marker with Plant Icon
+                // Center Plot Tag Marker with Plant Icon & Lock Badge
                 const pCenterLat = (pMinLat + pMaxLat) / 2;
                 const pCenterLng = (pMinLng + pMaxLng) / 2;
 
@@ -652,15 +785,18 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
                     : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
 
+                const lockIconTag = isOccupied ? `<i class="bi bi-lock-fill" style="font-size:9px;color:#ffc107;"></i>` : '';
+
                 const plotTagIcon = L.divIcon({
                     className: '',
                     html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
                         style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
                         ${cropImgTag}
                         <span>${p.plot_number}</span>
+                        ${lockIconTag}
                     </div>`,
-                    iconSize: [84, 26],
-                    iconAnchor: [42, 13]
+                    iconSize: [92, 26],
+                    iconAnchor: [46, 13]
                 });
 
                 const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(landownerMap);
@@ -689,17 +825,54 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         }
     }
 
+    let currentLandFilterType = 'all';
+    let selectedCropFilterVal = 'all';
+
+    function selectCropFilter(val, label, iconRelPath, el) {
+        selectedCropFilterVal = val;
+        document.getElementById('selectedCropFilterLabel').textContent = label;
+        document.getElementById('selectedCropFilterIcon').src = basePath + 'assets/crop-icons/' + iconRelPath;
+
+        const parentMenu = el.closest('.dropdown-menu');
+        if (parentMenu) {
+            parentMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        applyCombinedMapFilters();
+    }
+
     function recenterLandownerMap() {
-        renderMapPins(landsData);
+        applyCombinedMapFilters();
         closeLandCardSheet();
     }
 
     function filterMapLands(type, btn) {
-        document.querySelectorAll('.map-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#mapChipsBar > .map-chip').forEach(c => c.classList.remove('active'));
         if (btn) btn.classList.add('active');
-        const map = { my: l => l.landowner === 'John Landowner', approved: l => l.status === 'approved', pending: l => l.status === 'pending' };
-        renderMapPins(type === 'all' ? landsData : landsData.filter(map[type]));
+        currentLandFilterType = type;
+        applyCombinedMapFilters();
         closeLandCardSheet();
+    }
+
+    function applyCombinedMapFilters() {
+        let list = landsData;
+        if (currentLandFilterType === 'my') list = list.filter(l => l.landowner === 'John Landowner');
+        else if (currentLandFilterType === 'approved') list = list.filter(l => l.status === 'approved');
+        else if (currentLandFilterType === 'pending') list = list.filter(l => l.status === 'pending');
+
+        if (selectedCropFilterVal !== 'all') {
+            list = list.filter(land => {
+                const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+                const landPlots = plotsData.filter(p => p.land_id == land.id);
+                const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
+                
+                const allCrops = [...rawCrops, ...plotCrops].map(c => c.toLowerCase());
+                return allCrops.some(c => c.includes(selectedCropFilterVal.toLowerCase()) || selectedCropFilterVal.toLowerCase().includes(c));
+            });
+        }
+
+        renderMapPins(list);
     }
 </script>
 

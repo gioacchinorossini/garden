@@ -52,7 +52,7 @@ body {
     display: flex;
     flex: 1;
     overflow: hidden;
-    padding: 0 1rem 1rem 1rem;
+    padding: 0;
 }
 
 /* Sidebar Navigation (Hidden, replaced by bottom floating dock) */
@@ -115,12 +115,11 @@ body {
 .workspace-surface {
     flex: 1;
     background-color: var(--drive-surface);
-    border-radius: var(--drive-radius-lg);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border-radius: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid var(--drive-border);
+    border: none;
 }
 
 /* Header & Search Bar */
@@ -354,12 +353,12 @@ body {
    ========================================================================== */
 @media (max-width: 768px) {
     .main-layout {
-        padding: 0.5rem;
+        padding: 0;
     }
 
     /* Make the workspace cover full screen width */
     .workspace-surface {
-        border-radius: var(--drive-radius-md);
+        border-radius: 0;
         margin: 0;
         border: none;
     }
@@ -824,6 +823,7 @@ a.text-decoration-none:hover {
     background: #ffffff;
     border-radius: 28px 28px 0 0;
     padding: 0 16px 20px;
+    overflow: hidden;
     box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.14), 0 -2px 8px rgba(0, 0, 0, 0.06);
     transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease;
     will-change: transform;
@@ -855,16 +855,16 @@ a.text-decoration-none:hover {
     height: 4px;
     border-radius: 2px;
     background: #dee2e6;
-    margin: 12px auto 16px;
+    margin: 8px auto 12px;
     flex-shrink: 0;
 }
 
 /* Sheet status strip at top */
 .sheet-status-strip {
-    height: 3px;
-    border-radius: 3px 3px 0 0;
+    height: 5px;
     margin: 0 -16px;
-    margin-bottom: 0;
+    width: calc(100% + 32px);
+    transition: background-color 0.3s ease;
 }
 
 /* Sheet stat tiles */
