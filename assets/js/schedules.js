@@ -50,27 +50,34 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         schedulesContainer.innerHTML = schedulesList.map(sched => {
-            let iconHtml = '';
-            if (sched.task_type === 'planting') {
-                iconHtml = `<i class="bi bi-seedling text-success fs-4"></i>`;
-            } else if (sched.task_type === 'watering') {
-                iconHtml = `<i class="bi bi-droplet-fill text-primary fs-4"></i>`;
-            } else if (sched.task_type === 'weeding') {
-                iconHtml = `<i class="bi bi-scissors text-warning fs-4"></i>`;
-            } else {
-                iconHtml = `<i class="bi bi-calendar-check-fill text-secondary fs-4"></i>`;
-            }
+            const typeMap = {
+                watering:    { icon: 'bi-droplet-fill',        bg: 'bg-primary-subtle',   color: 'text-primary',         label: 'Watering'    },
+                planting:    { icon: 'bi-seedling',             bg: 'bg-success-subtle',   color: 'text-success',         label: 'Planting'    },
+                weeding:     { icon: 'bi-scissors',             bg: 'bg-warning-subtle',   color: 'text-warning-emphasis',label: 'Weeding'     },
+                harvesting:  { icon: 'bi-basket3-fill',         bg: 'bg-danger-subtle',    color: 'text-danger',          label: 'Harvesting'  },
+                fertilizing: { icon: 'bi-droplet-half',         bg: 'bg-info-subtle',      color: 'text-info-emphasis',   label: 'Fertilizing' },
+            };
+            const t = typeMap[sched.task_type] || { icon: 'bi-calendar-check-fill', bg: 'bg-secondary-subtle', color: 'text-secondary', label: sched.task_type ? sched.task_type.charAt(0).toUpperCase() + sched.task_type.slice(1) : 'Task' };
+
+            const iconSquare = `
+                <div class="rounded-3 d-flex align-items-center justify-content-center ${t.bg} ${t.color}"
+                     style="width:44px;height:44px;min-width:44px;font-size:1.3rem;">
+                    <i class="bi ${t.icon}"></i>
+                </div>
+                <div>
+                    <span class="d-block text-muted" style="font-size:0.68rem;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;">${t.label}</span>
+                    <h3 class="fs-6 fw-bold m-0 text-dark">${sched.title}</h3>
+                </div>`;
 
             const formattedStart = formatDateTime(sched.start_time);
             const formattedEnd = formatTime(sched.end_time);
 
             return `
-                <div class="card border rounded-4  mb-3" style="border-color: var(--drive-border) !important;">
+                <div class="card border rounded-4 mb-3" style="border-color: var(--drive-border) !important;">
                     <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <div class="d-flex align-items-center gap-2">
-                                ${iconHtml}
-                                <h3 class="fs-6 fw-bold m-0 text-dark">${sched.title}</h3>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                ${iconSquare}
                             </div>
                             <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1" style="font-size: 10px;">
                                 ${sched.status.charAt(0).toUpperCase() + sched.status.slice(1)}
@@ -78,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
 
                         <p class="text-secondary mb-3" style="font-size: 0.825rem;">${sched.description}</p>
-                        
+
                         <div class="row g-2 p-3 bg-light rounded-3 text-secondary mb-1" style="font-size: 0.75rem;">
                             <div class="col-sm-6"><i class="bi bi-geo-alt-fill me-1"></i> <strong>Location:</strong> ${sched.land_title}</div>
                             <div class="col-sm-6"><i class="bi bi-person-fill me-1"></i> <strong>Assigned to:</strong> ${sched.gardener ? sched.gardener : 'Unassigned'}</div>

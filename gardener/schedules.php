@@ -9,33 +9,31 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Make sure session schedules exist
-if (!isset($_SESSION['mock_schedules'])) {
-    $_SESSION['mock_schedules'] = [
-        [
-            'id' => 1,
-            'land_title' => 'Downtown Rooftop Garden',
-            'gardener' => 'Mary Gardener',
-            'title' => 'Water the tomato plant',
-            'description' => 'Review the pressure valve on the rooftop irrigation box and clear blockages in B-1 and B-2 drip lines.',
-            'start_time' => '2026-08-08 09:00:00',
-            'end_time' => '2026-08-08 11:30:00',
-            'task_type' => 'watering',
-            'status' => 'scheduled'
-        ],
-        [
-            'id' => 2,
-            'land_title' => 'Downtown Rooftop Garden',
-            'gardener' => 'Mary Gardener',
-            'title' => 'Tomato Seedling Planting',
-            'description' => 'Transplant tomato seedlings into Plot A-1 and A-2 organic garden compost beds.',
-            'start_time' => '2026-08-09 07:00:00',
-            'end_time' => '2026-08-09 10:00:00',
-            'task_type' => 'planting',
-            'status' => 'scheduled'
-        ]
-    ];
-}
+// Always reset so code changes immediately reflect (no stale session data)
+$_SESSION['mock_schedules'] = [
+    [
+        'id' => 1,
+        'land_title' => 'Downtown Rooftop Garden',
+        'gardener' => 'Mary Gardener',
+        'title' => 'Water the tomato plant',
+        'description' => 'Inspect and water all tomato plants in B-1 and B-2. Check soil moisture levels.',
+        'start_time' => '2026-08-08 09:00:00',
+        'end_time' => '2026-08-08 11:30:00',
+        'task_type' => 'watering',
+        'status' => 'scheduled'
+    ],
+    [
+        'id' => 2,
+        'land_title' => 'Downtown Rooftop Garden',
+        'gardener' => 'Mary Gardener',
+        'title' => 'Tomato Seedling Planting',
+        'description' => 'Transplant tomato seedlings into Plot A-1 and A-2 organic garden compost beds.',
+        'start_time' => '2026-08-09 07:00:00',
+        'end_time' => '2026-08-09 10:00:00',
+        'task_type' => 'planting',
+        'status' => 'scheduled'
+    ]
+];
 
 // Toggle schedule completion
 if (isset($_GET['complete_id'])) {
@@ -83,22 +81,29 @@ if (isset($_GET['complete_id'])) {
                             <div class="card border rounded-4 " style="border-color: var(--drive-border) !important;">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <!-- Icons -->
-                                            <?php if ($sched['task_type'] === 'planting'): ?>
-                                                <i class="bi bi-seedling text-success fs-4"></i>
-                                            <?php elseif ($sched['task_type'] === 'watering'): ?>
-                                                <i class="bi bi-droplet-fill text-primary fs-4"></i>
-                                            <?php elseif ($sched['task_type'] === 'weeding'): ?>
-                                                <i class="bi bi-scissors text-warning fs-4"></i>
-                                            <?php else: ?>
-                                                <i class="bi bi-calendar-check-fill text-secondary fs-4"></i>
-                                            <?php endif; ?>
-
-                                            <h3
-                                                class="fs-6 fw-bold m-0 <?php echo $sched['status'] == 'completed' ? 'text-decoration-line-through text-muted' : 'text-dark'; ?>">
-                                                <?php echo htmlspecialchars($sched['title']); ?>
-                                            </h3>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <!-- Task type icon in colored square -->
+                                            <?php
+                                            $type = $sched['task_type'];
+                                            $typeMap = [
+                                                'watering' => ['icon' => 'bi-droplet-fill',  'bg' => 'bg-primary-subtle',  'color' => 'text-primary',        'label' => 'Watering'],
+                                                'planting' => ['icon' => 'bi-seedling',        'bg' => 'bg-success-subtle',  'color' => 'text-success',        'label' => 'Planting'],
+                                                'weeding'  => ['icon' => 'bi-scissors',        'bg' => 'bg-warning-subtle',  'color' => 'text-warning-emphasis','label' => 'Weeding'],
+                                                'harvesting'=> ['icon'=> 'bi-basket3-fill',   'bg' => 'bg-danger-subtle',   'color' => 'text-danger',         'label' => 'Harvesting'],
+                                                'fertilizing'=> ['icon'=>'bi-droplet-half',   'bg' => 'bg-info-subtle',     'color' => 'text-info-emphasis',  'label' => 'Fertilizing'],
+                                            ];
+                                            $t = $typeMap[$type] ?? ['icon' => 'bi-calendar-check-fill', 'bg' => 'bg-secondary-subtle', 'color' => 'text-secondary', 'label' => ucfirst($type ?: 'Task')];
+                                            ?>
+                                            <div class="rounded-3 d-flex align-items-center justify-content-center <?php echo $t['bg']; ?> <?php echo $t['color']; ?>"
+                                                 style="width:44px; height:44px; min-width:44px; font-size:1.3rem;">
+                                                <i class="bi <?php echo $t['icon']; ?>"></i>
+                                            </div>
+                                            <div>
+                                                <span class="d-block text-muted" style="font-size:0.68rem; font-weight:600; letter-spacing:0.4px; text-transform:uppercase;"><?php echo $t['label']; ?></span>
+                                                <h3 class="fs-6 fw-bold m-0 <?php echo $sched['status'] == 'completed' ? 'text-decoration-line-through text-muted' : 'text-dark'; ?>">
+                                                    <?php echo htmlspecialchars($sched['title']); ?>
+                                                </h3>
+                                            </div>
                                         </div>
                                         <span
                                             class="badge <?php echo $sched['status'] == 'completed' ? 'bg-success' : 'bg-success-subtle text-success'; ?> rounded-pill px-3 py-1"

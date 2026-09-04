@@ -51,14 +51,12 @@ if (isset($_GET['switch_role'])) {
 <!-- Top Navigation Bar -->
 <header class="h-16 flex items-center justify-between px-6 bg-drive-canvas z-10">
     <!-- Left: Branding -->
-    <div class="flex items-center gap-2" style="min-width: 240px;">
-        <div class="text-drive-primary text-2xl flex items-center justify-center">
-            <i class="bi bi-patch-check-fill"></i>
-        </div>
+    <a href="<?php echo $bp; ?>index.php" class="flex items-center gap-2 text-decoration-none" style="min-width: 240px;">
+        <img src="<?php echo $bp; ?>logo.jpeg" alt="IdleLand Logo" class="h-9 w-9 object-contain rounded-full">
         <span class="text-xl font-semibold text-drive-text-main font-['Outfit'] tracking-tight">
             <span class="text-drive-primary">Idle</span>Land
         </span>
-    </div>
+    </a>
 
     <!-- Center: Google Drive Search Bar -->
     <div class="flex-1 max-w-[720px] mx-4 hidden md:block">
@@ -93,8 +91,19 @@ if (isset($_GET['switch_role'])) {
         </form>
     </div>
 
-    <!-- Right: Account Details & Role Switcher -->
+    <!-- Right: Account Details & UI/Role Switchers -->
     <div class="flex items-center gap-3">
+        <!-- UI Mode Switcher (Drive UI vs Modern Studio UI) -->
+        <?php $current_ui = isset($_SESSION['ui_mode']) ? $_SESSION['ui_mode'] : 'drive'; ?>
+        <div class="ui-mode-toggle shadow-sm">
+            <a href="?switch_ui=drive" class="ui-mode-btn <?php echo ($current_ui == 'drive') ? 'active' : ''; ?>" title="Classic Drive Grid UI">
+                <i class="bi bi-grid-fill"></i> <span class="hidden sm:inline">Drive UI</span>
+            </a>
+            <a href="?switch_ui=modern" class="ui-mode-btn <?php echo ($current_ui == 'modern') ? 'active' : ''; ?>" title="Modern Botanical Studio UI">
+                <i class="bi bi-stars"></i> <span class="hidden sm:inline">Modern UI</span>
+            </a>
+        </div>
+
         <!-- Quick Role Switcher for Demo -->
         <div class="dropdown">
             <button
@@ -125,10 +134,16 @@ if (isset($_GET['switch_role'])) {
 
         <!-- User Profile Avatar -->
         <div class="flex items-center gap-2">
-            <div class="text-white rounded-full flex items-center justify-center font-bold text-sm bg-drive-primary"
-                style="width: 38px; height: 38px;">
+            <?php 
+            $profile_url = "#";
+            if ($role === 'landowner') {
+                $profile_url = $bp . "landowner/profile.php";
+            }
+            ?>
+            <a href="<?php echo $profile_url; ?>" class="text-white text-decoration-none rounded-full flex items-center justify-center font-bold text-sm bg-drive-primary hover:opacity-90 transition-opacity"
+                style="width: 38px; height: 38px;" title="View Profile">
                 <?php echo strtoupper(substr($_SESSION['user_name'], 0, 1)); ?>
-            </div>
+            </a>
         </div>
     </div>
 </header>

@@ -14,8 +14,7 @@ if (session_status() == PHP_SESSION_NONE) {
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Community Gardening Map</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Explore nearby idle properties and visual land partitions geographically</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Gardening Map</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="browse.php" class="btn btn-outline-secondary rounded-pill btn-sm px-3">

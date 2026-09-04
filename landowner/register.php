@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $area = floatval($_POST['area']);
     $desc = htmlspecialchars(trim($_POST['description']));
 
-    $plant_types = isset($_POST['plant_types']) ? implode(',', array_map('htmlspecialchars', $_POST['plant_types'])) : '';
+    $seeds = isset($_POST['allowed_seeds']) ? array_map('htmlspecialchars', $_POST['allowed_seeds']) : [];
 
     // Store in mock session lands
     if (!isset($_SESSION['mock_lands'])) {
@@ -26,17 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     $new_id = count($_SESSION['mock_lands']) + 1;
     $_SESSION['mock_lands'][] = [
-        'id'          => $new_id,
-        'title'       => $title,
-        'landowner'   => $_SESSION['user_name'] ?? 'John Landowner',
-        'address'     => $address,
-        'latitude'    => $lat,
-        'longitude'   => $lng,
-        'area'        => $area,
-        'status'      => 'pending',
-        'reason'      => '',
+        'id' => $new_id,
+        'title' => $title,
+        'landowner' => $_SESSION['user_name'] ?? 'John Landowner',
+        'address' => $address,
+        'latitude' => $lat,
+        'longitude' => $lng,
+        'area' => $area,
+        'status' => 'pending',
+        'reason' => '',
         'description' => $desc,
-        'plant_types' => $plant_types
+        'allowed_seeds' => $seeds
     ];
     $success_message = "Land registered successfully! It is now pending Administrator review.";
 }
@@ -46,13 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Register Idle Land</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Submit details about your unused parcel of land to
-                open it for community gardeners</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Register Land</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="lands.php" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
-                <i class="bi bi-arrow-left"></i> Back to My Lands
+                <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
     </div>
@@ -76,93 +74,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <!-- Land Title -->
                     <div class="mb-3">
                         <label for="title" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">LAND / PROPERTY NAME</label>
+                            style="font-size: 0.75rem; font-weight:600;">PROPERTY NAME</label>
                         <input type="text" class="form-control drive-form-control w-100" id="title" name="title"
-                            required placeholder="e.g. Sunnyvale Empty Lot">
+                            required placeholder="Sunnyvale Empty Lot">
                     </div>
 
                     <!-- Address -->
                     <div class="mb-3">
                         <label for="address" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">PHYSICAL ADDRESS</label>
+                            style="font-size: 0.75rem; font-weight:600;">ADDRESS</label>
                         <input type="text" class="form-control drive-form-control w-100" id="address" name="address"
-                            required placeholder="e.g. 124 Green Ave, Sunnyvale">
+                            required placeholder="124 Green Ave, Sunnyvale">
                     </div>
 
                     <!-- Size & Coordinates -->
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="area" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">TOTAL AREA (m²)</label>
+                                style="font-size: 0.75rem; font-weight:600;">AREA (m²)</label>
                             <input type="number" step="0.1" class="form-control drive-form-control w-100" id="area"
-                                name="area" required placeholder="e.g. 250">
+                                name="area" required placeholder="250">
                         </div>
                         <div class="col-md-4">
                             <label for="latitude" class="form-label text-secondary"
                                 style="font-size: 0.75rem; font-weight:600;">LATITUDE</label>
                             <input type="text" class="form-control drive-form-control w-100" id="latitude"
-                                name="latitude" required readonly placeholder="Click map to pick">
+                                name="latitude" required readonly placeholder="Click map">
                         </div>
                         <div class="col-md-4">
                             <label for="longitude" class="form-label text-secondary"
                                 style="font-size: 0.75rem; font-weight:600;">LONGITUDE</label>
                             <input type="text" class="form-control drive-form-control w-100" id="longitude"
-                                name="longitude" required readonly placeholder="Click map to pick">
+                                name="longitude" required readonly placeholder="Click map">
                         </div>
                     </div>
 
                     <!-- Description -->
                     <div class="mb-3">
                         <label for="description" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">DESCRIPTION / GUIDELINES</label>
+                            style="font-size: 0.75rem; font-weight:600;">DESCRIPTION</label>
                         <textarea class="form-control drive-form-control w-100" id="description" name="description"
                             rows="3"
-                            placeholder="Provide information about soil quality, water sources, sun exposure, or rules of your space..."></textarea>
+                            placeholder="Soil quality, water sources, sun exposure, or guidelines..."></textarea>
                     </div>
 
-                    <!-- Plant Types Allowed -->
+                    <!-- Allowed Seed Types / Permitted Crops -->
                     <div class="mb-4">
-                        <label class="form-label text-secondary d-block" style="font-size: 0.75rem; font-weight:600;">ALLOWED PLANT TYPES</label>
-                        <p class="text-muted mb-2" style="font-size: 0.72rem;">Select all crop categories permitted on this land. Gardeners will see these when browsing.</p>
-                        <div class="d-flex flex-wrap gap-2" id="plantChipsContainer">
-                            <?php
-                            $plant_options = [
-                                ['value' => 'vegetables',   'label' => 'Vegetables',    'icon' => 'bi-carrot-fill',        'color' => '#e8f5e9', 'border' => '#4caf50'],
-                                ['value' => 'herbs',        'label' => 'Herbs',          'icon' => 'bi-flower1',            'color' => '#f3e5f5', 'border' => '#9c27b0'],
-                                ['value' => 'fruits',       'label' => 'Fruits',         'icon' => 'bi-apple',              'color' => '#fce4ec', 'border' => '#e91e63'],
-                                ['value' => 'leafy_greens', 'label' => 'Leafy Greens',   'icon' => 'bi-tree',               'color' => '#e0f2f1', 'border' => '#009688'],
-                                ['value' => 'root_crops',   'label' => 'Root Crops',     'icon' => 'bi-diamond-fill',       'color' => '#fff3e0', 'border' => '#ff9800'],
-                                ['value' => 'legumes',      'label' => 'Legumes',        'icon' => 'bi-egg-fill',           'color' => '#e8eaf6', 'border' => '#3f51b5'],
-                                ['value' => 'flowers',      'label' => 'Flowers',        'icon' => 'bi-flower3',            'color' => '#fce4ec', 'border' => '#f06292'],
-                                ['value' => 'grains',       'label' => 'Grains & Cereals','icon' => 'bi-star-fill',         'color' => '#fffde7', 'border' => '#fbc02d'],
-                                ['value' => 'medicinal',    'label' => 'Medicinal',      'icon' => 'bi-heart-pulse-fill',   'color' => '#e8f5e9', 'border' => '#43a047'],
-                                ['value' => 'mushrooms',    'label' => 'Mushrooms',      'icon' => 'bi-cloud-fill',         'color' => '#efebe9', 'border' => '#795548'],
-                            ];
-                            foreach ($plant_options as $opt):
-                            ?>
-                            <label class="plant-chip" style="cursor:pointer;">
-                                <input type="checkbox" name="plant_types[]" value="<?php echo $opt['value']; ?>" class="d-none plant-chip-input">
-                                <span class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill border"
-                                      style="font-size: 0.78rem; font-weight: 500; background: #f8f9fa; border-color: var(--drive-border) !important; transition: all 0.15s ease; user-select: none;"
-                                      data-bg="<?php echo $opt['color']; ?>"
-                                      data-border="<?php echo $opt['border']; ?>">
-                                    <i class="bi <?php echo $opt['icon']; ?>" style="font-size: 0.9rem;"></i>
-                                    <?php echo $opt['label']; ?>
-                                </span>
-                            </label>
-                            <?php endforeach; ?>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label text-secondary m-0"
+                                style="font-size: 0.75rem; font-weight:600;">PERMITTED CROPS</label>
+                            <button type="button" class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1 d-flex align-items-center gap-1.5"
+                                data-bs-toggle="modal" data-bs-target="#permittedCropsModal" style="font-size: 0.75rem;">
+                                <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                                <span>Select Crops</span>
+                            </button>
                         </div>
+                        
+                        <!-- Selected Crops Summary Box -->
+                        <div id="selectedCropsSummary" class="p-3 border rounded-4 bg-light d-flex flex-wrap gap-2 align-items-center"
+                            style="min-height: 52px; border-color: var(--drive-border) !important;">
+                            <span class="text-muted text-xs italic" id="emptyCropsNotice">No specific crops selected (All crops permitted by default). Click "Select Crops" to restrict allowed crop types.</span>
+                        </div>
+
+                        <!-- Hidden container for checked inputs submitted with form -->
+                        <div id="hiddenSeedInputs"></div>
                     </div>
+
+                    <!-- Image Upload (Google style drag panel mockup) -->
                     <div class="mb-4">
-                        <label class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">LAND
-                            PHOTOS</label>
+                        <label class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">PHOTOS</label>
                         <div class="border rounded-4 p-4 text-center bg-light"
                             style="border-style: dashed !important; border-color: var(--drive-border) !important;">
                             <i class="bi bi-cloud-arrow-up fs-2 text-primary mb-2"></i>
-                            <p class="mb-1 text-dark fw-medium" style="font-size: 0.85rem;">Upload files by selection
-                            </p>
-                            <span class="text-secondary d-block mb-3" style="font-size: 0.75rem;">Supported formats:
-                                JPEG, PNG. Max file size: 5MB</span>
+                            <p class="mb-1 text-dark fw-medium" style="font-size: 0.85rem;">Upload files</p>
+                            <span class="text-secondary d-block mb-3" style="font-size: 0.75rem;">JPEG or PNG</span>
                             <input type="file" id="images" name="images[]" multiple class="d-none"
                                 onchange="updateUploadLabel(this)">
                             <button type="button" class="btn btn-sm btn-drive-secondary px-3"
@@ -175,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <!-- Buttons -->
                     <div class="d-flex justify-content-end gap-2">
                         <a href="lands.php" class="btn btn-drive-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-drive-primary">Submit Registry</button>
+                        <button type="submit" class="btn btn-drive-primary">Submit</button>
                     </div>
                 </form>
             </div>
@@ -187,27 +172,187 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div
                         class="card-header bg-light border-bottom py-2 d-flex align-items-center justify-content-between">
                         <span class="fw-semibold text-secondary"
-                            style="font-size: 0.75rem; letter-spacing:0.5px; text-transform:uppercase;">Click Map to
-                            Pick GPS Coordinates</span>
+                            style="font-size: 0.75rem; letter-spacing:0.5px; text-transform:uppercase;">Location Picker</span>
                         <i class="bi bi-geo-fill text-primary"></i>
                     </div>
                     <div id="pickerMap" style="height: 350px; background-color: #e9f2ff;"></div>
-                    <div class="card-body bg-light" style="font-size: 0.75rem;">
-                        <p class="mb-0 text-muted"><i class="bi bi-info-circle-fill me-1 text-primary"></i> Locate your
-                            land parcel on the map and click exactly where it is located. The coordinates will
-                            automatically load into the form.</p>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
+<?php
+$seedTypes = [
+    ['value' => 'tomato', 'label' => 'Tomato', 'icon' => '../assets/crop-icons/tomato/tomato.svg'],
+    ['value' => 'lettuce', 'label' => 'Lettuce', 'icon' => '../assets/crop-icons/romaine/romaine.svg'],
+    ['value' => 'herbs', 'label' => 'Herbs', 'icon' => '../assets/crop-icons/basil/basil.svg'],
+    ['value' => 'pepper', 'label' => 'Pepper', 'icon' => '../assets/crop-icons/red-bell-pepper/red-bell-pepper.svg'],
+    ['value' => 'carrot', 'label' => 'Carrot', 'icon' => '../assets/crop-icons/carrot/carrot.svg'],
+    ['value' => 'eggplant', 'label' => 'Eggplant', 'icon' => '../assets/crop-icons/eggplant/eggplant.svg'],
+    ['value' => 'cucumber', 'label' => 'Cucumber', 'icon' => '../assets/crop-icons/cucumber/cucumber.svg'],
+    ['value' => 'spinach', 'label' => 'Spinach', 'icon' => '../assets/crop-icons/spinach/spinach.svg'],
+    ['value' => 'beans', 'label' => 'Beans', 'icon' => '../assets/crop-icons/broad-bean/broad-bean.svg'],
+    ['value' => 'squash', 'label' => 'Squash', 'icon' => '../assets/crop-icons/yellow-squash/yellow-squash.svg'],
+    ['value' => 'onion', 'label' => 'Onion', 'icon' => '../assets/crop-icons/red-onion/red-onion.svg'],
+    ['value' => 'corn', 'label' => 'Corn', 'icon' => '../assets/crop-icons/corn/corn.svg'],
+    ['value' => 'garlic', 'label' => 'Garlic', 'icon' => '../assets/crop-icons/garlic/garlic.svg'],
+    ['value' => 'potato', 'label' => 'Potato', 'icon' => '../assets/crop-icons/russet-potato/russet-potato.svg'],
+    ['value' => 'mushroom', 'label' => 'Mushroom', 'icon' => '../assets/crop-icons/generic-mushroom/generic-mushroom.svg'],
+    ['value' => 'peas', 'label' => 'Peas', 'icon' => '../assets/crop-icons/snap-pea/snap-pea.svg'],
+];
+?>
+
+<!-- Permitted Crops Selection Modal -->
+<div class="modal fade" id="permittedCropsModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
+            <div class="modal-header border-bottom px-4 py-3 bg-white">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
+                        <img src="../assets/crop-icons/generic-plant/generic-plant.svg" class="w-6 h-6 object-contain" alt="Crops">
+                        Select Permitted Crops
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the crop types gardeners are allowed to cultivate on this land.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4 bg-light">
+                <!-- Search & Quick Selection Actions -->
+                <div class="d-flex flex-column flex-sm-row gap-3 align-items-center justify-content-between mb-4">
+                    <div class="position-relative w-100 me-sm-2">
+                        <i data-lucide="search" class="position-absolute text-secondary" style="left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                        <input type="text" id="cropSearchInput" class="form-control drive-form-control ps-5 py-2 text-xs rounded-pill"
+                            placeholder="Search crop types (e.g., Tomato, Lettuce, Carrot)..." onkeyup="filterCropChips()">
+                    </div>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 text-xs" onclick="selectAllCrops(true)">Select All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 text-xs" onclick="selectAllCrops(false)">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Crop Grid Container -->
+                <div class="row g-2 overflow-y-auto" id="modalCropGrid" style="max-height: 340px;">
+                    <?php foreach ($seedTypes as $seed): ?>
+                        <div class="col-6 col-sm-4 col-md-3 crop-grid-item" data-name="<?php echo strtolower($seed['label']); ?>">
+                            <div class="modal-crop-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2"
+                                data-value="<?php echo $seed['value']; ?>"
+                                data-label="<?php echo $seed['label']; ?>"
+                                data-icon="<?php echo $seed['icon']; ?>"
+                                style="cursor: pointer; transition: all 0.15s; border-color: var(--drive-border) !important; user-select: none;"
+                                onclick="toggleCropSelection('<?php echo $seed['value']; ?>', '<?php echo $seed['label']; ?>', '<?php echo $seed['icon']; ?>', this)">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-drive-canvas border border-drive-border flex-shrink-0">
+                                        <img src="<?php echo $seed['icon']; ?>" alt="<?php echo $seed['label']; ?>" class="w-5 h-5 object-contain">
+                                    </div>
+                                    <span class="fw-semibold text-dark text-xs truncate"><?php echo $seed['label']; ?></span>
+                                </div>
+                                <div class="crop-check-icon text-primary hidden">
+                                    <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #1a73e8;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
+                <span class="text-secondary text-xs fw-semibold"><span id="selectedCountText">0</span> crops selected</span>
+                <button type="button" class="btn btn-drive-primary rounded-pill px-4" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    const selectedCrops = new Map();
+
     function updateUploadLabel(input) {
         const count = input.files.length;
         const label = document.getElementById('file-count');
         label.textContent = count > 0 ? `${count} photo(s) selected.` : '';
+    }
+
+    function toggleCropSelection(val, label, icon, element) {
+        const checkIcon = element.querySelector('.crop-check-icon');
+        if (selectedCrops.has(val)) {
+            selectedCrops.delete(val);
+            element.classList.remove('border-primary', 'bg-blue-50/50');
+            element.style.borderColor = 'var(--drive-border)';
+            if (checkIcon) checkIcon.classList.add('hidden');
+        } else {
+            selectedCrops.set(val, { value: val, label: label, icon: icon });
+            element.classList.add('border-primary', 'bg-blue-50/50');
+            element.style.borderColor = '#1a73e8';
+            if (checkIcon) checkIcon.classList.remove('hidden');
+        }
+        renderSelectedCropsSummary();
+    }
+
+    function selectAllCrops(select) {
+        document.querySelectorAll('.modal-crop-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label');
+            const icon = chip.getAttribute('data-icon');
+            const checkIcon = chip.querySelector('.crop-check-icon');
+
+            if (select) {
+                selectedCrops.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#1a73e8';
+                if (checkIcon) checkIcon.classList.remove('hidden');
+            } else {
+                selectedCrops.delete(val);
+                chip.classList.remove('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('hidden');
+            }
+        });
+        renderSelectedCropsSummary();
+    }
+
+    function filterCropChips() {
+        const query = document.getElementById('cropSearchInput').value.toLowerCase().trim();
+        document.querySelectorAll('.crop-grid-item').forEach(item => {
+            const name = item.getAttribute('data-name');
+            if (!query || name.includes(query)) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+    }
+
+    function renderSelectedCropsSummary() {
+        const summaryBox = document.getElementById('selectedCropsSummary');
+        const hiddenInputs = document.getElementById('hiddenSeedInputs');
+        const countText = document.getElementById('selectedCountText');
+
+        if (countText) countText.textContent = selectedCrops.size;
+
+        if (selectedCrops.size === 0) {
+            summaryBox.innerHTML = `<span class="text-muted text-xs italic" id="emptyCropsNotice">No specific crops selected (All crops permitted by default). Click "Select Crops" to restrict allowed crop types.</span>`;
+            hiddenInputs.innerHTML = '';
+            return;
+        }
+
+        let summaryHtml = '';
+        let inputsHtml = '';
+
+        selectedCrops.forEach((crop) => {
+            summaryHtml += `
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 border rounded-pill bg-white text-xs fw-semibold text-dark shadow-xs" style="border-color: var(--drive-border) !important;">
+                    <img src="${crop.icon}" alt="${crop.label}" class="w-4 h-4 object-contain">
+                    <span>${crop.label}</span>
+                    <button type="button" class="btn-close text-xs ms-1" style="width: 10px; height: 10px;" onclick="toggleCropSelection('${crop.value}', '${crop.label}', '${crop.icon}', document.querySelector('[data-value=\"${crop.value}\"]'))"></button>
+                </div>
+            `;
+            inputsHtml += `<input type="checkbox" name="allowed_seeds[]" value="${crop.value}" checked class="d-none">`;
+        });
+
+        summaryBox.innerHTML = summaryHtml;
+        hiddenInputs.innerHTML = inputsHtml;
     }
 
     // Leaflet click to select coordinates
@@ -237,6 +382,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 marker = L.marker(e.latlng).addTo(map);
             }
         });
+        
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     });
 </script>
 

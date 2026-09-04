@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in - Idle Land Gardening</title>
+    <link rel="icon" type="image/jpeg" href="logo.jpeg">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,20 +91,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 <div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[450px] w-full shadow-lg">
     <!-- Google-style Logo -->
-    <div class="flex justify-center items-center gap-2 mb-3">
-        <i class="bi bi-patch-check-fill text-drive-primary text-3xl"></i>
+    <div class="flex justify-center items-center gap-2.5 mb-3">
+        <img src="logo.jpeg" alt="IdleLand Logo" class="h-12 w-12 object-contain rounded-full shadow-sm">
         <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Idle<span class="text-drive-text-main">Land</span></span>
     </div>
     
     <h2 class="text-2xl font-semibold text-center text-drive-text-main mb-1">Sign in</h2>
-    <p class="text-center text-drive-text-muted mb-6 text-sm">to continue to Community Gardening System</p>
+    <p class="text-center text-drive-text-muted mb-6 text-sm">Sign in to your account</p>
 
     <!-- Sign-in Form -->
     <form action="index.php" method="POST" class="needs-validation m-0" novalidate>
         <input type="hidden" name="action" value="login">
         
         <div class="mb-4">
-            <label for="email" class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">Email address</label>
+            <label for="email" class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">Email</label>
             <input 
                 type="email" 
                 class="w-full bg-white border border-drive-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-drive-primary focus:ring-1 focus:ring-drive-primary transition-all text-drive-text-main placeholder-drive-text-muted" 
@@ -133,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         <!-- Role Helper Tabs / Suggestions -->
         <div class="p-4 bg-drive-canvas border border-drive-border rounded-2xl mb-6">
-            <p class="mb-3 text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Quick Sign In Accounts:</p>
+            <p class="mb-3 text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Quick Sign In:</p>
             <div class="flex flex-col gap-2">
                 <button type="button" class="w-full text-left bg-white hover:bg-drive-surface-hover border border-drive-border rounded-xl p-3 text-xs font-medium text-drive-text-main flex justify-between items-center transition-colors" onclick="fillForm('admin@garden.com')">
                     <span class="flex items-center"><i class="bi bi-shield-lock me-2 text-drive-primary"></i>Admin Account</span>

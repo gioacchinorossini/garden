@@ -10,13 +10,11 @@ include '../includes/sidebar.php';
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Moderate Idle Lands</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Approve registered lands, assign plots, and inspect
-                locations on map</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Manage Lands</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-pill btn-sm px-3" onclick="toggleMapSection()">
-                <i class="bi bi-map-fill me-1 text-primary"></i> Toggle Map view
+                <i class="bi bi-map-fill me-1 text-primary"></i> Map View
             </button>
         </div>
     </div>
@@ -28,9 +26,7 @@ include '../includes/sidebar.php';
             <div class="card border rounded-4 overflow-hidden " style="border-color: var(--drive-border) !important;">
                 <div class="card-header bg-light d-flex align-items-center justify-content-between py-2 border-bottom">
                     <span class="fw-semibold text-secondary"
-                        style="font-size: 0.75rem; letter-spacing:0.5px; text-transform:uppercase;">Interactive Land
-                        Registry Map</span>
-                    <small class="text-muted">Leaflet.js + OpenStreetMap</small>
+                        style="font-size: 0.75rem; letter-spacing:0.5px; text-transform:uppercase;">Interactive Map</span>
                 </div>
                 <div id="landMap" style="height: 250px; background-color: #e9f2ff;"></div>
             </div>
@@ -40,14 +36,14 @@ include '../includes/sidebar.php';
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 active filter-btn"
-                    data-filter="all">All submissions</button>
+                    data-filter="all">All</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
-                    data-filter="pending">Pending Verification</button>
+                    data-filter="pending">Pending</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
-                    data-filter="approved">Approved Lands</button>
+                    data-filter="approved">Approved</button>
             </div>
             <div class="text-muted" style="font-size: 0.8rem;" id="landsCountText">
-                Showing <strong>0</strong> of <strong>0</strong> submissions
+                Showing <strong>0</strong> submissions
             </div>
         </div>
 
@@ -56,12 +52,12 @@ include '../includes/sidebar.php';
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-light border-bottom text-secondary"
                 style="font-size: 0.75rem; font-weight: 600;">
-                <div class="w-25">LAND TITLE / DETAILS</div>
-                <div class="w-20">LANDOWNER</div>
-                <div class="w-15">TOTAL AREA</div>
-                <div class="w-15">COORDINATES</div>
+                <div class="w-25">TITLE</div>
+                <div class="w-20">OWNER</div>
+                <div class="w-15">AREA</div>
+                <div class="w-15">GPS</div>
                 <div class="w-10">STATUS</div>
-                <div class="w-15 text-end">MODERATION</div>
+                <div class="w-15 text-end">ACTION</div>
             </div>
 
             <!-- Lands Row Placeholder -->
@@ -84,7 +80,7 @@ include '../includes/sidebar.php';
                     style="font-size: 0.8rem; border: 1px solid var(--drive-border);">
                     <div class="row g-2">
                         <div class="col-6"><strong>Owner:</strong> <span id="modal_owner"></span></div>
-                        <div class="col-6"><strong>Area Size:</strong> <span id="modal_area"></span></div>
+                        <div class="col-6"><strong>Area:</strong> <span id="modal_area"></span></div>
                         <div class="col-12"><strong>Address:</strong> <span id="modal_address"></span></div>
                         <div class="col-12"><strong>Coordinates:</strong> <span id="modal_coords"></span></div>
                     </div>
@@ -106,7 +102,7 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Reject Land Registration</h5>
+                <h5 class="modal-title fw-semibold text-dark">Reject Land</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -114,14 +110,14 @@ include '../includes/sidebar.php';
                     <input type="hidden" id="reject_land_id" name="id">
                     <div class="mb-4">
                         <label for="rejection_reason" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">REJECTION REASON</label>
+                            style="font-size: 0.75rem; font-weight:600;">REASON</label>
                         <textarea class="form-control drive-form-control w-100" id="rejection_reason"
                             name="rejection_reason" rows="3" required
-                            placeholder="Specify why the registered land is rejected (e.g. soil concerns, missing documents)..."></textarea>
+                            placeholder="Enter reason for rejection..."></textarea>
                     </div>
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-drive-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger rounded-pill px-4">Confirm Rejection</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Reject</button>
                     </div>
                 </form>
             </div>

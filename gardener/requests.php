@@ -21,8 +21,8 @@ include '../includes/sidebar.php';
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-light border-bottom text-secondary"
                 style="font-size: 0.75rem; font-weight: 600;">
-                <div class="w-50">PROPERTY / PLOT</div>
-                <div class="w-20">LEASE TERM</div>
+                <div class="w-50">PLOT</div>
+                <div class="w-20">TERM</div>
                 <div class="w-15">STATUS</div>
                 <div class="w-15 text-end">DETAILS</div>
             </div>
@@ -38,18 +38,16 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Application Status Details</h5>
+                <h5 class="modal-title fw-semibold text-dark">Request Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-start">
                 <div class="mb-3">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">REQUESTED
-                        PLOT</label>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">PLOT</label>
                     <strong id="modal_land_title"></strong>
                 </div>
                 <div class="mb-3">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">SUBMITTED
-                        PURPOSE</label>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">PURPOSE</label>
                     <div class="p-3 bg-light rounded-3 text-secondary" style="font-size:0.85rem;" id="modal_purpose">
                     </div>
                 </div>
@@ -58,8 +56,7 @@ include '../includes/sidebar.php';
                     <div id="modal_duration"></div>
                 </div>
                 <div class="mb-3 hidden" id="modal_feedback_section">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">LANDOWNER
-                        FEEDBACK</label>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">FEEDBACK</label>
                     <div class="alert alert-info py-2" style="font-size: 0.85rem; border-radius: 8px;"
                         id="modal_feedback"></div>
                 </div>

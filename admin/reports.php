@@ -10,13 +10,11 @@ include '../includes/sidebar.php';
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">System & Yield Reports</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Generate performance summaries, land occupancy
-                statistics, and harvest metrics</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Reports</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-pill btn-sm px-3" onclick="window.print()">
-                <i class="bi bi-printer-fill me-1"></i> Print Report
+                <i class="bi bi-printer-fill me-1"></i> Print
             </button>
             <button class="btn btn-drive-primary btn-sm px-3">
                 <i class="bi bi-download me-1"></i> Export CSV
@@ -31,8 +29,7 @@ include '../includes/sidebar.php';
             <!-- Metric Card 1: Land Utilization -->
             <div class="col-md-4">
                 <div class="drive-card">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing:0.5px;">LAND
-                        UTILIZATION RATE</span>
+                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing:0.5px;">LAND UTILIZATION</span>
                     <div class="d-flex align-items-center justify-content-between mt-2">
                         <h3 class="fw-bold m-0" style="color: var(--drive-primary);">78.3%</h3>
                         <span class="text-success" style="font-size: 0.8rem; font-weight:600;"><i
@@ -43,33 +40,30 @@ include '../includes/sidebar.php';
                         <div class="bg-primary h-full"
                             style="width: 78.3%; height:100%; background-color: var(--drive-primary) !important;"></div>
                     </div>
-                    <small class="text-muted" style="font-size: 0.7rem;">650 m² occupied of 830 m² total
-                        approved</small>
+                    <small class="text-muted" style="font-size: 0.7rem;">650 m² / 830 m² occupied</small>
                 </div>
             </div>
 
             <!-- Metric Card 2: Active plots -->
             <div class="col-md-4">
                 <div class="drive-card">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing:0.5px;">ACTIVE
-                        PLOTS DIVISION</span>
+                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing:0.5px;">ACTIVE PLOTS</span>
                     <div class="d-flex align-items-center justify-content-between mt-2">
                         <h3 class="fw-bold m-0" style="color: var(--drive-text-main);">18 / 24</h3>
-                        <span class="text-muted" style="font-size: 0.8rem;">6 plots available</span>
+                        <span class="text-muted" style="font-size: 0.8rem;">6 available</span>
                     </div>
                     <div class="w-full bg-[#e1e3e1] h-2 rounded-full overflow-hidden mt-3 mb-1"
                         style="height: 6px; background-color: var(--drive-border);">
                         <div class="bg-success h-full" style="width: 75%; height:100%;"></div>
                     </div>
-                    <small class="text-muted" style="font-size: 0.7rem;">75% occupancy of partitioned plots</small>
+                    <small class="text-muted" style="font-size: 0.7rem;">75% occupied</small>
                 </div>
             </div>
 
             <!-- Metric Card 3: Gardener productivity -->
             <div class="col-md-4">
                 <div class="drive-card">
-                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing:0.5px;">AVG
-                        HARVEST YIELD PER GARDENER</span>
+                    <span class="text-secondary fw-semibold" style="font-size: 0.75rem; letter-spacing:0.5px;">AVG YIELD / GARDENER</span>
                     <div class="d-flex align-items-center justify-content-between mt-2">
                         <h3 class="fw-bold m-0 text-success">18.9 kg</h3>
                         <span class="text-success" style="font-size: 0.8rem; font-weight:600;"><i
@@ -79,7 +73,7 @@ include '../includes/sidebar.php';
                         style="height: 6px; background-color: var(--drive-border);">
                         <div class="bg-success h-full" style="width: 82%; height:100%;"></div>
                     </div>
-                    <small class="text-muted" style="font-size: 0.7rem;">Measured across 18 recording gardeners</small>
+                    <small class="text-muted" style="font-size: 0.7rem;">18 active gardeners</small>
                 </div>
             </div>
         </div>
@@ -90,12 +84,12 @@ include '../includes/sidebar.php';
             <div class="col-md-6">
                 <div class="card border rounded-4  p-4" style="border-color: var(--drive-border) !important;">
                     <h2 class="fs-6 fw-semibold text-secondary mb-3"
-                        style="letter-spacing: 0.5px; text-transform: uppercase;">Harvest Quantities by Crop</h2>
+                        style="letter-spacing: 0.5px; text-transform: uppercase;">Harvest by Crop</h2>
 
                     <!-- Crop Item 1 -->
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
-                            <span>Tomatoes</span>
+                        <div class="d-flex justify-content-between mb-1 align-items-center" style="font-size: 0.8rem;">
+                            <span class="d-flex align-items-center gap-1.5"><img src="../assets/crop-icons/tomato/tomato.svg" style="width: 18px; height: 18px;" alt="Tomatoes"> Tomatoes</span>
                             <strong>140 kg (41.2%)</strong>
                         </div>
                         <div class="progress" style="height: 12px; border-radius: 50rem;">
@@ -107,8 +101,8 @@ include '../includes/sidebar.php';
 
                     <!-- Crop Item 2 -->
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
-                            <span>Lettuce & Greens</span>
+                        <div class="d-flex justify-content-between mb-1 align-items-center" style="font-size: 0.8rem;">
+                            <span class="d-flex align-items-center gap-1.5"><img src="../assets/crop-icons/romaine/romaine.svg" style="width: 18px; height: 18px;" alt="Lettuce"> Lettuce & Greens</span>
                             <strong>95 kg (27.9%)</strong>
                         </div>
                         <div class="progress" style="height: 12px; border-radius: 50rem;">
@@ -120,8 +114,8 @@ include '../includes/sidebar.php';
 
                     <!-- Crop Item 3 -->
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
-                            <span>Carrots</span>
+                        <div class="d-flex justify-content-between mb-1 align-items-center" style="font-size: 0.8rem;">
+                            <span class="d-flex align-items-center gap-1.5"><img src="../assets/crop-icons/carrot/carrot.svg" style="width: 18px; height: 18px;" alt="Carrots"> Carrots</span>
                             <strong>65 kg (19.1%)</strong>
                         </div>
                         <div class="progress" style="height: 12px; border-radius: 50rem;">
@@ -133,8 +127,8 @@ include '../includes/sidebar.php';
 
                     <!-- Crop Item 4 -->
                     <div class="mb-2">
-                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.8rem;">
-                            <span>Others (Potatoes, Herbs)</span>
+                        <div class="d-flex justify-content-between mb-1 align-items-center" style="font-size: 0.8rem;">
+                            <span class="d-flex align-items-center gap-1.5"><img src="../assets/crop-icons/russet-potato/russet-potato.svg" style="width: 18px; height: 18px;" alt="Potatoes"> Others (Potatoes, Herbs)</span>
                             <strong>40 kg (11.8%)</strong>
                         </div>
                         <div class="progress" style="height: 12px; border-radius: 50rem;">
@@ -150,7 +144,7 @@ include '../includes/sidebar.php';
             <div class="col-md-6">
                 <div class="card border rounded-4  p-4 h-100" style="border-color: var(--drive-border) !important;">
                     <h2 class="fs-6 fw-semibold text-secondary mb-3"
-                        style="letter-spacing: 0.5px; text-transform: uppercase;">Gardening Milestones</h2>
+                        style="letter-spacing: 0.5px; text-transform: uppercase;">Milestones</h2>
 
                     <div class="position-relative ps-4 border-start"
                         style="border-color: var(--drive-border) !important; font-size: 0.825rem;">
@@ -158,25 +152,22 @@ include '../includes/sidebar.php';
                         <div class="mb-3 position-relative">
                             <span class="position-absolute bg-primary rounded-circle"
                                 style="width: 10px; height: 10px; left: -29px; top: 5px;"></span>
-                            <strong class="text-dark d-block">Peak Harvest Season Reached</strong>
-                            <span class="text-muted d-block" style="font-size:0.75rem;">August 2026 • 150 kg produced
-                                this month</span>
+                            <strong class="text-dark d-block">Peak Harvest Season</strong>
+                            <span class="text-muted d-block" style="font-size:0.75rem;">Aug 2026 • 150 kg produced</span>
                         </div>
                         <!-- Timeline Item 2 -->
                         <div class="mb-3 position-relative">
                             <span class="position-absolute bg-success rounded-circle"
                                 style="width: 10px; height: 10px; left: -29px; top: 5px;"></span>
                             <strong class="text-dark d-block">Riverdale Acres Activated</strong>
-                            <span class="text-muted d-block" style="font-size:0.75rem;">July 2026 • Allocated 10 plots
-                                to gardeners</span>
+                            <span class="text-muted d-block" style="font-size:0.75rem;">Jul 2026 • 10 plots allocated</span>
                         </div>
                         <!-- Timeline Item 3 -->
                         <div class="position-relative">
                             <span class="position-absolute bg-secondary rounded-circle"
                                 style="width: 10px; height: 10px; left: -29px; top: 5px;"></span>
                             <strong class="text-dark d-block">Platform Launch</strong>
-                            <span class="text-muted d-block" style="font-size:0.75rem;">June 2026 • Registered initial 3
-                                users and 1 land</span>
+                            <span class="text-muted d-block" style="font-size:0.75rem;">Jun 2026 • System launched</span>
                         </div>
                     </div>
                 </div>
@@ -184,16 +175,15 @@ include '../includes/sidebar.php';
         </div>
 
         <!-- 3. Top Harvest Logs Table -->
-        <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">Top
-            Productive Harvest Logs</h2>
+        <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">Top Harvests</h2>
         <div class="border rounded-4 bg-white overflow-hidden  border-light-subtle">
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-light border-bottom text-secondary"
                 style="font-size: 0.75rem; font-weight: 600;">
-                <div class="w-25">CROP NAME</div>
+                <div class="w-25">CROP</div>
                 <div class="w-25">GARDENER</div>
-                <div class="w-25">LAND SOURCE</div>
-                <div class="w-15">YIELD QUANTITY</div>
+                <div class="w-25">LAND</div>
+                <div class="w-15">YIELD</div>
                 <div class="w-10 text-end">DATE</div>
             </div>
 
@@ -201,7 +191,7 @@ include '../includes/sidebar.php';
             <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom hover:bg-[#f8faff] text-sm text-dark transition-colors"
                 style="height: 48px;">
                 <div class="w-25 d-flex align-items-center gap-2 fw-semibold">
-                    <i class="bi bi-egg text-danger"></i> Tomatoes
+                    <img src="../assets/crop-icons/tomato/tomato.svg" style="width: 20px; height: 20px;" alt="Tomatoes"> Tomatoes
                 </div>
                 <div class="w-25 text-secondary">Mary Gardener</div>
                 <div class="w-25 text-secondary">Downtown Rooftop Garden</div>
@@ -213,7 +203,7 @@ include '../includes/sidebar.php';
             <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom hover:bg-[#f8faff] text-sm text-dark transition-colors"
                 style="height: 48px;">
                 <div class="w-25 d-flex align-items-center gap-2 fw-semibold">
-                    <i class="bi bi-egg text-success"></i> Romaine Lettuce
+                    <img src="../assets/crop-icons/romaine/romaine.svg" style="width: 20px; height: 20px;" alt="Romaine Lettuce"> Romaine Lettuce
                 </div>
                 <div class="w-25 text-secondary">Mary Gardener</div>
                 <div class="w-25 text-secondary">Riverdale Acres</div>

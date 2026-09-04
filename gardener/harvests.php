@@ -11,7 +11,7 @@ include '../includes/sidebar.php';
     <div class="h-14 border-b border-drive-border px-6 flex items-center justify-between flex-shrink-0 bg-white">
         <div>
             <h1 class="text-sm font-bold text-drive-text-main flex items-center gap-2">
-                <i class="bi bi-basket3 text-drive-primary"></i> My Harvest Log
+                <i data-lucide="shopping-bag" style="color: #1a73e8; width: 18px; height: 18px;"></i> Harvest Log
             </h1>
         </div>
         <div class="flex items-center gap-3">
@@ -19,18 +19,18 @@ include '../includes/sidebar.php';
             <div class="flex items-center gap-1 border border-drive-border rounded-full p-0.5 bg-drive-canvas">
                 <button id="listViewBtn" onclick="switchView('list')"
                     class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all bg-white text-drive-primary ">
-                    <i class="bi bi-list-task"></i> List
+                    <i data-lucide="list" style="width: 14px; height: 14px;"></i> List
                 </button>
                 <button id="gridViewBtn" onclick="switchView('grid')"
                     class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all text-drive-text-sub hover:bg-drive-surface-hover">
-                    <i class="bi bi-grid-fill"></i> Grid
+                    <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i> Grid
                 </button>
             </div>
 
             <button
                 class="bg-drive-primary hover:bg-drive-primary-hover text-white font-semibold py-1.5 px-4 rounded-full text-xs transition-colors flex items-center gap-1.5 "
                 data-bs-toggle="modal" data-bs-target="#recordHarvestModal">
-                <i class="bi bi-plus-lg"></i> Record Harvest
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Record Harvest
             </button>
         </div>
     </div>
@@ -43,14 +43,12 @@ include '../includes/sidebar.php';
         <!-- Empty State Container -->
         <div id="harvestsEmptyState"
             class="hidden text-center py-16 text-drive-text-muted border border-dashed border-drive-border rounded-2xl">
-            <i class="bi bi-basket3 text-4xl d-block mb-3 text-drive-primary"></i>
+            <img src="../assets/crop-icons/generic-plant/generic-plant.svg" class="w-12 h-12 mx-auto mb-3" alt="Crops">
             <p class="text-sm font-semibold text-drive-text-main mb-1">No harvest records logged yet</p>
-            <p class="text-xs text-drive-text-sub max-w-sm mx-auto mb-4">Keep a history of your garden production
-                yields, weights, and observations to track land productivity.</p>
             <button
                 class="bg-drive-primary hover:bg-drive-primary-hover text-white font-semibold py-2 px-5 rounded-full text-xs"
                 data-bs-toggle="modal" data-bs-target="#recordHarvestModal">
-                Log Your First Harvest
+                Log Harvest
             </button>
         </div>
 
@@ -61,11 +59,11 @@ include '../includes/sidebar.php';
                 <!-- Header Row -->
                 <div
                     class="flex align-items-center justify-between px-6 py-3 bg-drive-canvas border-b border-drive-border text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">
-                    <div class="w-1/4">Crop Type</div>
-                    <div class="w-1/6">Garden Plot</div>
-                    <div class="w-1/3">Observations & Notes</div>
-                    <div class="w-1/6">Harvest Date</div>
-                    <div class="w-1/12 text-right">Total Yield</div>
+                    <div class="w-1/4">Crop</div>
+                    <div class="w-1/6">Plot</div>
+                    <div class="w-1/3">Notes</div>
+                    <div class="w-1/6">Date</div>
+                    <div class="w-1/12 text-right">Yield</div>
                 </div>
 
                 <!-- Harvest Rows Placeholder -->
@@ -83,15 +81,14 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Log Crop Harvest Details</h5>
+                <h5 class="modal-title fw-semibold text-dark">Log Harvest</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-start">
                 <form id="recordHarvestForm">
                     <div class="mb-3">
                         <label for="plot_num"
-                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">SOURCE
-                            PLOT</label>
+                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">PLOT</label>
                         <select
                             class="w-full bg-white border border-drive-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-drive-primary"
                             id="plot_num" name="plot_num" required>
@@ -105,8 +102,7 @@ include '../includes/sidebar.php';
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                         <div class="md:col-span-2">
                             <label for="crop_name"
-                                class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">CROP
-                                NAME / PRODUCE</label>
+                                class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">CROP NAME</label>
                             <input type="text"
                                 class="w-full bg-white border border-drive-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-drive-primary"
                                 id="crop_name" name="crop_name" required placeholder="e.g. Organic Tomatoes">
@@ -146,12 +142,11 @@ include '../includes/sidebar.php';
 
                     <div class="mb-4">
                         <label for="notes"
-                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">OBSERVATIONS
-                            & NOTES</label>
+                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">NOTES</label>
                         <textarea
                             class="w-full bg-white border border-drive-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-drive-primary"
                             id="notes" name="notes" rows="3"
-                            placeholder="Describe crop quality, pests encountered, or sharing methods..."></textarea>
+                            placeholder="Describe crop quality or observations..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">

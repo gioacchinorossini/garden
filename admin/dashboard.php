@@ -11,12 +11,11 @@ include '../includes/sidebar.php';
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Administrator Dashboard</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Community Gardening Overview & System Activity</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Dashboard</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-pill btn-sm px-3 d-flex align-items-center gap-1">
-                <i class="bi bi-calendar3"></i>
+                <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
                 <span>Last 30 Days</span>
             </button>
         </div>
@@ -26,37 +25,37 @@ include '../includes/sidebar.php';
     <div class="workspace-scroll">
         <!-- 1. Key Metrics Cards Grid -->
         <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
-            Overview Statistics</h2>
+            Overview</h2>
         <div class="row g-3 mb-4">
             <!-- Metric 1: Total Lands -->
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center bg-success-subtle text-success"
-                        style="width: 52px; height: 52px; min-width: 52px; font-size: 1.8rem;">
-                        <i class="bi bi-tree"></i>
+                    <div class="rounded-3 d-flex align-items-center justify-content-center"
+                        style="width: 52px; height: 52px; min-width: 52px; background-color: #e8f0fe; color: #1a73e8;">
+                        <i data-lucide="map-pin" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
                             style="font-size: 0.75rem; line-height: 1.2;">Registered Lands</span>
                         <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;">12</h3>
                         <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
-                                class="text-success fw-bold"><i class="bi bi-arrow-up"></i> +2 new</span> this week</p>
+                                class="fw-bold d-inline-flex align-items-center gap-1" style="color: #1a73e8;"><i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +2</span> this week</p>
                     </div>
                 </div>
             </div>
             <!-- Metric 2: Active Gardeners -->
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center bg-info-subtle text-info"
-                        style="width: 52px; height: 52px; min-width: 52px; font-size: 1.8rem;">
-                        <i class="bi bi-people"></i>
+                    <div class="rounded-3 d-flex align-items-center justify-content-center"
+                        style="width: 52px; height: 52px; min-width: 52px; background-color: #f3e5f5; color: #8e24aa;">
+                        <i data-lucide="users" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
                             style="font-size: 0.75rem; line-height: 1.2;">Active Gardeners</span>
                         <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;">45</h3>
                         <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
-                                class="text-success fw-bold"><i class="bi bi-arrow-up"></i> +5 new</span> this month</p>
+                                class="fw-bold d-inline-flex align-items-center gap-1" style="color: #8e24aa;"><i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +5</span> this month</p>
                     </div>
                 </div>
             </div>
@@ -64,14 +63,14 @@ include '../includes/sidebar.php';
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
                     <div class="rounded-3 d-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis"
-                        style="width: 52px; height: 52px; min-width: 52px; font-size: 1.8rem;">
-                        <i class="bi bi-hourglass-split"></i>
+                        style="width: 52px; height: 52px; min-width: 52px;">
+                        <i data-lucide="hourglass" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
                             style="font-size: 0.75rem; line-height: 1.2;">Pending Lands</span>
                         <h3 class="fw-bold m-0 mt-1 text-warning" style="font-size: 1.5rem;">3</h3>
-                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Needs verification</p>
+                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Needs review</p>
                     </div>
                 </div>
             </div>
@@ -79,8 +78,8 @@ include '../includes/sidebar.php';
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
                     <div class="rounded-3 d-flex align-items-center justify-content-center bg-danger-subtle text-danger"
-                        style="width: 52px; height: 52px; min-width: 52px; font-size: 1.8rem;">
-                        <i class="bi bi-basket3"></i>
+                        style="width: 52px; height: 52px; min-width: 52px;">
+                        <i data-lucide="shopping-bag" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
@@ -88,7 +87,7 @@ include '../includes/sidebar.php';
                         <h3 class="fw-bold m-0 mt-1 text-danger" style="font-size: 1.5rem;">340 <span
                                 style="font-size: 0.9rem;">kg</span></h3>
                         <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
-                                class="text-success fw-bold"><i class="bi bi-arrow-up"></i> +12%</span> vs last month
+                                class="text-danger fw-bold d-inline-flex align-items-center gap-1"><i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +12%</span> vs last month
                         </p>
                     </div>
                 </div>
@@ -98,9 +97,9 @@ include '../includes/sidebar.php';
         <!-- 2. Recent Land Registrations Panel (Mocking file-grid design from design.md) -->
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h2 class="fs-6 fw-semibold text-secondary m-0" style="letter-spacing: 0.5px; text-transform: uppercase;">
-                Recent Land Submissions</h2>
-            <a href="lands.php" class="text-decoration-none text-primary"
-                style="font-size: 0.8rem; font-weight: 500;">View All Lands <i class="bi bi-arrow-right"></i></a>
+                Recent Submissions</h2>
+            <a href="lands.php" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1"
+                style="font-size: 0.8rem; font-weight: 500;">View All Lands <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></a>
         </div>
 
         <div class="row g-3 mb-4">
@@ -109,7 +108,7 @@ include '../includes/sidebar.php';
                 <div class="drive-card">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-image text-danger fs-5"></i>
+                            <i data-lucide="image" class="text-danger" style="width: 20px; height: 20px;"></i>
                             <span class="text-sm fw-semibold text-dark truncate" style="max-width: 160px;">Sunnyvale
                                 Lot.jpg</span>
                         </div>
@@ -127,7 +126,7 @@ include '../includes/sidebar.php';
                     </div>
                     <div class="mt-3">
                         <p class="mb-0 text-dark fw-medium" style="font-size: 0.85rem;">Sunnyvale Plots</p>
-                        <p class="text-muted mb-0" style="font-size: 0.75rem;"><i class="bi bi-geo-alt-fill me-1"></i>
+                        <p class="text-muted mb-0 d-flex align-items-center gap-1" style="font-size: 0.75rem;"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
                             124 Green Ave, Sunnyvale</p>
                     </div>
                 </div>
@@ -137,11 +136,11 @@ include '../includes/sidebar.php';
                 <div class="drive-card">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-image text-danger fs-5"></i>
+                            <i data-lucide="image" class="text-danger" style="width: 20px; height: 20px;"></i>
                             <span class="text-sm fw-semibold text-dark truncate" style="max-width: 160px;">Downtown
                                 Roof.jpg</span>
                         </div>
-                        <span class="badge bg-success rounded-pill" style="font-size: 10px;">Approved</span>
+                        <span class="badge rounded-pill" style="font-size: 10px; background-color: #e8f0fe; color: #1a73e8;">Approved</span>
                     </div>
                     <div class="drive-card-thumbnail">
                         <svg width="100%" height="100%" viewBox="0 0 100 60" style="background:#e9f2ff">
@@ -152,7 +151,7 @@ include '../includes/sidebar.php';
                     </div>
                     <div class="mt-3">
                         <p class="mb-0 text-dark fw-medium" style="font-size: 0.85rem;">Downtown Green Roof</p>
-                        <p class="text-muted mb-0" style="font-size: 0.75rem;"><i class="bi bi-geo-alt-fill me-1"></i>
+                        <p class="text-muted mb-0 d-flex align-items-center gap-1" style="font-size: 0.75rem;"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
                             45 Main St, Business District</p>
                     </div>
                 </div>
@@ -162,11 +161,11 @@ include '../includes/sidebar.php';
                 <div class="drive-card">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-image text-danger fs-5"></i>
+                            <i data-lucide="image" class="text-danger" style="width: 20px; height: 20px;"></i>
                             <span class="text-sm fw-semibold text-dark truncate" style="max-width: 160px;">Riverdale
                                 Acres.jpg</span>
                         </div>
-                        <span class="badge bg-success rounded-pill" style="font-size: 10px;">Approved</span>
+                        <span class="badge rounded-pill" style="font-size: 10px; background-color: #e8f0fe; color: #1a73e8;">Approved</span>
                     </div>
                     <div class="drive-card-thumbnail">
                         <svg width="100%" height="100%" viewBox="0 0 100 60" style="background:#e9f2ff">
@@ -177,7 +176,7 @@ include '../includes/sidebar.php';
                     </div>
                     <div class="mt-3">
                         <p class="mb-0 text-dark fw-medium" style="font-size: 0.85rem;">Riverdale Acres</p>
-                        <p class="text-muted mb-0" style="font-size: 0.75rem;"><i class="bi bi-geo-alt-fill me-1"></i>
+                        <p class="text-muted mb-0 d-flex align-items-center gap-1" style="font-size: 0.75rem;"><i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
                             Riverside Dr, Block B</p>
                     </div>
                 </div>
@@ -186,22 +185,22 @@ include '../includes/sidebar.php';
 
         <!-- 3. Recent Activity Log (Mocking File List Rows from design.md) -->
         <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
-            Recent System Activity</h2>
+            Recent Activity</h2>
         <div class="border rounded-4 bg-white overflow-hidden  mb-2"
             style="border-color: var(--drive-border) !important;">
             <!-- Table Header Row -->
             <div class="d-flex align-items-center justify-content-between h-10 px-4 border-b bg-light text-secondary"
                 style="font-size: 0.75rem; font-weight: 600; height: 36px;">
-                <div class="flex-1">ACTIVITY DETAILS</div>
-                <div class="w-36 text-start">PERFORMED BY</div>
-                <div class="w-36 text-start">TIMESTAMP</div>
-                <div class="w-24 text-start">IP ADDRESS</div>
+                <div class="flex-1">ACTIVITY</div>
+                <div class="w-36 text-start">USER</div>
+                <div class="w-36 text-start">TIME</div>
+                <div class="w-24 text-start">IP</div>
             </div>
 
             <!-- Row 1 -->
             <div class="drive-list-row">
                 <div class="flex-1 d-flex align-items-center gap-3">
-                    <i class="bi bi-person-plus text-primary fs-5"></i>
+                    <i data-lucide="user-plus" style="color: #8e24aa; width: 20px; height: 20px;"></i>
                     <span>Registered new Gardener account <strong>Mary Gardener</strong></span>
                 </div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Registrar</div>
@@ -211,7 +210,7 @@ include '../includes/sidebar.php';
             <!-- Row 2 -->
             <div class="drive-list-row">
                 <div class="flex-1 d-flex align-items-center gap-3">
-                    <i class="bi bi-file-earmark-check text-success fs-5"></i>
+                    <i data-lucide="file-check" style="color: #1a73e8; width: 20px; height: 20px;"></i>
                     <span>Approved Land Registration: <strong>Riverdale Acres</strong></span>
                 </div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Administrator</div>
@@ -221,7 +220,7 @@ include '../includes/sidebar.php';
             <!-- Row 3 -->
             <div class="drive-list-row">
                 <div class="flex-1 d-flex align-items-center gap-3">
-                    <i class="bi bi-trash text-danger fs-5"></i>
+                    <i data-lucide="trash-2" class="text-danger" style="width: 20px; height: 20px;"></i>
                     <span>Deleted inactive Landowner account ID: 104</span>
                 </div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Administrator</div>
@@ -282,7 +281,7 @@ include '../includes/sidebar.php';
                             <button class="btn btn-outline-secondary border-light-subtle" type="button"
                                 id="toggleDashboardPassword"
                                 style="border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-color: var(--drive-border);">
-                                <i class="bi bi-eye" id="toggleDashboardPasswordIcon"></i>
+                                <i data-lucide="eye" id="toggleDashboardPasswordIcon" style="width: 16px; height: 16px;"></i>
                             </button>
                         </div>
                     </div>

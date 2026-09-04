@@ -12,45 +12,56 @@ document.addEventListener("DOMContentLoaded", function () {
     const contentWrapper = document.getElementById('harvestsContentWrapper');
     const recordForm = document.getElementById('recordHarvestForm');
 
-    // Helper for crop badges/icons
+    // Helper for crop badges/icons using open-crop-icons
     function getCropIconData(cropName) {
         const name = cropName.toLowerCase();
+        let svgPath = '../assets/crop-icons/generic-plant/generic-plant.svg';
+        let bg = 'bg-emerald-50';
+        let border = 'border-emerald-100';
+
         if (name.includes('tomato')) {
-            return {
-                icon: 'bi-apple',
-                bg: 'bg-red-50',
-                text: 'text-red-600',
-                border: 'border-red-100'
-            };
-        } else if (name.includes('lettuce') || name.includes('greens') || name.includes('spinach') || name.includes('cabbage')) {
-            return {
-                icon: 'bi-leaf',
-                bg: 'bg-green-50',
-                text: 'text-green-600',
-                border: 'border-green-100'
-            };
-        } else if (name.includes('carrot') || name.includes('potato') || name.includes('onion') || name.includes('tuber')) {
-            return {
-                icon: 'bi-flower3',
-                bg: 'bg-amber-50',
-                text: 'text-amber-700',
-                border: 'border-amber-100'
-            };
-        } else if (name.includes('herb') || name.includes('basil') || name.includes('mint')) {
-            return {
-                icon: 'bi-flower2',
-                bg: 'bg-emerald-50',
-                text: 'text-emerald-600',
-                border: 'border-emerald-100'
-            };
-        } else {
-            return {
-                icon: 'bi-flower1',
-                bg: 'bg-drive-surface-selected',
-                text: 'text-drive-primary',
-                border: 'border-drive-border'
-            };
+            svgPath = '../assets/crop-icons/tomato/tomato.svg';
+            bg = 'bg-red-50';
+            border = 'border-red-100';
+        } else if (name.includes('lettuce') || name.includes('romaine')) {
+            svgPath = '../assets/crop-icons/romaine/romaine.svg';
+            bg = 'bg-green-50';
+            border = 'border-green-100';
+        } else if (name.includes('spinach') || name.includes('greens') || name.includes('cabbage')) {
+            svgPath = '../assets/crop-icons/green-cabbage/green-cabbage.svg';
+            bg = 'bg-green-50';
+            border = 'border-green-100';
+        } else if (name.includes('carrot')) {
+            svgPath = '../assets/crop-icons/carrot/carrot.svg';
+            bg = 'bg-amber-50';
+            border = 'border-amber-100';
+        } else if (name.includes('potato') || name.includes('tuber')) {
+            svgPath = '../assets/crop-icons/russet-potato/russet-potato.svg';
+            bg = 'bg-amber-50';
+            border = 'border-amber-100';
+        } else if (name.includes('onion')) {
+            svgPath = '../assets/crop-icons/red-onion/red-onion.svg';
+            bg = 'bg-purple-50';
+            border = 'border-purple-100';
+        } else if (name.includes('basil') || name.includes('mint') || name.includes('herb')) {
+            svgPath = '../assets/crop-icons/basil/basil.svg';
+            bg = 'bg-emerald-50';
+            border = 'border-emerald-100';
+        } else if (name.includes('strawberry') || name.includes('berry')) {
+            svgPath = '../assets/crop-icons/strawberry/strawberry.svg';
+            bg = 'bg-red-50';
+            border = 'border-red-100';
+        } else if (name.includes('corn')) {
+            svgPath = '../assets/crop-icons/corn/corn.svg';
+            bg = 'bg-amber-50';
+            border = 'border-amber-100';
+        } else if (name.includes('cucumber')) {
+            svgPath = '../assets/crop-icons/cucumber/cucumber.svg';
+            bg = 'bg-green-50';
+            border = 'border-green-100';
         }
+
+        return { svgPath, bg, border };
     }
 
     // Format dates client-side
@@ -119,8 +130,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return `
                 <div class="flex items-center justify-between px-6 py-3.5 hover:bg-drive-canvas/50 text-xs text-drive-text-main transition-colors">
                     <div class="w-1/4 font-semibold flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center border ${icon.bg} ${icon.text} ${icon.border}">
-                            <i class="bi ${icon.icon} text-sm"></i>
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center border ${icon.bg} ${icon.border}">
+                            <img src="${icon.svgPath}" class="w-5 h-5 object-contain" alt="${h.crop_name}">
                         </div>
                         <span>${h.crop_name}</span>
                     </div>
@@ -144,8 +155,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="bg-white border border-drive-border rounded-2xl p-5 hover:shadow-md transition-all flex flex-col gap-4">
                     <div class="flex items-start justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center border ${icon.bg} ${icon.text} ${icon.border}">
-                                <i class="bi ${icon.icon} text-xl"></i>
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center border ${icon.bg} ${icon.border}">
+                                <img src="${icon.svgPath}" class="w-8 h-8 object-contain" alt="${h.crop_name}">
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold text-drive-text-main">${h.crop_name}</h3>

@@ -145,7 +145,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
     <div class="h-14 border-b border-drive-border px-6 flex items-center justify-between flex-shrink-0 bg-white">
         <div>
             <h1 class="text-sm font-bold text-drive-text-main flex items-center gap-2">
-                <i class="bi bi-map text-drive-primary"></i> Live Interactive Gardening Search
+                <i class="bi bi-search text-drive-primary"></i> Search Lands
             </h1>
         </div>
         <div class="flex items-center gap-2">
@@ -166,10 +166,10 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
             <div class="flex flex-col gap-6 m-0">
                 <!-- Search text box -->
                 <div>
-                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">Search Query</h3>
+                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">SEARCH</h3>
                     <div class="relative flex items-center">
                         <i class="bi bi-search absolute left-3.5 text-drive-text-sub text-xs"></i>
-                        <input type="text" id="searchQueryInput" placeholder="Type name, address, crops..."
+                        <input type="text" id="searchQueryInput" placeholder="Name, address, crops..."
                             value="<?php echo htmlspecialchars($search_query); ?>"
                             class="w-full bg-white border border-drive-border rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-drive-primary transition-colors">
                     </div>
@@ -177,7 +177,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
 
                 <!-- Filter section: Plant Suitability -->
                 <div>
-                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-3">Crop Suitability
+                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-3">SUITABILITY
                     </h3>
                     <div class="flex flex-col gap-2">
                         <?php foreach ($crop_options as $crop): ?>
@@ -193,7 +193,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
 
                 <!-- Filter section: Minimum Land Area -->
                 <div>
-                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">Minimum Size (m²)
+                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">MIN SIZE (m²)
                     </h3>
                     <div class="flex items-center gap-3">
                         <input type="range" id="minAreaInput" min="0" max="500" step="50" value="0"
@@ -204,7 +204,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
 
                 <!-- Filter section: Availability -->
                 <div>
-                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-3">Availability</h3>
+                    <h3 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-3">AVAILABILITY</h3>
                     <label class="flex items-center gap-2.5 text-xs text-drive-text-main font-medium cursor-pointer">
                         <input type="checkbox" id="availableOnlyInput"
                             class="w-4 h-4 rounded border-drive-border text-drive-primary focus:ring-0 cursor-pointer">
@@ -232,20 +232,20 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
                 id="mobileFilterCollapse">
                 <div class="flex flex-col gap-4 m-0">
                     <div class="flex justify-between items-center pb-2 border-b border-drive-border">
-                        <h4 class="text-xs font-bold text-drive-text-main m-0">Filter Parameters</h4>
+                        <h4 class="text-xs font-bold text-drive-text-main m-0">Filters</h4>
                         <button type="button" class="btn-close" data-bs-toggle="collapse"
                             data-bs-target="#mobileFilterCollapse"></button>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">Search Query
+                        <h4 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">SEARCH
                         </h4>
-                        <input type="text" id="mobileSearchQueryInput" placeholder="Type name, address..."
+                        <input type="text" id="mobileSearchQueryInput" placeholder="Name, address..."
                             class="w-full bg-white border border-drive-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-drive-primary">
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">Crop Suitability
+                        <h4 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">SUITABILITY
                         </h4>
                         <div class="grid grid-cols-2 gap-2">
                             <?php foreach ($crop_options as $crop): ?>
@@ -259,7 +259,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">Availability
+                        <h4 class="text-xs font-bold text-drive-text-sub uppercase tracking-wider mb-2">AVAILABILITY
                         </h4>
                         <label class="flex items-center gap-2 text-xs text-drive-text-main cursor-pointer">
                             <input type="checkbox" id="mobileAvailableOnlyInput"
@@ -293,7 +293,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Apply for Plot Lease</h5>
+                <h5 class="modal-title fw-semibold text-dark">Apply for Plot</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-start">
@@ -303,7 +303,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
 
                     <div
                         class="p-3 bg-drive-canvas border border-drive-border rounded-xl mb-3 text-xs text-drive-text-sub">
-                        <strong>Land Parcel:</strong> <span id="modal_land_title"
+                        <strong>Land:</strong> <span id="modal_land_title"
                             class="font-semibold text-drive-text-main"></span><br>
                         <strong>Selected Plot:</strong> <span id="modal_plot_number"
                             class="font-semibold text-drive-text-main"></span> (<span id="modal_plot_area"></span> m²)
@@ -311,8 +311,7 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
 
                     <div class="mb-3">
                         <label for="duration"
-                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">LEASE
-                            DURATION</label>
+                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">DURATION</label>
                         <select
                             class="w-full bg-white border border-drive-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-drive-primary"
                             id="duration" name="duration" required>
@@ -325,17 +324,16 @@ $crop_options = ['Root Vegetables', 'Tuber Crops', 'Leafy Greens', 'Herbs', 'Fru
 
                     <div class="mb-4">
                         <label for="purpose"
-                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">INTENDED
-                            GARDENING PURPOSE</label>
+                            class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">PURPOSE</label>
                         <textarea
                             class="w-full bg-white border border-drive-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-drive-primary"
                             id="purpose" name="purpose" rows="3" required
-                            placeholder="Detail the crops you plan to cultivate and how the yield will be shared/utilized..."></textarea>
+                            placeholder="Detail the crops you plan to cultivate..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-drive-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-drive-primary">Submit Application</button>
+                        <button type="submit" class="btn btn-drive-primary">Submit</button>
                     </div>
                 </form>
             </div>

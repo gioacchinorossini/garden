@@ -23,83 +23,83 @@ function get_dock_link_class($page_name, $bottom_page)
         ?>
         <a href="<?php echo $base; ?>admin/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
-            <i class="bi bi-grid-1x2-fill text-lg"></i>
+            <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Dashboard</span>
         </a>
         <a href="<?php echo $base; ?>admin/users.php" class="<?php echo get_dock_link_class('users.php', $bottom_page); ?>">
-            <i class="bi bi-people-fill text-lg"></i>
+            <i data-lucide="users" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Users</span>
         </a>
         <!-- Action Trigger -->
         <button
-            class="w-11 h-11 bg-drive-primary text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:bg-drive-primary-hover active:scale-95 transition-all text-xl flex-shrink-0"
+            class="w-11 h-11 bg-drive-primary text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:bg-drive-primary-hover active:scale-95 transition-all flex-shrink-0"
             data-bs-toggle="modal" data-bs-target="#addUserModal" title="New User">
-            <i class="bi bi-plus-lg"></i>
+            <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
         </button>
         <a href="<?php echo $base; ?>admin/lands.php" class="<?php echo get_dock_link_class('lands.php', $bottom_page); ?>">
-            <i class="bi bi-card-image text-lg"></i>
+            <i data-lucide="map" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Lands</span>
         </a>
         <a href="<?php echo $base; ?>admin/reports.php"
             class="<?php echo get_dock_link_class('reports.php', $bottom_page); ?>">
-            <i class="bi bi-bar-chart-line-fill text-lg"></i>
+            <i data-lucide="bar-chart-3" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Reports</span>
         </a>
     <?php elseif ($bottom_role == 'landowner'): ?>
         <a href="<?php echo $base; ?>landowner/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
-            <i class="bi bi-speedometer2 text-lg"></i>
+            <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Dashboard</span>
         </a>
         <a href="<?php echo $base; ?>landowner/lands.php"
             class="<?php echo get_dock_link_class('lands.php', $bottom_page); ?>">
-            <i class="bi bi-tree-fill text-lg"></i>
+            <i data-lucide="trees" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">My Lands</span>
         </a>
         <!-- Action Trigger -->
         <a href="<?php echo $base; ?>landowner/register.php"
-            class="w-11 h-11 bg-drive-primary text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:bg-drive-primary-hover active:scale-95 transition-all text-xl flex-shrink-0 text-decoration-none"
+            class="w-11 h-11 bg-drive-primary text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:bg-drive-primary-hover active:scale-95 transition-all flex-shrink-0 text-decoration-none"
             title="Register Land">
-            <i class="bi bi-plus-lg"></i>
+            <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
         </a>
         <a href="<?php echo $base; ?>landowner/requests.php"
             class="<?php echo get_dock_link_class('requests.php', $bottom_page); ?>">
-            <i class="bi bi-file-earmark-person-fill text-lg"></i>
+            <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Requests</span>
         </a>
         <a href="<?php echo $base; ?>landowner/schedules.php"
             class="<?php echo get_dock_link_class('schedules.php', $bottom_page); ?>">
-            <i class="bi bi-calendar-event-fill text-lg"></i>
+            <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Schedules</span>
         </a>
     <?php elseif ($bottom_role == 'gardener'): ?>
         <a href="<?php echo $base; ?>gardener/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
-            <i class="bi bi-house-door-fill text-lg"></i>
+            <i data-lucide="home" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Overview</span>
         </a>
         <a href="<?php echo $base; ?>gardener/map.php" class="<?php echo get_dock_link_class('map.php', $bottom_page); ?>">
-            <i class="bi bi-map-fill text-lg"></i>
+            <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Map</span>
         </a>
         <a href="<?php echo $base; ?>gardener/search.php"
             class="<?php echo get_dock_link_class('search.php', $bottom_page); ?>">
-            <i class="bi bi-search text-lg"></i>
+            <i data-lucide="search" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Search</span>
         </a>
         <a href="<?php echo $base; ?>gardener/requests.php"
             class="<?php echo get_dock_link_class('requests.php', $bottom_page); ?>">
-            <i class="bi bi-send-fill text-lg"></i>
+            <i data-lucide="send" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Requests</span>
         </a>
         <a href="<?php echo $base; ?>gardener/schedules.php"
             class="<?php echo get_dock_link_class('schedules.php', $bottom_page); ?>">
-            <i class="bi bi-calendar-check-fill text-lg"></i>
+            <i data-lucide="calendar-check" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Schedules</span>
         </a>
         <a href="<?php echo $base; ?>gardener/harvests.php"
             class="<?php echo get_dock_link_class('harvests.php', $bottom_page); ?>">
-            <i class="bi bi-basket3-fill text-lg"></i>
+            <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Harvests</span>
         </a>
     <?php endif; ?>
@@ -119,8 +119,12 @@ function get_dock_link_class($page_name, $bottom_page)
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
-    // Mobile Sidebar Toggle JS
+    // Mobile Sidebar Toggle JS & Lucide Icons initialization
     document.addEventListener("DOMContentLoaded", function () {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+
         const toggleBtn = document.getElementById('sidebarToggleBtn');
         const sidebar = document.querySelector('.sidebar');
         const backdrop = document.getElementById('sidebarBackdrop');

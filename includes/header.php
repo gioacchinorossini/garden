@@ -1,9 +1,19 @@
+<?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+if (isset($_GET['switch_ui'])) {
+    $_SESSION['ui_mode'] = $_GET['switch_ui'];
+}
+$ui_mode = isset($_SESSION['ui_mode']) ? $_SESSION['ui_mode'] : 'drive';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . " - Idle Land Gardening" : "Idle Land for Community Gardening System"; ?></title>
+    <link rel="icon" type="image/jpeg" href="<?php echo isset($base_path) ? $base_path : ''; ?>logo.jpeg">
     <!-- Google Fonts (Outfit & Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,16 +57,19 @@
     </script>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Leaflet.js Map CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet.js Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <!-- Custom Design System Styles -->
     <link rel="stylesheet" href="<?php echo isset($base_path) ? $base_path : ''; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo isset($base_path) ? $base_path : ''; ?>assets/css/modern_ui.css">
     <style>
-        /* Small adjustments to integrate with Bootstrap */
         .leaflet-container {
             font-family: 'Outfit', sans-serif;
         }
     </style>
 </head>
-<body>
+<body class="<?php echo ($ui_mode == 'modern') ? 'ui-modern' : ''; ?>">
     <div class="app-container">

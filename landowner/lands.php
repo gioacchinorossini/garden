@@ -10,9 +10,7 @@ include '../includes/sidebar.php';
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">My Registered Lands</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Manage property descriptions, approval statuses, and
-                configure gardening plots</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">My Lands</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="register.php" class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2">
@@ -56,8 +54,7 @@ include '../includes/sidebar.php';
                     style="border-color: var(--drive-border) !important;">
                     <i class="bi bi-grid-3x3-gap fs-1 text-secondary mb-3"></i>
                     <p class="mb-0 fw-medium">No land selected</p>
-                    <span class="text-secondary" style="font-size: 0.8rem;">Select "Manage Plots" on any approved land
-                        to view and partition gardening spaces.</span>
+                    <span class="text-secondary" style="font-size: 0.8rem;">Select "Manage Plots" on an approved land.</span>
                 </div>
             </div>
         </div>
@@ -69,7 +66,7 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Modify Land Description</h5>
+                <h5 class="modal-title fw-semibold text-dark">Edit Land</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -108,7 +105,7 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Add New Plot Partition</h5>
+                <h5 class="modal-title fw-semibold text-dark">Add Plot</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -117,15 +114,15 @@ include '../includes/sidebar.php';
 
                     <div class="mb-3">
                         <label for="plot_number" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">PLOT NUMBER / ID</label>
+                            style="font-size: 0.75rem; font-weight:600;">PLOT NUMBER</label>
                         <input type="text" class="form-control drive-form-control w-100" id="plot_number"
-                            name="plot_number" required placeholder="e.g. Plot C-1">
+                            name="plot_number" required placeholder="Plot C-1">
                     </div>
                     <div class="mb-4">
                         <label for="plot_area" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">AREA SIZE (m²)</label>
+                            style="font-size: 0.75rem; font-weight:600;">AREA (m²)</label>
                         <input type="number" step="0.1" class="form-control drive-form-control w-100" id="plot_area"
-                            name="plot_area" required placeholder="e.g. 25.0">
+                            name="plot_area" required placeholder="25.0">
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">

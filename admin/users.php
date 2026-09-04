@@ -10,9 +10,7 @@ include '../includes/sidebar.php';
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Manage User Accounts</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">View, configure system credentials, roles, and
-                authorization status</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Manage Users</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-drive-primary d-flex align-items-center gap-2" data-bs-toggle="modal"
@@ -29,9 +27,9 @@ include '../includes/sidebar.php';
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex gap-2">
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn active"
-                    data-filter="all">All Users</button>
+                    data-filter="all">All</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
-                    data-filter="admin">Administrators</button>
+                    data-filter="admin">Admins</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
                     data-filter="landowner">Landowners</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
@@ -47,8 +45,8 @@ include '../includes/sidebar.php';
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-light border-bottom text-secondary"
                 style="font-size: 0.75rem; font-weight: 600;">
-                <div class="w-25">USER NAME</div>
-                <div class="w-25">EMAIL ADDRESS</div>
+                <div class="w-25">NAME</div>
+                <div class="w-25">EMAIL</div>
                 <div class="w-15">PHONE</div>
                 <div class="w-10">ROLE</div>
                 <div class="w-10">STATUS</div>
@@ -67,7 +65,7 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark" id="addUserModalLabel">Create New User Account</h5>
+                <h5 class="modal-title fw-semibold text-dark" id="addUserModalLabel">Add User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -76,18 +74,18 @@ include '../includes/sidebar.php';
                         <label for="add_name" class="form-label text-secondary"
                             style="font-size: 0.75rem; font-weight:600;">FULL NAME</label>
                         <input type="text" class="form-control drive-form-control w-100" id="add_name" name="name"
-                            required placeholder="e.g. John Doe">
+                            required placeholder="John Doe">
                     </div>
                     <div class="mb-3">
                         <label for="add_email" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">EMAIL ADDRESS</label>
+                            style="font-size: 0.75rem; font-weight:600;">EMAIL</label>
                         <input type="email" class="form-control drive-form-control w-100" id="add_email" name="email"
-                            required placeholder="e.g. john@example.com">
+                            required placeholder="john@example.com">
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="add_role" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">SYSTEM ROLE</label>
+                                style="font-size: 0.75rem; font-weight:600;">ROLE</label>
                             <select class="form-select drive-form-control w-100" id="add_role" name="role" required>
                                 <option value="gardener">Gardener</option>
                                 <option value="landowner">Landowner</option>
@@ -96,14 +94,14 @@ include '../includes/sidebar.php';
                         </div>
                         <div class="col-md-6">
                             <label for="add_phone" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">PHONE NUMBER</label>
+                                style="font-size: 0.75rem; font-weight:600;">PHONE</label>
                             <input type="text" class="form-control drive-form-control w-100" id="add_phone" name="phone"
-                                placeholder="e.g. 09123456789">
+                                placeholder="09123456789">
                         </div>
                     </div>
                     <div class="mb-4">
                         <label for="add_password" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">DEFAULT PASSWORD</label>
+                            style="font-size: 0.75rem; font-weight:600;">PASSWORD</label>
                         <div class="input-group">
                             <input type="password" class="form-control drive-form-control" id="add_password"
                                 name="password" required value="password123"
@@ -131,7 +129,7 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark" id="editUserModalLabel">Modify User Account</h5>
+                <h5 class="modal-title fw-semibold text-dark" id="editUserModalLabel">Edit User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -145,14 +143,14 @@ include '../includes/sidebar.php';
                     </div>
                     <div class="mb-3">
                         <label for="edit_email" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">EMAIL ADDRESS</label>
+                            style="font-size: 0.75rem; font-weight:600;">EMAIL</label>
                         <input type="email" class="form-control drive-form-control w-100" id="edit_email" name="email"
                             required>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="edit_role" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">SYSTEM ROLE</label>
+                                style="font-size: 0.75rem; font-weight:600;">ROLE</label>
                             <select class="form-select drive-form-control w-100" id="edit_role" name="role" required>
                                 <option value="gardener">Gardener</option>
                                 <option value="landowner">Landowner</option>
@@ -161,7 +159,7 @@ include '../includes/sidebar.php';
                         </div>
                         <div class="col-md-6">
                             <label for="edit_phone" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">PHONE NUMBER</label>
+                                style="font-size: 0.75rem; font-weight:600;">PHONE</label>
                             <input type="text" class="form-control drive-form-control w-100" id="edit_phone"
                                 name="phone">
                         </div>

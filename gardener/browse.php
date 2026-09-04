@@ -123,9 +123,7 @@ function get_land_image_url($id)
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Available Gardening Lands</h1>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Browse approved idle properties, inspect vacancy, and
-                apply for space</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Available Lands</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <a href="map.php" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
@@ -167,9 +165,7 @@ function get_land_image_url($id)
                     $total_count = count($land_plots);
                     ?>
                     <div class="col-md-6 col-xl-4">
-                        <div class="land-listing-card rounded-4 overflow-hidden border"
-                            style="border-color: var(--drive-border) !important; background: #fff;">
-
+                        <div class="land-listing-card rounded-4 overflow-hidden border h-100 d-flex flex-column">
                             <!-- ① Hero Image with toggle overlay -->
                             <div class="position-relative" style="height: 200px; overflow: hidden;">
                                 <!-- Map Preview (shown by default) -->
@@ -298,7 +294,7 @@ function get_land_image_url($id)
                                                     <div class="modal-dialog modal-dialog-centered">
                                                         <div class="modal-content drive-modal-content">
                                                             <div class="modal-header border-0 pb-0">
-                                                                <h5 class="modal-title fw-semibold text-dark">Apply for Plot Lease</h5>
+                                                                <h5 class="modal-title fw-semibold text-dark">Apply for Plot</h5>
                                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                                     aria-label="Close"></button>
                                                             </div>
@@ -311,7 +307,7 @@ function get_land_image_url($id)
                                                                         value="<?php echo $plot['id']; ?>">
 
                                                                     <div class="p-3 bg-light rounded-3 mb-3" style="font-size: 0.8rem;">
-                                                                        <strong>Land Parcel:</strong>
+                                                                        <strong>Land:</strong>
                                                                         <?php echo htmlspecialchars($land['title']); ?><br>
                                                                         <strong>Selected Plot:</strong>
                                                                         <?php echo htmlspecialchars($plot['plot_number']); ?>
@@ -320,8 +316,7 @@ function get_land_image_url($id)
 
                                                                     <div class="mb-3">
                                                                         <label for="duration" class="form-label text-secondary"
-                                                                            style="font-size: 0.75rem; font-weight:600;">LEASE
-                                                                            DURATION</label>
+                                                                            style="font-size: 0.75rem; font-weight:600;">DURATION</label>
                                                                         <select class="form-select drive-form-control w-100"
                                                                             id="duration" name="duration" required>
                                                                             <option value="3 Months">3 Months</option>
@@ -333,8 +328,7 @@ function get_land_image_url($id)
 
                                                                     <div class="mb-4">
                                                                         <label for="purpose" class="form-label text-secondary"
-                                                                            style="font-size: 0.75rem; font-weight:600;">GARDENING
-                                                                            PURPOSE</label>
+                                                                            style="font-size: 0.75rem; font-weight:600;">PURPOSE</label>
                                                                         <textarea class="form-control drive-form-control w-100"
                                                                             id="purpose" name="purpose" rows="3" required
                                                                             placeholder="Describe your gardening plans..."></textarea>
@@ -343,8 +337,7 @@ function get_land_image_url($id)
                                                                     <div class="d-flex justify-content-end gap-2">
                                                                         <button type="button" class="btn btn-drive-secondary"
                                                                             data-bs-dismiss="modal">Cancel</button>
-                                                                        <button type="submit" class="btn btn-drive-primary">Submit
-                                                                            Application</button>
+                                                                        <button type="submit" class="btn btn-drive-primary">Submit</button>
                                                                     </div>
                                                                 </form>
                                                             </div>
