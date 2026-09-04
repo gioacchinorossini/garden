@@ -138,11 +138,11 @@ unset($land);
 
                 <!-- Crop Filter Dropdown -->
                 <div class="dropdown d-inline-block">
-                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5 border-0" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius:20px;padding:5px 12px;background:#fff;font-weight:500;box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5 border-0" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" style="border-radius:20px;padding:5px 12px;background:#fff;font-weight:500;box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
                         <img id="selectedCropFilterIcon" src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;object-fit:contain;">
                         <span id="selectedCropFilterLabel">All Crops</span>
                     </button>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown" style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1050;">
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown" style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1060;">
                         <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2 active" href="#" onclick="selectCropFilter('all', 'All Crops', 'generic-plant/generic-plant.svg', this)">
                             <img src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;"> <span>All Crops</span>
                         </a></li>
@@ -305,6 +305,8 @@ unset($land);
     let gardenerMap = null;
     let mapMarkers = [];
     let activePlotLayers = [];
+    let currentGardenerFilterType = 'all';
+    let selectedCropFilterVal = 'all';
 
     function navigateGardenCard(direction) {
         if (!landsData || landsData.length === 0) return;
@@ -385,6 +387,10 @@ unset($land);
             maxNativeZoom: 19,
             attribution: '© OpenStreetMap contributors'
         }).addTo(gardenerMap);
+
+        setTimeout(() => {
+            if (gardenerMap) gardenerMap.invalidateSize();
+        }, 200);
 
         renderGardenerMapPins(landsData);
 
@@ -795,9 +801,6 @@ unset($land);
             activePlotLayers = [];
         }
     }
-
-    let currentGardenerFilterType = 'all';
-    let selectedCropFilterVal = 'all';
 
     function selectCropFilter(val, label, iconRelPath, el) {
         selectedCropFilterVal = val;

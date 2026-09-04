@@ -129,7 +129,8 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 1rem;
-    z-index: 10;
+    position: relative;
+    z-index: 1050;
 }
 
 .search-bar-container {
@@ -650,18 +651,18 @@ a.text-decoration-none:hover {
     top: 14px;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 1040;
     display: flex;
     gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    align-items: center;
     padding: 0 14px 6px;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
     .mobile-map-chips-bar {
-        top: 64px;
+        top: 10px;
     }
 }
 
@@ -911,4 +912,31 @@ a.text-decoration-none:hover {
     .map-sheet-backdrop.show {
         display: block;
     }
+}
+
+/* ==========================================================================
+   Leaflet Map Z-Index Isolation Rules
+   Ensures maps, markers, popups, and controls stay beneath headers, dropdowns & modals
+   ========================================================================== */
+header,
+.top-header {
+    position: relative;
+    z-index: 1050 !important;
+}
+
+.dropdown-menu {
+    z-index: 1060 !important;
+}
+
+.modal {
+    z-index: 1070 !important;
+}
+
+.modal-backdrop {
+    z-index: 1065 !important;
+}
+
+.leaflet-container {
+    position: relative;
+    z-index: 1 !important;
 }

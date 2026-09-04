@@ -48,8 +48,7 @@ if (isset($_GET['switch_role'])) {
     }
 }
 ?>
-<!-- Top Navigation Bar -->
-<header class="h-16 flex items-center justify-between px-6 bg-white border-b border-drive-border z-10">
+<header class="h-16 flex items-center justify-between px-6 bg-white border-b border-drive-border relative z-[1050]">
     <!-- Left: Branding -->
     <a href="<?php echo $bp; ?>index.php" class="flex items-center gap-2 text-decoration-none" style="min-width: 240px;">
         <img src="<?php echo $bp; ?>logo.jpeg" alt="IdleLand Logo" class="h-9 w-9 object-contain rounded-full">

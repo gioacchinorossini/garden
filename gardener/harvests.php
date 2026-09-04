@@ -6,7 +6,7 @@ include '../includes/navbar.php';
 include '../includes/sidebar.php';
 ?>
 
-<main class="flex-1 bg-white rounded-[24px] border border-drive-border flex flex-col overflow-hidden h-full">
+<main class="workspace-surface flex-1 flex flex-col overflow-hidden h-full">
     <!-- Toolbar/Title Bar -->
     <div class="h-14 border-b border-drive-border px-6 flex items-center justify-between flex-shrink-0 bg-white">
         <div>
