@@ -91,19 +91,8 @@ if (isset($_GET['switch_role'])) {
         </form>
     </div>
 
-    <!-- Right: Account Details & UI/Role Switchers -->
+    <!-- Right: Account Details & Role Switcher -->
     <div class="flex items-center gap-3">
-        <!-- UI Mode Switcher (Drive UI vs Modern Studio UI) -->
-        <?php $current_ui = isset($_SESSION['ui_mode']) ? $_SESSION['ui_mode'] : 'drive'; ?>
-        <div class="ui-mode-toggle shadow-sm">
-            <a href="?switch_ui=drive" class="ui-mode-btn <?php echo ($current_ui == 'drive') ? 'active' : ''; ?>" title="Classic Drive Grid UI">
-                <i class="bi bi-grid-fill"></i> <span class="hidden sm:inline">Drive UI</span>
-            </a>
-            <a href="?switch_ui=modern" class="ui-mode-btn <?php echo ($current_ui == 'modern') ? 'active' : ''; ?>" title="Modern Botanical Studio UI">
-                <i class="bi bi-stars"></i> <span class="hidden sm:inline">Modern UI</span>
-            </a>
-        </div>
-
         <!-- Quick Role Switcher for Demo -->
         <div class="dropdown">
             <button

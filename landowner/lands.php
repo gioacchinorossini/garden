@@ -13,7 +13,7 @@ include '../includes/sidebar.php';
             <h1 class="fs-5 fw-semibold m-0 text-dark">My Lands</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <a href="register.php" class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2">
+            <a href="register.php" class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill">
                 <i class="bi bi-plus-lg"></i>
                 <span>Register Land</span>
             </a>
@@ -21,52 +21,48 @@ include '../includes/sidebar.php';
     </div>
 
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll">
-        <div class="row g-4">
-            <!-- Left: Lands List (2 Columns / folder-grid style) -->
-            <div class="col-md-6">
-                <h2 class="fs-6 fw-semibold text-secondary mb-3"
-                    style="letter-spacing: 0.5px; text-transform: uppercase;">Properties</h2>
+    <div class="workspace-scroll p-4">
+        <!-- Lands list full-width responsive grid -->
+        <div class="row g-4" id="landsContainer"></div>
+    </div>
+</main>
 
-                <!-- Lands list dynamic container -->
-                <div id="landsContainer"></div>
+<!-- Manage Plots Modal -->
+<div class="modal fade" id="managePlotsModal" tabindex="-1" aria-hidden="true" style="z-index: 9998;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content drive-modal-content">
+            <div class="modal-header border-0 pb-0 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-grid-3x3-gap text-success"></i>
+                        <span>Manage Partition Plots</span>
+                    </h5>
+                    <p class="text-muted mb-0 mt-1" style="font-size:0.82rem;">
+                        Property: <span id="modalLandTitle" class="fw-bold text-dark"></span>
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-drive-primary py-1.5 px-3 d-flex align-items-center gap-1 rounded-pill"
+                        onclick="openAddPlotModal()">
+                        <i class="bi bi-plus-lg"></i> Add Plot
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
-
-            <!-- Right: Partition Plots panel for Selected Land -->
-            <div class="col-md-6">
-                <div id="plotsWorkspace" style="display: none;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h2 class="fs-6 fw-semibold text-secondary m-0"
-                            style="letter-spacing: 0.5px; text-transform: uppercase;">Plots for: <span
-                                id="activeLandTitle" class="text-dark fw-bold"></span></h2>
-                        <button class="btn btn-sm btn-drive-primary py-1 px-3 d-flex align-items-center gap-1"
-                            data-bs-toggle="modal" data-bs-target="#addPlotModal">
-                            <i class="bi bi-plus-lg"></i> Add Plot
-                        </button>
-                    </div>
-
-                    <!-- Plots dynamic list -->
-                    <div id="plotsContainer"></div>
-                </div>
-
-                <div id="noPlotsSelected"
-                    class="card border rounded-4 p-5 text-center bg-light text-muted  h-100 d-flex flex-column align-items-center justify-content-center"
-                    style="border-color: var(--drive-border) !important;">
-                    <i class="bi bi-grid-3x3-gap fs-1 text-secondary mb-3"></i>
-                    <p class="mb-0 fw-medium">No land selected</p>
-                    <span class="text-secondary" style="font-size: 0.8rem;">Select "Manage Plots" on an approved land.</span>
-                </div>
+            <div class="modal-body pt-3">
+                <!-- Plots dynamic list inside modal -->
+                <div id="modalPlotsContainer"></div>
             </div>
         </div>
     </div>
-</main>
+</div>
 
 <!-- Single Edit Land Details Modal -->
 <div class="modal fade" id="editLandModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Edit Land</h5>
+                <h5 class="modal-title fw-semibold text-dark">Edit Land Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -101,11 +97,11 @@ include '../includes/sidebar.php';
 </div>
 
 <!-- Add Plot Modal (Single instance) -->
-<div class="modal fade" id="addPlotModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+<div class="modal fade" id="addPlotModal" tabindex="-1" aria-hidden="true" style="z-index: 10000;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Add Plot</h5>
+                <h5 class="modal-title fw-semibold text-dark">Add New Plot</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

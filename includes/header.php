@@ -1,12 +1,3 @@
-<?php
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-if (isset($_GET['switch_ui'])) {
-    $_SESSION['ui_mode'] = $_GET['switch_ui'];
-}
-$ui_mode = isset($_SESSION['ui_mode']) ? $_SESSION['ui_mode'] : 'drive';
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,12 +55,12 @@ $ui_mode = isset($_SESSION['ui_mode']) ? $_SESSION['ui_mode'] : 'drive';
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <!-- Custom Design System Styles -->
     <link rel="stylesheet" href="<?php echo isset($base_path) ? $base_path : ''; ?>assets/css/style.css">
-    <link rel="stylesheet" href="<?php echo isset($base_path) ? $base_path : ''; ?>assets/css/modern_ui.css">
     <style>
+        /* Small adjustments to integrate with Bootstrap */
         .leaflet-container {
             font-family: 'Outfit', sans-serif;
         }
     </style>
 </head>
-<body class="<?php echo ($ui_mode == 'modern') ? 'ui-modern' : ''; ?>">
+<body>
     <div class="app-container">

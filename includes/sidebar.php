@@ -61,14 +61,9 @@ $bp = isset($base_path) ? $base_path : '';
             <?php elseif ($role == 'landowner'): ?>
                 <!-- LANDOWNER MENU -->
                 <a href="<?php echo $bp; ?>landowner/dashboard.php"
-                    class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="<?php echo $bp; ?>landowner/modern_ui.php"
-                    class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'modern_ui.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #10b981;"></i>
-                    <span class="font-semibold text-emerald-700">Studio V2 (Modern)</span>
+                    class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php' || $current_page == 'map.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
+                    <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
+                    <span>Gardens Map</span>
                 </a>
                 <a href="<?php echo $bp; ?>landowner/register.php"
                     class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'register.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
@@ -102,11 +97,6 @@ $bp = isset($base_path) ? $base_path : '';
                     class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="home" style="width: 18px; height: 18px;"></i>
                     <span>Overview</span>
-                </a>
-                <a href="<?php echo $bp; ?>gardener/modern_ui.php"
-                    class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'modern_ui.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #10b981;"></i>
-                    <span class="font-semibold text-emerald-700">Studio V2 (Modern)</span>
                 </a>
                 <a href="<?php echo $bp; ?>gardener/search.php"
                     class="flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'search.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">

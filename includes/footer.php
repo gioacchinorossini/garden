@@ -48,8 +48,8 @@ function get_dock_link_class($page_name, $bottom_page)
     <?php elseif ($bottom_role == 'landowner'): ?>
         <a href="<?php echo $base; ?>landowner/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
-            <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Dashboard</span>
+            <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i>
+            <span class="hidden sm:inline">Gardens Map</span>
         </a>
         <a href="<?php echo $base; ?>landowner/lands.php"
             class="<?php echo get_dock_link_class('lands.php', $bottom_page); ?>">

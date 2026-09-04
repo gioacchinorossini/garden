@@ -11,14 +11,6 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 $_SESSION['active_role'] = 'gardener';
 $_SESSION['user_name'] = 'Mary Gardener';
-
-$ui_mode = isset($_SESSION['ui_mode']) ? $_SESSION['ui_mode'] : 'drive';
-
-if ($ui_mode === 'modern') {
-    include '../includes/gardener_modern_ui.php';
-    include '../includes/footer.php';
-    exit;
-}
 ?>
 
 <main class="workspace-surface">
@@ -170,6 +162,8 @@ if ($ui_mode === 'modern') {
                 <div class="w-15 text-end"><span
                         class="badge rounded-pill px-2" style="background-color: #f3e5f5; color: #8e24aa;">Planting</span></div>
             </div>
+        </div>
     </div>
 </main>
+
 <?php include '../includes/footer.php'; ?>
