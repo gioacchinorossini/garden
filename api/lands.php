@@ -11,6 +11,14 @@ if (!isset($_SESSION['mock_lands'])) {
         [
             'id' => 1,
             'title' => 'Sunnyvale Gardening Lot',
+            'title_type' => 'TCT',
+            'title_number' => 'TCT No. 004-2022019482',
+            'rod_name' => 'Quezon City',
+            'epeb_type' => 'CCV',
+            'epeb_no' => '2023004819',
+            'title_document_path' => 'assets/images/sample_title_cert.svg',
+            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
+            'is_lra_verified' => 1,
             'landowner' => 'John Landowner',
             'address' => '124 Green Ave, Sunnyvale',
             'latitude' => 14.5995,
@@ -24,6 +32,14 @@ if (!isset($_SESSION['mock_lands'])) {
         [
             'id' => 2,
             'title' => 'Downtown Rooftop Garden',
+            'title_type' => 'TCT',
+            'title_number' => 'TCT No. 002-2021008172',
+            'rod_name' => 'City of Manila',
+            'epeb_type' => 'CCV',
+            'epeb_no' => '2022001923',
+            'title_document_path' => 'assets/images/sample_title_cert.svg',
+            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
+            'is_lra_verified' => 1,
             'landowner' => 'John Landowner',
             'address' => '45 Main St, Business District',
             'latitude' => 14.6010,
@@ -37,6 +53,14 @@ if (!isset($_SESSION['mock_lands'])) {
         [
             'id' => 3,
             'title' => 'Riverdale Acres',
+            'title_type' => 'OCT',
+            'title_number' => 'OCT No. 008-1998004112',
+            'rod_name' => 'Province of Rizal',
+            'epeb_type' => 'CCV',
+            'epeb_no' => '2023008472',
+            'title_document_path' => 'assets/images/sample_title_cert.svg',
+            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
+            'is_lra_verified' => 1,
             'landowner' => 'Robert Johnson',
             'address' => 'Riverside Dr, Block B',
             'latitude' => 14.5950,
@@ -50,6 +74,14 @@ if (!isset($_SESSION['mock_lands'])) {
         [
             'id' => 4,
             'title' => 'Eastside Clay Meadows',
+            'title_type' => 'TCT',
+            'title_number' => 'TCT No. 010-2023001893',
+            'rod_name' => 'Province of Laguna, Calamba Branch',
+            'epeb_type' => 'CCV',
+            'epeb_no' => '2024009182',
+            'title_document_path' => 'assets/images/sample_title_cert.svg',
+            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
+            'is_lra_verified' => 1,
             'landowner' => 'Sarah Connor',
             'address' => '789 East Blvd, Clay District',
             'latitude' => 14.6120,
@@ -104,6 +136,13 @@ if ($method === 'POST') {
         $area = isset($input['area']) ? floatval($input['area']) : 0.0;
         $description = isset($input['description']) ? htmlspecialchars(trim($input['description'])) : '';
         $crops = isset($input['crops']) ? $input['crops'] : ['General Gardening'];
+        $title_type = isset($input['title_type']) ? htmlspecialchars(trim($input['title_type'])) : 'TCT';
+        $title_number = isset($input['title_number']) ? htmlspecialchars(trim($input['title_number'])) : '';
+        $rod_name = isset($input['rod_name']) ? htmlspecialchars(trim($input['rod_name'])) : '';
+        $epeb_type = isset($input['epeb_type']) ? htmlspecialchars(trim($input['epeb_type'])) : 'CCV';
+        $epeb_no = isset($input['epeb_no']) ? htmlspecialchars(trim($input['epeb_no'])) : '';
+        $title_doc = isset($input['title_document_path']) ? htmlspecialchars(trim($input['title_document_path'])) : '';
+        $receipt_doc = isset($input['lra_receipt_path']) ? htmlspecialchars(trim($input['lra_receipt_path'])) : '';
 
         if (empty($title) || empty($address) || !$area) {
             http_response_code(400);
@@ -117,6 +156,14 @@ if ($method === 'POST') {
         $newLand = [
             'id' => count($_SESSION['mock_lands']) + 1,
             'title' => $title,
+            'title_type' => $title_type,
+            'title_number' => $title_number,
+            'rod_name' => $rod_name,
+            'epeb_type' => $epeb_type,
+            'epeb_no' => $epeb_no,
+            'title_document_path' => $title_doc,
+            'lra_receipt_path' => $receipt_doc,
+            'is_lra_verified' => 0,
             'landowner' => $_SESSION['user_name'] ?? 'John Landowner',
             'address' => $address,
             'latitude' => $latitude,
@@ -206,6 +253,11 @@ if ($method === 'POST') {
             if ($land['id'] === $id) {
                 $land['status'] = $status;
                 $land['reason'] = ($status === 'rejected') ? $reason : '';
+                if ($status === 'approved') {
+                    $land['is_lra_verified'] = !empty($land['epeb_no']) || !empty($land['title_number']) ? 1 : 0;
+                } else {
+                    $land['is_lra_verified'] = 0;
+                }
                 $found = true;
                 break;
             }

@@ -109,8 +109,23 @@ document.addEventListener("DOMContentLoaded", function() {
                 statusBadge = `<span class="badge bg-danger rounded-pill" style="font-size: 10px;" title="Reason: ${land.reason}">Rejected</span>`;
             }
 
+            let lraBadge = '';
+            if (land.is_lra_verified || (land.status === 'approved' && (land.epeb_no || land.title_number))) {
+                lraBadge = `
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill d-inline-flex align-items-center gap-1 mt-1" style="font-size: 9px;" title="LRA Title Verified">
+                        <i class="bi bi-shield-check"></i> LRA Verified
+                    </span>
+                `;
+            } else if (land.epeb_no) {
+                lraBadge = `
+                    <span class="badge bg-light text-secondary border rounded-pill d-inline-flex align-items-center gap-1 mt-1" style="font-size: 9px;" title="EPEB Attached: ${land.epeb_no}">
+                        <i class="bi bi-receipt"></i> EPEB #${land.epeb_no}
+                    </span>
+                `;
+            }
+
             let moderationButtons = `
-                <button onclick="openViewModal(${land.id})" class="btn icon-btn-pill" title="View details">
+                <button onclick="openViewModal(${land.id})" class="btn icon-btn-pill" title="View details & LRA title">
                     <i class="bi bi-eye text-primary"></i>
                 </button>
             `;
@@ -130,7 +145,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom hover:bg-[#f8faff] text-sm text-dark transition-colors" style="min-height: 64px;">
                     <!-- Land Details -->
                     <div class="w-25">
-                        <div class="fw-semibold text-dark">${land.title}</div>
+                        <div class="fw-semibold text-dark d-flex align-items-center gap-1 flex-wrap">
+                            <span>${land.title}</span>
+                            ${lraBadge}
+                        </div>
                         <small class="text-secondary truncate d-block" style="font-size: 0.75rem;"><i class="bi bi-geo-alt-fill text-muted me-1"></i>${land.address}</small>
                     </div>
 
@@ -177,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Approve Land
     window.approveLand = async function(id) {
-        if (!confirm("Are you sure you want to approve this land submission?")) return;
+        if (!confirm("Are you sure you want to approve this land submission and certify its title?")) return;
 
         try {
             const response = await fetch('../api/lands.php', {
@@ -206,11 +224,93 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!land) return;
 
         document.getElementById('modal_title').innerText = land.title;
-        document.getElementById('modal_description').innerText = land.description;
+        const subAddress = document.getElementById('modal_address_sub');
+        if (subAddress) subAddress.innerText = land.address;
+
+        document.getElementById('modal_description').innerText = land.description || 'No description provided.';
         document.getElementById('modal_owner').innerText = land.landowner;
         document.getElementById('modal_area').innerText = parseFloat(land.area).toFixed(1) + ' m²';
         document.getElementById('modal_address').innerText = land.address;
         document.getElementById('modal_coords').innerText = `${land.latitude}, ${land.longitude}`;
+
+        // LRA Title Verification Details
+        const titleFullEl = document.getElementById('modal_title_full');
+        if (titleFullEl) {
+            titleFullEl.innerText = land.title_number ? `${land.title_type || 'TCT'}: ${land.title_number}` : 'No title number declared';
+        }
+
+        const rodEl = document.getElementById('modal_rod_name');
+        if (rodEl) {
+            rodEl.innerText = land.rod_name || 'Quezon City (Default)';
+        }
+
+        const epebTypeEl = document.getElementById('modal_epeb_type');
+        if (epebTypeEl) {
+            epebTypeEl.innerText = land.epeb_type || 'CCV (Certified True Copy)';
+        }
+
+        const epebNoEl = document.getElementById('modal_epeb_no');
+        if (epebNoEl) {
+            epebNoEl.innerText = land.epeb_no || 'None Provided';
+        }
+
+        // LRA Verification Badge in Modal
+        const badgeContainer = document.getElementById('modal_lra_badge_container');
+        if (badgeContainer) {
+            if (land.status === 'approved' && (land.is_lra_verified || land.epeb_no)) {
+                badgeContainer.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill text-xs fw-semibold"><i class="bi bi-patch-check-fill me-1"></i>LRA Authenticity Confirmed</span>`;
+            } else if (land.status === 'rejected') {
+                badgeContainer.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill text-xs fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Verification Failed</span>`;
+            } else {
+                badgeContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1 rounded-pill text-xs fw-semibold"><i class="bi bi-hourglass-split me-1"></i>Pending Due Diligence</span>`;
+            }
+        }
+
+        // Documents Links
+        const titleDocLink = document.getElementById('modal_title_doc_link');
+        const titleDocStatus = document.getElementById('modal_title_doc_status');
+        if (titleDocLink) {
+            if (land.title_document_path) {
+                titleDocLink.href = '../' + land.title_document_path;
+                titleDocLink.classList.remove('disabled');
+                if (titleDocStatus) titleDocStatus.innerText = 'Document attached';
+            } else {
+                titleDocLink.href = '#';
+                titleDocLink.classList.add('disabled');
+                if (titleDocStatus) titleDocStatus.innerText = 'No document uploaded';
+            }
+        }
+
+        const receiptDocLink = document.getElementById('modal_receipt_doc_link');
+        const receiptDocStatus = document.getElementById('modal_receipt_doc_status');
+        if (receiptDocLink) {
+            if (land.lra_receipt_path) {
+                receiptDocLink.href = '../' + land.lra_receipt_path;
+                receiptDocLink.classList.remove('disabled');
+                if (receiptDocStatus) receiptDocStatus.innerText = 'Receipt attached';
+            } else {
+                receiptDocLink.href = '#';
+                receiptDocLink.classList.add('disabled');
+                if (receiptDocStatus) receiptDocStatus.innerText = 'No receipt uploaded';
+            }
+        }
+
+        // Quick Actions inside Modal
+        const quickActions = document.getElementById('modal_quick_actions');
+        if (quickActions) {
+            if (land.status === 'pending') {
+                quickActions.innerHTML = `
+                    <button onclick="approveLand(${land.id}); bootstrap.Modal.getInstance(viewLandModalEl).hide();" class="btn btn-success btn-sm px-3 rounded-pill fw-semibold">
+                        <i class="bi bi-shield-fill-check me-1"></i>Approve & Certify Title
+                    </button>
+                    <button onclick="bootstrap.Modal.getInstance(viewLandModalEl).hide(); openRejectModal(${land.id});" class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-semibold">
+                        <i class="bi bi-x-circle me-1"></i>Reject Title
+                    </button>
+                `;
+            } else {
+                quickActions.innerHTML = '';
+            }
+        }
 
         const reasonBlock = document.getElementById('modal_reason_block');
         if (land.status === 'rejected' && land.reason) {
@@ -222,6 +322,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const modal = new bootstrap.Modal(viewLandModalEl);
         modal.show();
+    };
+
+    // Copy EPEB to clipboard
+    window.copyEpebNumber = function() {
+        const epebText = document.getElementById('modal_epeb_no')?.innerText?.trim();
+        if (!epebText || epebText === 'None' || epebText === 'None Provided') {
+            alert("No EPEB number available to copy.");
+            return;
+        }
+
+        navigator.clipboard.writeText(epebText).then(() => {
+            const btn = document.getElementById('copyEpebBtn');
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.innerHTML = `<i class="bi bi-check me-1"></i>Copied!`;
+                setTimeout(() => { btn.innerHTML = orig; }, 1800);
+            }
+        }).catch(err => {
+            console.error("Clipboard copy failed:", err);
+        });
     };
 
     // Open Reject Modal

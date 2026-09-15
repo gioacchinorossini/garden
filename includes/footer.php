@@ -141,6 +141,36 @@ function get_dock_link_class($page_name, $bottom_page)
             });
         }
     });
+
+    // Dynamic Stacked/Nested Bootstrap Modals Handler
+    document.addEventListener('show.bs.modal', function (event) {
+        const modal = event.target;
+        if (!modal.classList.contains('modal')) return;
+        const openModals = Array.from(document.querySelectorAll('.modal.show')).filter(m => m !== modal);
+        if (openModals.length > 0) {
+            const baseZIndex = 1055;
+            const zIndex = baseZIndex + (openModals.length * 20);
+            modal.style.zIndex = zIndex;
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 1) {
+                    const currentBackdrop = backdrops[backdrops.length - 1];
+                    currentBackdrop.style.zIndex = zIndex - 5;
+                }
+            }, 10);
+        }
+    });
+
+    document.addEventListener('hidden.bs.modal', function (event) {
+        const modal = event.target;
+        if (modal && modal.classList.contains('modal')) {
+            modal.style.zIndex = '';
+        }
+        const openModals = document.querySelectorAll('.modal.show');
+        if (openModals.length > 0) {
+            document.body.classList.add('modal-open');
+        }
+    });
 </script>
 
 </body>

@@ -160,6 +160,20 @@ document.addEventListener("DOMContentLoaded", function () {
                                     </button>
                                 </div>
 
+                                <!-- LRA Authenticity / Title Details -->
+                                <div class="p-2 mb-2 rounded-3 bg-light border d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
+                                    <div class="d-flex align-items-center gap-1.5 text-truncate" style="max-width: 65%;">
+                                        <i class="bi bi-file-earmark-check-fill text-primary"></i>
+                                        <span class="fw-semibold text-dark text-truncate">${land.title_number ? ((land.title_type || 'TCT') + ': ' + land.title_number) : 'Title Pending Verification'}</span>
+                                    </div>
+                                    <div>
+                                        ${land.is_lra_verified || (land.status === 'approved' && land.epeb_no) ? 
+                                            `<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 9px;"><i class="bi bi-shield-check me-0.5"></i>LRA Verified</span>` :
+                                            (land.epeb_no ? `<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill" style="font-size: 9px;"><i class="bi bi-receipt me-0.5"></i>EPEB Attached</span>` : '')
+                                        }
+                                    </div>
+                                </div>
+
                                 <!-- Landowner Info -->
                                 <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 0.75rem; color: #6c757d;">
                                     <div class="rounded-circle bg-success-subtle d-flex align-items-center justify-content-center"
@@ -360,8 +374,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 statusBadge = '<span class="badge bg-secondary rounded-pill px-2.5 py-1" style="font-size: 10px;">Under Maintenance</span>';
             }
 
-            const allowedCrops = (plot.crops && plot.crops.length > 0) 
-                ? plot.crops 
+            const allowedCrops = (plot.crops && plot.crops.length > 0)
+                ? plot.crops
                 : (plot.crop ? [plot.crop] : ['Tomato', 'Lettuce']);
 
             let cropsBadgesHtml = allowedCrops.map(c => `
@@ -405,7 +419,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentPlotSelectedCrops = new Map();
     let currentEditingPlotId = null;
 
-    window.openEditPlotCropsModal = function(plotId, plotNumber) {
+    window.openEditPlotCropsModal = function (plotId, plotNumber) {
         currentEditingPlotId = plotId;
         const plotIdInput = document.getElementById('edit_plot_id');
         if (plotIdInput) plotIdInput.value = plotId;
@@ -416,8 +430,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const plot = plotsList.find(p => p.id == plotId);
         currentPlotSelectedCrops.clear();
 
-        const allowedCrops = (plot && plot.crops && plot.crops.length > 0) 
-            ? plot.crops 
+        const allowedCrops = (plot && plot.crops && plot.crops.length > 0)
+            ? plot.crops
             : (plot && plot.crop ? [plot.crop] : []);
 
         document.querySelectorAll('.plot-crop-chip').forEach(chip => {
@@ -450,7 +464,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    window.togglePlotCropSelection = function(val, label, icon, element) {
+    window.togglePlotCropSelection = function (val, label, icon, element) {
         const checkIcon = element.querySelector('.plot-crop-check-icon');
         if (currentPlotSelectedCrops.has(val)) {
             currentPlotSelectedCrops.delete(val);
@@ -467,7 +481,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (countEl) countEl.textContent = currentPlotSelectedCrops.size;
     };
 
-    window.savePlotCrops = async function() {
+    window.savePlotCrops = async function () {
         if (!currentEditingPlotId) return;
 
         const crops = Array.from(currentPlotSelectedCrops.values()).map(c => c.label);
@@ -514,7 +528,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let editPickerMapInstance = null;
     let editPickerMarker = null;
 
-    window.toggleEditCropSelection = function(val, label, icon, element) {
+    window.toggleEditCropSelection = function (val, label, icon, element) {
         const checkIcon = element.querySelector('.edit-crop-check-icon');
         if (editSelectedCrops.has(val)) {
             editSelectedCrops.delete(val);
@@ -530,7 +544,7 @@ document.addEventListener("DOMContentLoaded", function () {
         renderEditSelectedCropsSummary();
     };
 
-    window.selectAllEditCrops = function(select) {
+    window.selectAllEditCrops = function (select) {
         document.querySelectorAll('.edit-modal-crop-chip').forEach(chip => {
             const val = chip.getAttribute('data-value');
             const label = chip.getAttribute('data-label');
@@ -552,7 +566,7 @@ document.addEventListener("DOMContentLoaded", function () {
         renderEditSelectedCropsSummary();
     };
 
-    window.filterEditCropChips = function() {
+    window.filterEditCropChips = function () {
         const query = (document.getElementById('editCropSearchInput')?.value || '').toLowerCase().trim();
         document.querySelectorAll('.edit-crop-grid-item').forEach(item => {
             const name = item.getAttribute('data-name');
@@ -606,7 +620,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('edit_title').value = land.title || '';
         document.getElementById('edit_address').value = land.address || '';
         document.getElementById('edit_area').value = land.area || 100;
-        
+
         const lat = parseFloat(land.latitude) || 14.5995;
         const lng = parseFloat(land.longitude) || 120.9842;
         document.getElementById('edit_latitude').value = lat;
@@ -616,7 +630,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Pre-select crops
         editSelectedCrops.clear();
         const existingCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
-        
+
         document.querySelectorAll('.edit-modal-crop-chip').forEach(chip => {
             const val = chip.getAttribute('data-value');
             const label = chip.getAttribute('data-label');
@@ -653,10 +667,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 editPickerMapInstance = null;
             }
 
-            editPickerMapInstance = L.map('editPickerMap').setView([lat, lng], 14);
+            editPickerMapInstance = L.map('editPickerMap', { maxZoom: 24 }).setView([lat, lng], 14);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
+                maxZoom: 24,
+                maxNativeZoom: 19,
                 attribution: '© OpenStreetMap contributors'
             }).addTo(editPickerMapInstance);
 

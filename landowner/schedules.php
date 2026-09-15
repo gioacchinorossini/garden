@@ -37,7 +37,7 @@ include '../includes/sidebar.php';
 </main>
 
 <!-- Add Task Modal (Single instance) -->
-<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">

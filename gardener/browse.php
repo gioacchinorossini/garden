@@ -187,11 +187,20 @@ function get_land_image_url($id)
                                     <span>View Photo</span>
                                 </button>
 
-                                <!-- Approved badge -->
-                                <span class="badge position-absolute"
-                                    style="top: 12px; right: 12px; font-size: 10px; padding: 5px 10px; background: rgba(25,135,84,0.15); color: #0f5132; border: 1px solid rgba(25,135,84,0.25); backdrop-filter: blur(4px);">
-                                    ✓ Approved
-                                </span>
+                                <!-- Approved & LRA Verified badges -->
+                                <div class="position-absolute d-flex flex-column align-items-end gap-1" style="top: 12px; right: 12px; z-index: 5;">
+                                    <span class="badge"
+                                        style="font-size: 10px; padding: 5px 10px; background: rgba(25,135,84,0.15); color: #0f5132; border: 1px solid rgba(25,135,84,0.25); backdrop-filter: blur(4px);">
+                                        ✓ Approved
+                                    </span>
+                                    <?php if (!empty($land['is_lra_verified']) || (!empty($land['epeb_no']) && ($land['status'] ?? '') === 'approved')): ?>
+                                    <span class="badge"
+                                        style="font-size: 9px; padding: 4px 8px; background: rgba(13,110,253,0.15); color: #084298; border: 1px solid rgba(13,110,253,0.25); backdrop-filter: blur(4px);"
+                                        title="LRA LOTS Verified Title: <?php echo htmlspecialchars($land['title_number'] ?? ''); ?>">
+                                        <i class="bi bi-shield-check me-0.5"></i> LRA Verified
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
 
                             <!-- ② Card Body -->

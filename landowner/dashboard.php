@@ -83,11 +83,11 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         }
 
         .mobile-map-chips-bar {
-            top: 64px !important;
+            top: 74px !important;
         }
 
         .leaflet-top.leaflet-right {
-            top: 110px !important;
+            top: 124px !important;
         }
     }
 </style>
@@ -109,24 +109,49 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
     <div class="flex-grow-1 position-relative overflow-hidden w-100 h-100" style="min-height:0;">
         <div class="landowner-map-wrapper">
 
-            <!-- Floating Brand Overlay (Mobile Only) -->
+            <!-- Top Black Gradient Scrim Overlay -->
+            <div class="map-top-gradient-scrim"></div>
+
+            <!-- Floating Search Bar & Profile Header (Mobile Only) -->
             <div class="floating-map-header d-md-none">
-                <div class="d-flex align-items-center gap-2">
-                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm" style="width:32px;height:32px;object-fit:cover;">
-                    <div>
-                        <div class="fw-bold text-dark font-['Outfit'] d-flex align-items-center gap-1.5" style="font-size:0.92rem;line-height:1;">
-                            <span class="text-success">Idle</span>Land
-                            <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5" style="font-size:0.68rem;font-weight:600;">Gardens Map</span>
-                        </div>
-                    </div>
+                <a href="<?php echo $base_path; ?>landowner/dashboard.php" class="d-flex align-items-center gap-1.5 text-decoration-none flex-shrink-0">
+                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm" style="width:28px;height:28px;object-fit:cover;">
+                    <span class="fw-bold text-dark font-['Outfit']" style="font-size:0.88rem;line-height:1;">
+                        <span class="text-success">Idle</span>Land
+                    </span>
+                </a>
+                <div class="vr mx-1 my-auto text-muted opacity-25" style="height:20px;"></div>
+                <i class="bi bi-search text-muted fs-6 ms-0.5"></i>
+                <input type="text" id="mobileMapSearchInput" class="floating-map-search-input" placeholder="Search lands, crops..." oninput="handleMobileMapSearch(this.value)" autocomplete="off">
+                <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear" onclick="clearMobileMapSearch()">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+                <div class="dropdown flex-shrink-0">
+                    <button class="floating-profile-btn" type="button" id="mobileProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Account & Profile">
+                        <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'L', 0, 1)); ?>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border border-drive-border rounded-4 shadow-lg p-2 mt-2" aria-labelledby="mobileProfileDropdown" style="min-width: 200px; z-index: 1060;">
+                        <li>
+                            <div class="px-3 py-2 border-bottom mb-1">
+                                <div class="fw-bold text-dark text-sm"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Landowner'); ?></div>
+                                <span class="badge bg-success-subtle text-success text-xs">Landowner</span>
+                            </div>
+                        </li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2" href="<?php echo $base_path; ?>landowner/profile.php">
+                            <i class="bi bi-person text-success"></i> My Profile
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2" href="<?php echo $base_path; ?>landowner/register.php">
+                            <i class="bi bi-plus-circle text-primary"></i> Register Land
+                        </a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm text-danger d-flex align-items-center gap-2" href="<?php echo $base_path; ?>index.php">
+                            <i class="bi bi-box-arrow-right"></i> Sign Out
+                        </a></li>
+                    </ul>
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <a href="register.php" class="btn btn-drive-primary btn-sm rounded-pill px-3 py-1.5 text-xs d-flex align-items-center gap-1 shadow-sm">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i>
-                        <span>Register</span>
-                    </a>
-                </div>
+                <!-- Realtime Search Suggestions Dropdown -->
+                <div id="mobileSearchSuggestions" class="floating-search-suggestions"></div>
             </div>
 
             <!-- Filter chips -->
@@ -138,12 +163,12 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     <i class="bi bi-person-fill me-1"></i>Mine
                 </button>
                 <button type="button" class="map-chip" onclick="filterMapLands('approved',this)">
-                    <i class="bi bi-check-circle-fill me-1" style="color:#198754;"></i>Approved
+                    <i class="bi bi-check-circle-fill me-1" style="color:#22c55e;"></i>Approved
                 </button>
 
                 <!-- Crop Filter Dropdown -->
                 <div class="dropdown d-inline-block">
-                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5 border-0" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" style="border-radius:20px;padding:5px 12px;background:#fff;font-weight:500;box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
                         <img id="selectedCropFilterIcon" src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;object-fit:contain;">
                         <span id="selectedCropFilterLabel">All Crops</span>
                     </button>
@@ -190,7 +215,16 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                         </a></li>
                     </ul>
                 </div>
+
+                <!-- 3D View Switcher -->
+                <button type="button" class="map-chip view-toggle-chip ms-auto d-flex align-items-center gap-1.5" id="toggle3DViewBtn" onclick="toggle3DMapMode()">
+                    <i class="bi bi-box-fill"></i>
+                    <span id="toggle3DViewLabel">3D View</span>
+                </button>
             </div>
+
+            <!-- 3D City & Garden Map Container -->
+            <div id="landowner3DMapContainer" class="map3d-container"></div>
 
             <!-- Leaflet Map -->
             <div id="landownerMainMap" style="width:100%;height:100%;min-height:450px;z-index:1;"></div>
@@ -217,14 +251,16 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 <div id="sheetStatusStrip" class="sheet-status-strip" style="background:#198754;"></div>
 
                 <!-- Drag handle -->
-                <div class="sheet-drag-handle"></div>
+                <div class="sheet-drag-handle-container" id="sheetDragHandleContainer" title="Drag down or tap to slide down">
+                    <div class="sheet-drag-handle"></div>
+                </div>
 
                 <!-- Header row -->
                 <div class="d-flex align-items-start justify-content-between mb-2 px-1">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <span id="sheetStatusBadge" class="badge rounded-pill text-white px-2 py-1"
-                                style="font-size:0.68rem;background:#198754;">Approved</span>
+                            <span id="sheetStatusBadge" class="badge rounded-pill px-2 py-1"
+                                style="font-size:0.68rem;display:none;"></span>
                             <span id="sheetOwnerBadge" class="badge rounded-pill border text-secondary px-2 py-1"
                                 style="font-size:0.68rem;background:#f8f9fa;">Owner</span>
                         </div>
@@ -283,6 +319,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     </div>
                     <div id="sheetPlotsGrid" class="row g-2" style="max-height: 140px; overflow-y: auto;"></div>
                 </div>
+
 
                 <!-- CTA buttons -->
                 <div class="d-flex gap-2">
@@ -368,6 +405,14 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
     }
 
     function focusOnSpecificPlot(landId, plotId) {
+        currentLandId = landId;
+        currentFocusedPlotId = plotId;
+        const sheet3DText = document.getElementById('sheet3DText');
+        if (sheet3DText) {
+            const plot = plotsData.find(p => p.id == plotId);
+            if (plot) sheet3DText.textContent = `Generate 3D Map for ${plot.plot_number}`;
+        }
+
         const land = landsData.find(l => l.id == landId);
         if (!land) return;
 
@@ -421,7 +466,17 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         });
     }
 
-    document.addEventListener('DOMContentLoaded', initLandownerMap);
+    document.addEventListener('DOMContentLoaded', function() {
+        initLandownerMap();
+        if (typeof initSheetSlider === 'function') {
+            initSheetSlider({
+                sheet: 'mobileLandCardSheet',
+                backdrop: 'mapSheetBackdrop',
+                handle: '#sheetDragHandleContainer',
+                onClose: closeLandCardSheet
+            });
+        }
+    });
 
     function initLandownerMap() {
         const el = document.getElementById('landownerMainMap');
@@ -429,8 +484,6 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 
         landownerMap = L.map('landownerMainMap', { zoomControl: false })
             .setView([14.6010, 120.9890], 13);
-
-        L.control.zoom({ position: 'topright' }).addTo(landownerMap);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 21,
@@ -583,6 +636,10 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 
     function openLandCardSheet(land) {
         currentLandId = land.id;
+        currentFocusedPlotId = null;
+        const sheet3DText = document.getElementById('sheet3DText');
+        if (sheet3DText) sheet3DText.textContent = 'Generate 3D Map for Garden';
+
         const sheet = document.getElementById('mobileLandCardSheet');
         const backdrop = document.getElementById('mapSheetBackdrop');
         const fab = document.getElementById('registerFab');
@@ -617,9 +674,18 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         const stripColor = approved ? '#198754' : '#ffc107';
 
         document.getElementById('sheetStatusStrip').style.background = stripColor;
-        document.getElementById('sheetStatusBadge').textContent = approved ? 'Approved' : 'Pending Review';
-        document.getElementById('sheetStatusBadge').style.background = stripColor;
-        document.getElementById('sheetStatusBadge').style.color = approved ? '#fff' : '#333';
+        const statusBadge = document.getElementById('sheetStatusBadge');
+        if (statusBadge) {
+            if (!approved) {
+                statusBadge.textContent = 'Pending Review';
+                statusBadge.style.background = '#ffc107';
+                statusBadge.style.color = '#333';
+                statusBadge.style.display = 'inline-block';
+            } else {
+                statusBadge.textContent = '';
+                statusBadge.style.display = 'none';
+            }
+        }
         document.getElementById('sheetOwnerBadge').textContent = land.landowner || 'Landowner';
         document.getElementById('sheetLandTitle').textContent = land.title;
         document.getElementById('sheetLandAddress').innerHTML =
@@ -685,7 +751,12 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                                         <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:12px;"></i>
                                         <span style="font-size:0.75rem;">${p.plot_number}</span>
                                     </span>
-                                    ${lockIcon}
+                                    <div class="d-flex align-items-center gap-1">
+                                        <button type="button" class="btn-plot-3d-quick" onclick="event.stopPropagation(); generate3DForSelectedPlot(${land.id}, ${p.id});" title="Generate 3D Map for ${p.plot_number}">
+                                            <i class="bi bi-box-fill"></i> 3D
+                                        </button>
+                                        ${lockIcon}
+                                    </div>
                                 </div>
                                 <div class="mt-1 mb-1 d-flex align-items-center gap-1 flex-wrap bg-white px-1.5 py-1 rounded border border-drive-border">
                                     <span class="text-muted uppercase" style="font-size:8px;font-weight:700;">Permitted:</span>
@@ -816,6 +887,11 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             });
         }
 
+        sheet.style.transform = '';
+        sheet.style.opacity = '';
+        sheet.style.transition = '';
+        if (backdrop) backdrop.style.opacity = '';
+
         sheet.classList.remove('hidden');
         if (backdrop) backdrop.classList.add('show');
         if (fab) fab.style.display = 'none';
@@ -826,8 +902,17 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         const sheet = document.getElementById('mobileLandCardSheet');
         const backdrop = document.getElementById('mapSheetBackdrop');
         const fab = document.getElementById('registerFab');
-        if (sheet) sheet.classList.add('hidden');
-        if (backdrop) backdrop.classList.remove('show');
+        if (sheet) {
+            sheet.classList.add('hidden');
+            sheet.style.transform = '';
+            sheet.style.opacity = '';
+            sheet.style.transition = '';
+        }
+        if (backdrop) {
+            backdrop.classList.remove('show');
+            backdrop.style.opacity = '';
+            backdrop.style.transition = '';
+        }
         if (fab) fab.style.display = '';
 
         if (activePlotLayers) {
@@ -863,6 +948,113 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         closeLandCardSheet();
     }
 
+    let mobileSearchQuery = '';
+
+    function handleMobileMapSearch(query) {
+        mobileSearchQuery = (query || '').trim().toLowerCase();
+        const clearBtn = document.getElementById('mobileMapSearchClear');
+        if (clearBtn) {
+            clearBtn.style.display = mobileSearchQuery ? 'inline-block' : 'none';
+        }
+        renderSearchSuggestions(mobileSearchQuery);
+        applyCombinedMapFilters();
+    }
+
+    function renderSearchSuggestions(query) {
+        const box = document.getElementById('mobileSearchSuggestions');
+        if (!box) return;
+
+        if (!query || query.length < 1) {
+            box.innerHTML = '';
+            box.style.display = 'none';
+            return;
+        }
+
+        const matches = landsData.filter(land => {
+            const title = (land.title || '').toLowerCase();
+            const location = (land.location || '').toLowerCase();
+            const owner = (land.landowner || '').toLowerCase();
+            const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+            const landPlots = plotsData.filter(p => p.land_id == land.id);
+            const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
+            const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
+
+            return title.includes(query) ||
+                   location.includes(query) ||
+                   owner.includes(query) ||
+                   allCrops.includes(query);
+        }).slice(0, 5);
+
+        if (matches.length === 0) {
+            box.innerHTML = `
+                <div class="p-3 text-center text-muted" style="font-size:0.82rem;">
+                    <i class="bi bi-geo-alt me-1"></i> No matching gardens found
+                </div>
+            `;
+            box.style.display = 'block';
+            return;
+        }
+
+        box.innerHTML = matches.map(land => {
+            const cropList = Array.isArray(land.crops) ? land.crops.join(', ') : (land.allowed_seeds || []).join(', ');
+            return `
+                <div class="search-suggestion-item" onclick="selectSearchSuggestion(${land.id})">
+                    <div class="search-suggestion-icon">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="search-suggestion-title text-truncate">${escapeHtml(land.title)}</div>
+                        <div class="search-suggestion-sub text-truncate">
+                            <span><i class="bi bi-pin-map me-1"></i>${escapeHtml(land.location || '')}</span>
+                            ${cropList ? `<span class="ms-2 badge bg-success-subtle text-success py-0.5 px-1.5" style="font-size:0.68rem;">${escapeHtml(cropList)}</span>` : ''}
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                </div>
+            `;
+        }).join('');
+
+        box.style.display = 'block';
+    }
+
+    function selectSearchSuggestion(landId) {
+        const land = landsData.find(l => l.id == landId);
+        const box = document.getElementById('mobileSearchSuggestions');
+        if (box) box.style.display = 'none';
+
+        if (land) {
+            const input = document.getElementById('mobileMapSearchInput');
+            if (input) input.value = land.title;
+            mobileSearchQuery = land.title.toLowerCase();
+            const clearBtn = document.getElementById('mobileMapSearchClear');
+            if (clearBtn) clearBtn.style.display = 'inline-block';
+
+            // Filter map to show this and open its card sheet
+            applyCombinedMapFilters();
+            openLandCardSheet(land);
+        }
+    }
+
+    function clearMobileMapSearch() {
+        const input = document.getElementById('mobileMapSearchInput');
+        if (input) input.value = '';
+        const box = document.getElementById('mobileSearchSuggestions');
+        if (box) {
+            box.innerHTML = '';
+            box.style.display = 'none';
+        }
+        handleMobileMapSearch('');
+    }
+
+    // Close suggestion box when clicking outside
+    document.addEventListener('click', function(e) {
+        const box = document.getElementById('mobileSearchSuggestions');
+        const header = document.querySelector('.floating-map-header');
+        if (box && header && !header.contains(e.target)) {
+            box.style.display = 'none';
+        }
+    });
+
     function applyCombinedMapFilters() {
         let list = landsData;
         if (currentLandFilterType === 'my') list = list.filter(l => l.landowner === 'John Landowner');
@@ -880,8 +1072,93 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             });
         }
 
+        if (mobileSearchQuery) {
+            list = list.filter(land => {
+                const title = (land.title || '').toLowerCase();
+                const location = (land.location || '').toLowerCase();
+                const owner = (land.landowner || '').toLowerCase();
+                const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+                const landPlots = plotsData.filter(p => p.land_id == land.id);
+                const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
+                const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
+
+                return title.includes(mobileSearchQuery) ||
+                       location.includes(mobileSearchQuery) ||
+                       owner.includes(mobileSearchQuery) ||
+                       allCrops.includes(mobileSearchQuery);
+            });
+        }
+
         renderMapPins(list);
     }
+
+    // ─── 3D City & Garden Map View Handler ───
+    let map3dEngine = null;
+    let is3DMode = false;
+    let currentFocusedPlotId = null;
+
+    function generate3DForSelectedPlot(landId, plotId) {
+        currentLandId = landId;
+        currentFocusedPlotId = plotId;
+        toggle3DMapMode(true);
+    }
+
+    function generate3DFromSheet() {
+        if (!currentLandId && landsData.length > 0) {
+            currentLandId = landsData[0].id;
+        }
+        toggle3DMapMode(true);
+    }
+
+    function toggle3DMapMode(forceOpen = null) {
+        if (forceOpen !== null) {
+            is3DMode = forceOpen;
+        } else {
+            is3DMode = !is3DMode;
+        }
+        const container3D = document.getElementById('landowner3DMapContainer');
+        const toggleBtn = document.getElementById('toggle3DViewBtn');
+        const toggleLabel = document.getElementById('toggle3DViewLabel');
+
+        if (is3DMode) {
+            container3D.classList.add('active');
+            toggleBtn.classList.add('active-3d');
+            toggleLabel.textContent = '2D View';
+            toggleBtn.querySelector('i').className = 'bi bi-map-fill';
+
+            let targetLand = landsData.find(l => l.id == currentLandId) || landsData[0];
+            let targetPlot = currentFocusedPlotId ? plotsData.find(p => p.id == currentFocusedPlotId) : null;
+
+            if (!map3dEngine) {
+                map3dEngine = new Map3DEngine({
+                    container: container3D,
+                    center: { lat: parseFloat(targetLand.latitude), lng: parseFloat(targetLand.longitude) },
+                    landsData: landsData,
+                    plotsData: plotsData,
+                    basePath: basePath,
+                    onLandClick: function(land) {
+                        openLandCardSheet(land);
+                    },
+                    onExit3D: function() {
+                        toggle3DMapMode(false);
+                    }
+                });
+            }
+
+            map3dEngine.generateForPlot(targetLand, targetPlot);
+        } else {
+            container3D.classList.remove('active');
+            toggleBtn.classList.remove('active-3d');
+            toggleLabel.textContent = '3D View';
+            toggleBtn.querySelector('i').className = 'bi bi-box-fill';
+            if (typeof landownerMap !== 'undefined' && landownerMap) {
+                landownerMap.invalidateSize();
+            }
+        }
+    }
 </script>
+
+<script src="<?php echo $base_path; ?>assets/js/sheet_slider.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/map3d_engine.js"></script>
 
 <?php include '../includes/footer.php'; ?>
