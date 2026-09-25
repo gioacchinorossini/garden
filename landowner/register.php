@@ -24,20 +24,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $seeds = isset($_POST['allowed_seeds']) ? array_map('htmlspecialchars', $_POST['allowed_seeds']) : [];
 
     // LRA Title Verification inputs
-    $title_type = htmlspecialchars(trim($_POST['title_type'] ?? 'TCT'));
+    $title_type = htmlspecialchars(trim($_POST['title_type'] ?? 'OCT'));
     $title_number = htmlspecialchars(trim($_POST['title_number'] ?? ''));
     $rod_name = htmlspecialchars(trim($_POST['rod_name'] ?? ''));
     $epeb_type = htmlspecialchars(trim($_POST['epeb_type'] ?? 'CCV'));
     $epeb_no = htmlspecialchars(trim($_POST['epeb_no'] ?? ''));
 
-    // Handle Title / CTC Document Upload
+    // Handle OCT (Original Certificate of Title) Document Upload
     $title_doc_path = 'assets/images/sample_title_cert.svg';
-    if (isset($_FILES['title_document']) && $_FILES['title_document']['error'] === UPLOAD_ERR_OK) {
-        $ext = strtolower(pathinfo($_FILES['title_document']['name'], PATHINFO_EXTENSION));
+    $oct_file = $_FILES['oct_document'] ?? $_FILES['title_document'] ?? null;
+    if ($oct_file && $oct_file['error'] === UPLOAD_ERR_OK) {
+        $ext = strtolower(pathinfo($oct_file['name'], PATHINFO_EXTENSION));
         if (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'svg'])) {
-            $fileName = 'title_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
-            $uploadTarget = __DIR__ . '/../uploads/titles/' . $fileName;
-            if (move_uploaded_file($_FILES['title_document']['tmp_name'], $uploadTarget)) {
+            $uploadDir = __DIR__ . '/../uploads/titles/';
+            if (!is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0777, true);
+            }
+            $fileName = 'oct_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+            $uploadTarget = $uploadDir . $fileName;
+            if (move_uploaded_file($oct_file['tmp_name'], $uploadTarget)) {
                 $title_doc_path = 'uploads/titles/' . $fileName;
             }
         }
@@ -70,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'epeb_type' => $epeb_type,
         'epeb_no' => $epeb_no,
         'title_document_path' => $title_doc_path,
+        'oct_document_path' => $title_doc_path,
         'lra_receipt_path' => $receipt_doc_path,
         'is_lra_verified' => 0,
         'landowner' => $_SESSION['user_name'] ?? 'John Landowner',
@@ -113,18 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 ?>
 
 <main class="workspace-surface">
-    <!-- Toolbar/Title Bar -->
-    <div class="toolbar border-bottom">
-        <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Register Land</h1>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="lands.php" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-        </div>
-    </div>
-
     <!-- Workspace Scrollable Area -->
     <div class="workspace-scroll">
         <?php if (!empty($success_message)): ?>
@@ -138,96 +132,197 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <!-- Top: Interactive Map & 3D Digital Twin Card (Positioned Above the Form) -->
         <div class="card border rounded-4 overflow-hidden mb-4 shadow-sm"
             style="border-color: var(--drive-border) !important;">
-            <div
-                class="card-header bg-white border-bottom py-2.5 px-3 px-md-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0"
-                        style="width: 34px; height: 34px;">
-                        <i class="bi bi-geo-alt-fill fs-6"></i>
+            <!-- Step-by-Step Guided Process Indicator Bar -->
+            <div class="border-bottom bg-light bg-opacity-75 px-3 px-md-4 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2" id="registrationStepBar">
+                <div class="d-flex align-items-center gap-1 gap-sm-2 flex-wrap text-xs">
+                    <!-- Step 1 Item -->
+                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white border border-success shadow-2xs transition-all" id="step1Item" style="cursor: pointer;" onclick="goToStep(1)" title="Step 1: Pinpoint your land location">
+                        <span class="rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold" style="width: 20px; height: 20px; font-size: 0.7rem;" id="step1Badge">1</span>
+                        <span id="step1Title" class="fw-bold text-dark">Pinpoint Location</span>
                     </div>
-                    <div>
-                        <span class="fw-bold text-dark d-block" style="font-size: 0.88rem;">Property Location &
-                            Interactive Map</span>
-                        <span class="text-muted text-xs">Search address, pin location on map, or launch the fullscreen
-                            layout studio</span>
+                    <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.65rem;"></i>
+                    <!-- Step 2 Item -->
+                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all" id="step2Item" style="cursor: pointer;" onclick="goToStep(2)" title="Step 2: Draw your plot boundary">
+                        <span class="rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold" style="width: 20px; height: 20px; font-size: 0.7rem;" id="step2Badge">2</span>
+                        <span id="step2Title">Draw Plot</span>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.65rem;"></i>
+                    <!-- Step 3 Item -->
+                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all" id="step3Item" style="cursor: pointer;" onclick="goToStep(3)" title="Step 3: Partition plots and submit details">
+                        <span class="rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold" style="width: 20px; height: 20px; font-size: 0.7rem;" id="step3Badge">3</span>
+                        <span id="step3Title">Partitions & Info</span>
                     </div>
                 </div>
 
-                <!-- Drawing Mode Toolbar & 2D/3D Mode Switcher -->
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <!-- Plot Drawing Tools -->
-                    <div class="btn-group btn-group-sm p-0.5 bg-light border rounded-pill shadow-xs" role="group" id="plotDrawToolbar">
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1.5 fw-semibold text-dark active"
-                            id="drawModePanBtn" onclick="setPlotDrawMode('pan')" title="Pin Point or Pan Map">
-                            <i class="bi bi-cursor-fill me-1 text-primary"></i>Pin Point
-                        </button>
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1.5 fw-semibold text-secondary"
-                            id="drawModePolygonBtn" onclick="setPlotDrawMode('polygon')" title="Click on the map to draw custom plot boundary corners">
-                            <i class="bi bi-pentagon-fill me-1 text-success"></i>Draw Plot
-                        </button>
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1.5 fw-semibold text-secondary"
-                            id="drawModeBoxBtn" onclick="setPlotDrawMode('box')" title="Click two points to draw a box/rectangle plot">
-                            <i class="bi bi-bounding-box-circles me-1 text-success"></i>Draw Box
-                        </button>
-                    </div>
-
-                    <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 text-xs d-none"
-                        id="btnClearDrawnPlot" onclick="clearDrawnPlot()" title="Clear drawn plot boundary">
-                        <i class="bi bi-trash3 me-1"></i>Clear Boundary
-                    </button>
-
-                    <!-- 2D / 3D Switcher -->
-                    <div class="btn-group btn-group-sm p-0.5 bg-light border rounded-pill shadow-xs" role="group">
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-bold text-success active"
-                            id="viewMode2DBtn" onclick="switchPickerMode('2d')">
-                            <i class="bi bi-map me-1"></i>2D Map
-                        </button>
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 text-muted" id="viewMode3DBtn"
-                            onclick="switchPickerMode('3d')">
-                            <i class="bi bi-box-fill me-1 text-primary"></i>3D Preview
-                        </button>
-                    </div>
+                <!-- Active Step Guidance Pill -->
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-white border text-dark fw-normal rounded-pill px-2.5 py-1.5 shadow-2xs d-flex align-items-center gap-1.5" id="stepGuideText" style="font-size: 0.72rem;">
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        <span><strong>Step 1:</strong> Search location or click anywhere on the map to pinpoint.</span>
+                    </span>
                 </div>
             </div>
 
             <div class="map-picker-wrapper position-relative">
-                <!-- Floating Location Search Bar (Compact Width) -->
-                <div class="map-picker-search-box" style="width: 340px; max-width: calc(100% - 190px);">
-                    <div class="map-picker-input-group">
-                        <i class="bi bi-search text-muted ms-1" style="font-size:0.85rem;"></i>
-                        <input type="text" id="mapSearchInput" placeholder="Search address, landmark, or coordinates..."
-                            autocomplete="off">
+                <!-- Top Black Gradient Scrim / Dim Overlay (behind searchbar and controls) -->
+                <div class="map-top-gradient-scrim" id="mapTopGradientScrim"></div>
+
+                <!-- Floating Location Search Bar (Reduced Compact UI) -->
+                <div class="map-picker-search-box"
+                    style="top: 10px; left: 10px; width: 220px; max-width: calc(100% - 230px);">
+                    <div class="map-picker-input-group"
+                        style="padding: 1px 4px 1px 10px; height: 32px; border-radius: 50rem; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <i class="bi bi-search text-muted" style="font-size:0.75rem;"></i>
+                        <input type="text" id="mapSearchInput" placeholder="Search location..." autocomplete="off"
+                            style="font-size: 0.76rem; padding: 2px 6px;">
                         <button type="button" class="map-picker-btn-icon d-none" id="mapSearchClearBtn"
-                            title="Clear search" onclick="clearMapSearch()">
-                            <i class="bi bi-x-circle-fill" style="font-size:0.85rem;"></i>
+                            title="Clear search" onclick="clearMapSearch()" style="padding: 2px 4px;">
+                            <i class="bi bi-x-circle-fill" style="font-size:0.75rem;"></i>
                         </button>
                         <button type="button" class="map-picker-btn-icon text-success" id="mapSearchGpsBtn"
-                            title="Use my current GPS location" onclick="useCurrentLocation()">
-                            <i class="bi bi-crosshair" style="font-size:1rem;"></i>
+                            title="Use my current GPS location" onclick="useCurrentLocation()"
+                            style="padding: 2px 4px;">
+                            <i class="bi bi-crosshair" style="font-size:0.85rem;"></i>
                         </button>
                     </div>
                     <!-- Autocomplete Dropdown List -->
-                    <div class="map-picker-results" id="mapSearchResults"></div>
+                    <div class="map-picker-results" id="mapSearchResults" style="font-size: 0.78rem;"></div>
+                </div>
+
+                <!-- Floating Map Action Buttons Overlay (Drawing Tools, Area Badge, 2D/3D Mode) -->
+                <div class="map-floating-toolbar d-flex align-items-center gap-1.5 flex-wrap"
+                    style="position: absolute; top: 10px; right: 10px; z-index: 1000; justify-content: flex-end;">
+                    <!-- Plot Drawing Tools (Revealed after location pinpointed) -->
+                    <div class="btn-group btn-group-sm p-0.5 bg-white bg-opacity-95 border rounded-pill shadow-sm" role="group"
+                        id="plotDrawToolbar" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-semibold text-dark active"
+                            id="drawModePanBtn" onclick="setPlotDrawMode('pan')" title="Pin Point Location">
+                            <i class="bi bi-geo-alt-fill me-1 text-danger"></i>Pin Point
+                        </button>
+                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-semibold text-secondary d-none"
+                            id="drawModePolygonBtn" onclick="setPlotDrawMode('polygon')"
+                            title="Click on the map to draw custom plot boundary corners">
+                            <i class="bi bi-pentagon-fill me-1 text-success"></i>Draw Plot
+                        </button>
+                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-semibold text-secondary d-none"
+                            id="drawModeBoxBtn" onclick="setPlotDrawMode('box')"
+                            title="Click two points to draw a box/rectangle plot">
+                            <i class="bi bi-bounding-box-circles me-1 text-success"></i>Draw Box
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-xs btn-outline-danger bg-white bg-opacity-95 rounded-pill px-2.5 py-1 text-xs d-none shadow-sm"
+                        id="btnClearDrawnPlot" onclick="clearDrawnPlot()" title="Clear drawn plot boundary"
+                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <i class="bi bi-trash3 me-1"></i>Clear Boundary
+                    </button>
+
+                    <button type="button" class="btn btn-xs btn-outline-success bg-white bg-opacity-95 rounded-pill px-2.5 py-1 text-xs d-none fw-semibold shadow-sm"
+                        id="btnEditPlotArea" onclick="openLandAreaModal()" title="Click to change target land area in square meters"
+                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <i class="bi bi-rulers me-1"></i><span id="targetAreaBadge">250 m²</span>
+                    </button>
+
+                    <!-- 2D / 3D Switcher -->
+                    <div class="btn-group btn-group-sm p-0.5 bg-white bg-opacity-95 border rounded-pill shadow-sm" role="group"
+                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 fw-bold text-success active"
+                            id="viewMode2DBtn" onclick="switchPickerMode('2d')">
+                            <i class="bi bi-map me-1"></i>2D
+                        </button>
+                        <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 text-muted" id="viewMode3DBtn"
+                            onclick="switchPickerMode('3d')">
+                            <i class="bi bi-box-fill me-1 text-primary"></i>3D
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Floating Drawing Status & Instruction Helper -->
-                <div class="map-drawing-helper-pill d-none" id="mapDrawingHelper" style="position: absolute; top: 68px; left: 14px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.14); box-shadow: 0 6px 18px rgba(0,0,0,0.15); border-radius: 50rem; padding: 6px 14px;">
+                <div class="map-drawing-helper-pill d-none" id="mapDrawingHelper"
+                    style="position: absolute; top: 48px; left: 10px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.14); box-shadow: 0 6px 18px rgba(0,0,0,0.15); border-radius: 50rem; padding: 4px 12px;">
                     <div class="d-flex align-items-center gap-2">
-                        <span id="mapDrawingHelperText" class="text-xs fw-semibold text-dark">Click on the map to add boundary corners</span>
-                        <button type="button" class="btn btn-xs btn-success rounded-pill px-2.5 py-0.5 text-xs fw-bold d-none" id="btnFinishPolygon" onclick="finishCurrentPolygon()">
-                            <i class="bi bi-check-circle me-1"></i>Finish Plot
+                        <span id="mapDrawingHelperText" class="text-xs fw-semibold text-dark">Click on the map to add
+                            boundary corners</span>
+                        <button type="button"
+                            class="btn btn-xs btn-success rounded-pill px-2 py-0.5 text-xs fw-bold d-none"
+                            id="btnFinishPolygon" onclick="finishCurrentPolygon()">
+                            <i class="bi bi-check-circle me-1"></i>Finish
                         </button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5 text-xs" onclick="setPlotDrawMode('pan')">
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5 text-xs"
+                            onclick="cancelPlotDrawing()">
                             Cancel
                         </button>
                     </div>
                 </div>
 
+                <!-- Floating Partition Plots Control Overlay (Pops up after plot boundary is drawn) -->
+                <div class="position-absolute shadow-sm d-none" id="plotControlOverlay"
+                    style="top: 50px; right: 10px; z-index: 1000; width: auto; min-width: 190px; max-width: 220px;">
+                    <div class="card border rounded-3 bg-white bg-opacity-95 p-2 shadow-sm"
+                        style="backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-color: rgba(22, 163, 74, 0.25) !important;">
+                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                            <span class="fw-bold text-dark d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-grid-3x3-gap-fill text-success"></i>
+                                <span>Plots</span>
+                            </span>
+                            <span class="badge bg-success-subtle text-success rounded-pill px-1.5 py-0.5"
+                                id="plotCalcBadge" style="font-size: 0.65rem;">
+                                4 plots (~62.5 m²)
+                            </span>
+                        </div>
+                        <input type="hidden" id="plot_count" name="plot_count" value="4">
+                        <input type="hidden" id="singlePlotArea" value="62.5">
+                        <!-- Compact Plot Buttons instead of Dropdown -->
+                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                            <div class="btn-group btn-group-sm w-100 p-0.5 bg-light rounded-2 border" role="group"
+                                aria-label="Partition plots count">
+                                <button type="button"
+                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
+                                    data-count="1" onclick="selectPlotCount(1, this)"
+                                    style="font-size: 0.72rem;">1</button>
+                                <button type="button"
+                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
+                                    data-count="2" onclick="selectPlotCount(2, this)"
+                                    style="font-size: 0.72rem;">2</button>
+                                <button type="button"
+                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-success active text-white border-0"
+                                    data-count="4" onclick="selectPlotCount(4, this)"
+                                    style="font-size: 0.72rem;">4</button>
+                                <button type="button"
+                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
+                                    data-count="6" onclick="selectPlotCount(6, this)"
+                                    style="font-size: 0.72rem;">6</button>
+                                <button type="button"
+                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
+                                    data-count="8" onclick="selectPlotCount(8, this)"
+                                    style="font-size: 0.72rem;">8</button>
+                            </div>
+                        </div>
+                        <div class="pt-1 border-top d-flex align-items-center justify-content-between"
+                            style="font-size: 0.66rem;">
+                            <span class="text-muted" id="drawnBoundarySummary">Standard Grid</span>
+                            <button type="button" class="btn btn-link text-success p-0 text-decoration-none fw-semibold"
+                                style="font-size: 0.68rem;" onclick="setPlotDrawMode('polygon')">
+                                <i class="bi bi-pencil me-0.5"></i>Custom
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 2D Leaflet Map Canvas (Above the Form - Expanded Size) -->
-                <div id="pickerMap" style="height: 960px; min-height: 500px; background-color: #e9f2ff;"></div>
+                <div id="pickerMap" style="height: 400px; min-height: 500px; background-color: #e9f2ff;"></div>
+
+                <!-- Floating GPS Go To My Location Button -->
+                <div class="position-absolute d-flex flex-column gap-2"
+                    style="bottom: 46px; right: 14px; z-index: 1001;">
+                    <button type="button" class="map-fab-btn" onclick="useCurrentLocation()" title="Go to My Location"
+                        id="btnGoToMyLocation">
+                        <i class="bi bi-crosshair text-success fs-5"></i>
+                    </button>
+                </div>
 
                 <!-- 3D City & Garden Visualization Container -->
-                <div id="register3DMapContainer" class="map3d-container" style="height: 960px; min-height: 500px;">
+                <div id="register3DMapContainer" class="map3d-container" style="height: 40f0px; min-height: 500px;">
                 </div>
 
                 <!-- Pinned Address / Coordinates Status Bar -->
@@ -245,9 +340,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <!-- Below: Property Registration Form -->
         <div class="card border rounded-4 bg-white p-3 p-md-4 shadow-sm mb-4"
             style="border-color: var(--drive-border) !important;">
-            <form action="register.php" method="POST" enctype="multipart/form-data">
+            <form action="register.php" method="POST" enctype="multipart/form-data" id="landRegistrationForm">
                 <input type="hidden" name="action" value="register">
                 <input type="hidden" name="lot_polygon" id="lot_polygon">
+                <input type="hidden" name="plot_count" id="form_plot_count" value="4">
 
                 <div class="d-flex align-items-center justify-content-between border-bottom pb-2.5 mb-3">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
@@ -316,124 +412,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             name="longitude" required placeholder="e.g. 120.984222">
                     </div>
 
-                    <!-- Partition Plots Setup (col-lg-7) -->
-                    <div class="col-lg-7">
-                        <div class="p-3 border rounded-4 bg-light shadow-xs h-100 d-flex flex-column justify-content-between"
-                            style="border-color: var(--drive-border) !important;">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <div>
-                                        <label class="form-label text-secondary m-0 fw-bold"
-                                            style="font-size: 0.75rem;">
-                                            <i class="bi bi-grid-3x3-gap-fill text-success me-1"></i>PARTITION PLOTS TO
-                                            REGISTER
-                                        </label>
-                                        <span class="text-muted text-xs d-block">Subdivide this property into plots for
-                                            community gardeners</span>
-                                    </div>
-                                    <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1"
-                                        id="plotCalcBadge" style="font-size:0.75rem;">
-                                        4 plots (~62.5 m² each)
-                                    </span>
-                                </div>
-
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-6 col-sm-4">
-                                        <label for="plot_count" class="form-label text-secondary m-0 text-xs">Number of
-                                            Plots</label>
-                                        <select class="form-select drive-form-control text-xs" id="plot_count"
-                                            name="plot_count" onchange="updatePlotCalculation()">
-                                            <option value="1">1 Single Plot</option>
-                                            <option value="2">2 Partition Plots</option>
-                                            <option value="4" selected>4 Plots (2×2 Grid)</option>
-                                            <option value="6">6 Plots (2×3 Grid)</option>
-                                            <option value="8">8 Plots (2×4 Grid)</option>
-                                            <option value="12">12 Plots</option>
-                                            <option value="16">16 Plots</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-6 col-sm-8">
-                                        <label class="form-label text-secondary m-0 text-xs">Calculated Area per
-                                            Plot</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control drive-form-control text-xs bg-white"
-                                                id="singlePlotArea" readonly value="62.5">
-                                            <span class="input-group-text bg-white text-muted text-xs">m² per
-                                                plot</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Mini Plot Grid Preview Badges -->
-                                <div class="mt-2.5 pt-2 border-top d-flex align-items-center gap-1.5 flex-wrap"
-                                    id="plotGridPreviewBadges"></div>
-                            </div>
-
-                            <!-- Plot Boundary Status & Draw Shortcut -->
-                            <div class="mt-2.5 p-2.5 rounded-3 bg-light border d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                    <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0"
-                                        style="width: 32px; height: 32px;">
-                                        <i class="bi bi-vector-pen" style="font-size: 15px;"></i>
-                                    </div>
-                                    <div class="overflow-hidden">
-                                        <div class="fw-bold text-dark text-xs">Plot Boundary Shape</div>
-                                        <div class="text-muted text-xs text-truncate" id="drawnBoundarySummary">No custom boundary drawn. Use map tools above to draw.</div>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
-                                    <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-semibold"
-                                        onclick="setPlotDrawMode('polygon')" title="Draw polygon boundary directly on map">
-                                        <i class="bi bi-pencil-fill me-1"></i>Draw Plot
-                                    </button>
-                                    <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2 py-1 d-none"
-                                        id="btnFormClearDrawn" onclick="clearDrawnPlot()" title="Clear drawn boundary">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3D Digital Twin Settings (col-lg-5) -->
-                    <div class="col-lg-5">
-                        <div class="p-3 border rounded-4 bg-light shadow-xs h-100 d-flex flex-column justify-content-between"
-                            style="border-color: rgba(56, 189, 248, 0.4) !important;">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center flex-shrink-0"
-                                            style="width: 36px; height: 36px;">
-                                            <i class="bi bi-box-fill text-primary" style="font-size:16px;"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-0 text-dark" style="font-size:0.85rem;">3D Digital
-                                                Twin Map View</h6>
-                                            <span class="text-muted text-xs">Generate realistic 3D building & plot
-                                                view</span>
-                                        </div>
-                                    </div>
-                                    <div class="form-check form-switch m-0">
-                                        <input class="form-check-input" type="checkbox" id="enable_3d_view"
-                                            name="enable_3d_view" value="1" checked
-                                            style="cursor:pointer; width: 40px; height: 20px;">
-                                    </div>
-                                </div>
-                                <p class="text-xs text-muted mb-0">
-                                    Enables WebGL 3D architectural extrusions, realistic sun lighting, and direct 3D
-                                    plot bed dragging for registered parcels.
-                                </p>
-                            </div>
-                            <div class="pt-2 border-top mt-3">
-                                <button type="button"
-                                    class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1.5 text-xs fw-semibold d-flex align-items-center justify-content-center gap-1.5"
-                                    onclick="switchPickerMode('3d')">
-                                    <i class="bi bi-box-fill"></i>
-                                    <span>Preview in 3D Map View Above</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Description (col-md-6) -->
                     <div class="col-md-6">
@@ -469,152 +447,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div id="hiddenSeedInputs"></div>
                     </div>
 
-                    <!-- Land Title & LRA Authenticity Verification (col-12) -->
+
+
+                    <!-- OCT Document Upload (col-12) -->
                     <div class="col-12">
-                        <div class="card border rounded-4 bg-white p-3 p-md-3.5 shadow-xs" style="border-color: rgba(37, 99, 235, 0.25) !important; background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);">
-                            <div class="d-flex align-items-center justify-content-between border-bottom pb-2.5 mb-3 flex-wrap gap-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        <i class="bi bi-shield-check fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">Land Title & LRA Authenticity Verification</h6>
-                                        <span class="text-muted text-xs">Cross-verified via the Land Registration Authority On-line Tracking System (LOTS)</span>
-                                    </div>
-                                </div>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill text-xs fw-semibold">
-                                    <i class="bi bi-patch-check-fill me-1"></i>Official LRA Due Diligence
-                                </span>
-                            </div>
-
-                            <div class="row g-3">
-                                <!-- Title Document Type -->
-                                <div class="col-md-3">
-                                    <label for="title_type" class="form-label text-secondary fw-semibold text-xs mb-1">TITLE TYPE</label>
-                                    <select class="form-select drive-form-control text-xs" id="title_type" name="title_type">
-                                        <option value="TCT" selected>TCT (Transfer Certificate of Title)</option>
-                                        <option value="OCT">OCT (Original Certificate of Title)</option>
-                                        <option value="Tax_Declaration">Tax Declaration (Untitled Land)</option>
-                                        <option value="CLOA">CLOA (Certificate of Land Ownership Award)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Title Number -->
-                                <div class="col-md-5">
-                                    <label for="title_number" class="form-label text-secondary fw-semibold text-xs mb-1">TITLE / CERTIFICATE NUMBER</label>
-                                    <input type="text" class="form-control drive-form-control w-100" id="title_number" name="title_number"
-                                        placeholder="e.g. TCT No. 004-2023001234">
-                                </div>
-
-                                <!-- Registry of Deeds -->
-                                <div class="col-md-4">
-                                    <label for="rod_name" class="form-label text-secondary fw-semibold text-xs mb-1">REGISTRY OF DEEDS (ROD)</label>
-                                    <select class="form-select drive-form-control text-xs" id="rod_name" name="rod_name">
-                                        <option value="">-- Select Registry of Deeds --</option>
-                                        <option value="Quezon City" selected>Quezon City (RD 004)</option>
-                                        <option value="City of Manila">City of Manila (RD 002)</option>
-                                        <option value="Pasig">Pasig (RD 011)</option>
-                                        <option value="Taguig City">Taguig City (RD 164)</option>
-                                        <option value="Makati City">Makati City (RD 006)</option>
-                                        <option value="Caloocan City">Caloocan City (RD 001)</option>
-                                        <option value="Province of Cavite">Province of Cavite (RD 057)</option>
-                                        <option value="Province of Laguna, Calamba Branch">Province of Laguna, Calamba (RD 060)</option>
-                                        <option value="Province of Rizal">Province of Rizal (RD 068)</option>
-                                        <option value="Province of Bulacan (Guiguinto)">Province of Bulacan (RD 039)</option>
-                                        <option value="Province of Batangas">Province of Batangas (RD 053)</option>
-                                        <option value="Province of Pampanga">Province of Pampanga (RD 042)</option>
-                                        <option value="Cebu City">Cebu City (RD 107)</option>
-                                        <option value="Davao City">Davao City (RD 146)</option>
-                                        <option value="Iloilo City">Iloilo City (RD 095)</option>
-                                        <option value="Baguio City">Baguio City (RD 018)</option>
-                                    </select>
-                                </div>
-
-                                <!-- EPEB Type -->
-                                <div class="col-md-4">
-                                    <label for="epeb_type" class="form-label text-secondary fw-semibold text-xs mb-1">EPEB TRANSACTION TYPE</label>
-                                    <select class="form-select drive-form-control text-xs" id="epeb_type" name="epeb_type">
-                                        <option value="CCV" selected>CCV - Certified True Copy, Certification, Verification</option>
-                                        <option value="Registered Land">Registered Land (RL_496)</option>
-                                        <option value="Unregistered Land">Unregistered Land (UL_3344)</option>
-                                    </select>
-                                </div>
-
-                                <!-- LRA EPEB Number -->
-                                <div class="col-md-4">
-                                    <label for="epeb_no" class="form-label text-secondary fw-semibold text-xs mb-1 d-flex align-items-center justify-content-between">
-                                        <span>LRA EPEB / TRANSACTION NO.</span>
-                                        <span class="text-primary text-xs" title="Find this number on your LRA Official Receipt"><i class="bi bi-info-circle"></i> On Receipt</span>
-                                    </label>
-                                    <input type="text" class="form-control drive-form-control w-100" id="epeb_no" name="epeb_no"
-                                        placeholder="e.g. 2023004819" maxlength="25">
-                                </div>
-
-                                <!-- LRA Tracking Link Quick Helper -->
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <a href="https://lots.lra.gov.ph/TransactionStatus/Search.aspx" target="_blank"
-                                        class="btn btn-outline-primary btn-sm rounded-pill w-100 py-1.5 text-xs fw-semibold d-flex align-items-center justify-content-center gap-1.5"
-                                        style="height: 38px;">
-                                        <i class="bi bi-box-arrow-up-right"></i>
-                                        <span>Check on LRA LOTS Portal</span>
-                                    </a>
-                                </div>
-
-                                <!-- Upload Certified Title / Scan -->
-                                <div class="col-md-6">
-                                    <label for="title_document" class="form-label text-secondary fw-semibold text-xs mb-1">
-                                        <i class="bi bi-file-earmark-pdf-fill text-danger me-1"></i>UPLOAD TITLE / CERTIFIED TRUE COPY (CTC)
-                                    </label>
-                                    <div class="border rounded-3 p-2.5 bg-light d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-2 overflow-hidden w-100">
-                                            <i class="bi bi-file-earmark-check fs-4 text-primary flex-shrink-0"></i>
-                                            <div class="overflow-hidden w-100">
-                                                <input type="file" class="form-control form-control-sm text-xs" id="title_document" name="title_document" accept=".pdf,.png,.jpg,.jpeg,.svg">
-                                                <small class="text-muted text-xs d-block text-truncate">PDF, JPG, or PNG of your latest certified true copy</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Upload LRA Official Receipt -->
-                                <div class="col-md-6">
-                                    <label for="lra_receipt" class="form-label text-secondary fw-semibold text-xs mb-1">
-                                        <i class="bi bi-receipt text-success me-1"></i>UPLOAD LRA OFFICIAL RECEIPT (OR)
-                                    </label>
-                                    <div class="border rounded-3 p-2.5 bg-light d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-2 overflow-hidden w-100">
-                                            <i class="bi bi-receipt-cutoff fs-4 text-success flex-shrink-0"></i>
-                                            <div class="overflow-hidden w-100">
-                                                <input type="file" class="form-control form-control-sm text-xs" id="lra_receipt" name="lra_receipt" accept=".pdf,.png,.jpg,.jpeg,.svg">
-                                                <small class="text-muted text-xs d-block text-truncate">Shows the EPEB number and Registry of Deeds branch</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Information Box -->
-                                <div class="col-12">
-                                    <div class="p-2.5 rounded-3 bg-white border d-flex align-items-center gap-2 text-xs text-muted">
-                                        <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
-                                        <span>Submitting your official LRA receipt and EPEB number allows our administration to verify your land title against the official LRA tracking database. Verified lands receive prioritized placement and the trusted <strong>LRA Verified</strong> shield.</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Photos Upload (col-12) -->
-                    <div class="col-12">
-                        <label class="form-label text-secondary fw-semibold text-xs mb-1">PHOTOS</label>
+                        <label class="form-label text-secondary fw-semibold text-xs mb-1">UPLOAD OCT DOCUMENT (ORIGINAL
+                            CERTIFICATE OF TITLE)</label>
                         <div class="border rounded-4 p-4 text-center bg-light"
                             style="border-style: dashed !important; border-color: var(--drive-border) !important;">
-                            <i class="bi bi-cloud-arrow-up fs-2 text-primary mb-2"></i>
-                            <p class="mb-1 text-dark fw-medium" style="font-size: 0.85rem;">Upload files</p>
-                            <span class="text-secondary d-block mb-3" style="font-size: 0.75rem;">JPEG or PNG</span>
-                            <input type="file" id="images" name="images[]" multiple class="d-none"
-                                onchange="updateUploadLabel(this)">
+                            <i class="bi bi-file-earmark-pdf fs-1 text-primary mb-2 d-inline-block"></i>
+                            <p class="mb-1 text-dark fw-medium" style="font-size: 0.85rem;">Upload Original Certificate
+                                of Title (OCT)</p>
+                            <span class="text-secondary d-block mb-3" style="font-size: 0.75rem;">Accepted formats: PDF,
+                                JPEG, or PNG (Max 10MB)</span>
+                            <input type="file" id="oct_document" name="oct_document" accept=".pdf,.jpg,.jpeg,.png"
+                                class="d-none" onchange="updateUploadLabel(this)">
                             <button type="button" class="btn btn-sm btn-drive-secondary px-3"
-                                onclick="document.getElementById('images').click()">Select Files</button>
+                                onclick="document.getElementById('oct_document').click()">
+                                <i class="bi bi-upload me-1"></i>Select OCT File
+                            </button>
                             <span id="file-count" class="d-block mt-2 text-success fw-medium"
                                 style="font-size: 12px;"></span>
                         </div>
@@ -726,15 +577,77 @@ $seedTypes = [
     </div>
 </div>
 
+<!-- Modal to Ask for Square Meters Before Drawing -->
+<div class="modal fade" id="landAreaModal" tabindex="-1" aria-labelledby="landAreaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+        <div class="modal-content border-0 rounded-4 shadow-xl overflow-hidden">
+            <div class="modal-header border-0 bg-success text-white py-3 px-4">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                        <i class="bi bi-rulers fs-6"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0" id="landAreaModalLabel">Set Land Area (m²)</h6>
+                        <span class="text-white-50" style="font-size: 0.72rem;">Calibrate plot boundary size</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <p class="text-secondary text-xs mb-3">
+                    Enter the total area of your land in square meters. Your plot drawing on the map will automatically be constrained to this exact size.
+                </p>
+
+                <div class="mb-3">
+                    <label for="modalAreaInput" class="form-label text-dark fw-bold text-xs mb-1">TOTAL SQUARE METERS (m²)</label>
+                    <div class="input-group">
+                        <input type="number" step="1" min="10" max="100000" class="form-control drive-form-control form-control-lg fw-bold text-success fs-4" id="modalAreaInput" value="250" placeholder="e.g. 250" required>
+                        <span class="input-group-text bg-light border text-muted fw-bold">m²</span>
+                    </div>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mb-3">
+                    <span class="text-muted text-xs d-block mb-1.5 fw-semibold">Quick Presets:</span>
+                    <div class="d-flex flex-wrap gap-1.5" id="presetAreaGroup">
+                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="100" onclick="setPresetArea(100)">100 m²</button>
+                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="150" onclick="setPresetArea(150)">150 m²</button>
+                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="200" onclick="setPresetArea(200)">200 m²</button>
+                        <button type="button" class="btn btn-xs preset-area-btn btn-success text-white active rounded-pill px-2.5 py-1" data-val="250" onclick="setPresetArea(250)">250 m²</button>
+                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="500" onclick="setPresetArea(500)">500 m²</button>
+                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="1000" onclick="setPresetArea(1000)">1,000 m²</button>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 pt-2 border-top">
+                    <button type="button" class="btn btn-success rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2" onclick="confirmLandAreaAndDraw()">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Confirm & Draw Boundary</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-success rounded-pill py-2 fw-semibold text-xs d-flex align-items-center justify-content-center gap-1.5" onclick="autoPlaceExactBoundary()">
+                        <i class="bi bi-bounding-box"></i>
+                        <span>Auto-Place Exact Plot on Pin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 <script>
     const selectedCrops = new Map();
 
     function updateUploadLabel(input) {
-        const count = input.files.length;
+        const file = input.files && input.files[0];
         const label = document.getElementById('file-count');
-        label.textContent = count > 0 ? `${count} photo(s) selected.` : '';
+        if (file) {
+            const sizeKB = (file.size / 1024).toFixed(1);
+            label.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>Selected: <strong>${file.name}</strong> (${sizeKB} KB)`;
+        } else {
+            label.textContent = '';
+        }
     }
 
     function toggleCropSelection(val, label, icon, element) {
@@ -816,6 +729,10 @@ $seedTypes = [
 
         summaryBox.innerHTML = summaryHtml;
         hiddenInputs.innerHTML = inputsHtml;
+
+        if (typeof renderSubdivisions === 'function') {
+            renderSubdivisions();
+        }
     }
 
     // Leaflet map with geocoding search, coordinate typing & 3D digital twin preview
@@ -823,11 +740,42 @@ $seedTypes = [
         const defaultLat = 14.5995;
         const defaultLng = 120.9842;
 
+        const initialLatInput = document.getElementById('latitude').value.trim();
+        const initialLngInput = document.getElementById('longitude').value.trim();
+        const hasInitialCoords = initialLatInput && initialLngInput && !isNaN(parseFloat(initialLatInput)) && !isNaN(parseFloat(initialLngInput));
+
+        const startLat = hasInitialCoords ? parseFloat(initialLatInput) : defaultLat;
+        const startLng = hasInitialCoords ? parseFloat(initialLngInput) : defaultLng;
+
         const map = L.map('pickerMap', {
             zoomControl: false,
             maxZoom: 24
-        }).setView([defaultLat, defaultLng], 13);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        }).setView([startLat, startLng], hasInitialCoords ? 16 : 13);
+
+        if (hasInitialCoords) {
+            setLocation(startLat, startLng, null, 16);
+            reverseGeocode(startLat, startLng);
+        } else {
+            const pinnedText = document.getElementById('pinnedAddressText');
+            if (pinnedText) pinnedText.textContent = 'Click on the map or search to pinpoint your land location';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        map.setView([lat, lng], 17);
+                    },
+                    (err) => {
+                        console.warn('Geolocation failed or denied, centering default:', err);
+                        map.setView([defaultLat, defaultLng], 14);
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            } else {
+                map.setView([defaultLat, defaultLng], 14);
+            }
+        }
 
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 24,
@@ -875,6 +823,264 @@ $seedTypes = [
             iconAnchor: [17, 34]
         });
 
+        // ─── Target Land Area State & Modal ───
+        let targetSquareMeters = parseFloat(document.getElementById('area')?.value) || 250;
+        let landAreaModalInstance = null;
+
+        function getLandAreaModal() {
+            if (!landAreaModalInstance) {
+                const el = document.getElementById('landAreaModal');
+                if (el && typeof bootstrap !== 'undefined') {
+                    landAreaModalInstance = bootstrap.Modal.getOrCreateInstance(el);
+                }
+            }
+            return landAreaModalInstance;
+        }
+
+        window.openLandAreaModal = function (preferredMode = null) {
+            const input = document.getElementById('modalAreaInput');
+            if (input) {
+                input.value = targetSquareMeters || 250;
+            }
+            updatePresetButtons(targetSquareMeters || 250);
+
+            const modal = getLandAreaModal();
+            if (modal) {
+                if (preferredMode) {
+                    modal._preferredMode = preferredMode;
+                }
+                modal.show();
+            }
+        };
+
+        window.setPresetArea = function (val) {
+            const input = document.getElementById('modalAreaInput');
+            if (input) {
+                input.value = val;
+            }
+            updatePresetButtons(val);
+        };
+
+        function updatePresetButtons(val) {
+            const buttons = document.querySelectorAll('.preset-area-btn');
+            buttons.forEach(btn => {
+                const bVal = parseFloat(btn.getAttribute('data-val'));
+                if (bVal === parseFloat(val)) {
+                    btn.classList.add('active', 'btn-success', 'text-white');
+                    btn.classList.remove('btn-outline-secondary');
+                } else {
+                    btn.classList.remove('active', 'btn-success', 'text-white');
+                    btn.classList.add('btn-outline-secondary');
+                }
+            });
+        }
+
+        window.confirmLandAreaAndDraw = function () {
+            const input = document.getElementById('modalAreaInput');
+            let val = parseFloat(input?.value);
+            if (isNaN(val) || val <= 0) {
+                alert('Please enter a valid positive land area in square meters (e.g. 250).');
+                return;
+            }
+            targetSquareMeters = Math.round(val * 10) / 10;
+
+            const areaInput = document.getElementById('area');
+            if (areaInput) areaInput.value = targetSquareMeters;
+
+            const badge = document.getElementById('targetAreaBadge');
+            if (badge) badge.textContent = `${targetSquareMeters.toLocaleString()} m²`;
+            const editBtn = document.getElementById('btnEditPlotArea');
+            if (editBtn) editBtn.classList.remove('d-none');
+
+            const modal = getLandAreaModal();
+            const preferredMode = modal?._preferredMode || 'polygon';
+            if (modal) modal.hide();
+
+            // If a polygon already exists, recalibrate its size to match new targetSquareMeters
+            if (drawnPolygonLayer && drawnPoints && drawnPoints.length >= 3) {
+                const curArea = calculatePolygonArea(drawnPoints);
+                if (curArea > 0) {
+                    const scaleFactor = Math.sqrt(targetSquareMeters / curArea);
+                    const centroid = calculateCentroid(drawnPoints);
+                    drawnPoints = drawnPoints.map(p => {
+                        return L.latLng(
+                            centroid.lat + (p.lat - centroid.lat) * scaleFactor,
+                            centroid.lng + (p.lng - centroid.lng) * scaleFactor
+                        );
+                    });
+                    drawnPolygonLayer.setLatLngs(drawnPoints);
+                    createVertexMarkers();
+                    updateDrawnPolygonStats(false);
+                    renderSubdivisions();
+                    return;
+                }
+            }
+
+            // Start drawing
+            setPlotDrawMode(preferredMode === 'box' ? 'box' : 'polygon');
+            const helper = document.getElementById('mapDrawingHelper');
+            const helperText = document.getElementById('mapDrawingHelperText');
+            if (helper && helperText) {
+                helperText.innerHTML = `<i class="bi bi-rulers text-success me-1"></i><strong>Target: ${targetSquareMeters.toLocaleString()} m²</strong> &mdash; Click on map to place corner 1`;
+                helper.classList.remove('d-none');
+            }
+        };
+
+        window.autoPlaceExactBoundary = function () {
+            const input = document.getElementById('modalAreaInput');
+            let val = parseFloat(input?.value);
+            if (isNaN(val) || val <= 0) {
+                alert('Please enter a valid positive land area in square meters (e.g. 250).');
+                return;
+            }
+            targetSquareMeters = Math.round(val * 10) / 10;
+
+            const areaInput = document.getElementById('area');
+            if (areaInput) areaInput.value = targetSquareMeters;
+
+            const badge = document.getElementById('targetAreaBadge');
+            if (badge) badge.textContent = `${targetSquareMeters.toLocaleString()} m²`;
+            const editBtn = document.getElementById('btnEditPlotArea');
+            if (editBtn) editBtn.classList.remove('d-none');
+
+            const modal = getLandAreaModal();
+            if (modal) modal.hide();
+
+            let center = marker ? marker.getLatLng() : map.getCenter();
+            if (!marker) {
+                setLocation(center.lat, center.lng);
+            }
+
+            const sideMeters = Math.sqrt(targetSquareMeters);
+            const halfSide = sideMeters / 2;
+            const deltaLat = halfSide / 111320;
+            const deltaLng = halfSide / (111320 * Math.cos(center.lat * Math.PI / 180));
+
+            drawnPoints = [
+                L.latLng(center.lat + deltaLat, center.lng - deltaLng), // NW
+                L.latLng(center.lat + deltaLat, center.lng + deltaLng), // NE
+                L.latLng(center.lat - deltaLat, center.lng + deltaLng), // SE
+                L.latLng(center.lat - deltaLat, center.lng - deltaLng)  // SW
+            ];
+
+            finishCurrentPolygon();
+        };
+
+        // ─── Step-by-Step Registration Process Controller ───
+        let currentStep = 1;
+
+        function setRegistrationStep(step) {
+            currentStep = step;
+            const step1Item = document.getElementById('step1Item');
+            const step2Item = document.getElementById('step2Item');
+            const step3Item = document.getElementById('step3Item');
+
+            const step1Badge = document.getElementById('step1Badge');
+            const step2Badge = document.getElementById('step2Badge');
+            const step3Badge = document.getElementById('step3Badge');
+
+            const step1Title = document.getElementById('step1Title');
+            const step2Title = document.getElementById('step2Title');
+            const step3Title = document.getElementById('step3Title');
+
+            const guideText = document.getElementById('stepGuideText');
+
+            const hasPin = (marker !== null);
+            const hasPlot = (drawnPolygonLayer !== null && drawnPoints.length >= 3);
+
+            // Step 1 styling
+            if (step1Item && step1Badge && step1Title) {
+                if (hasPin && step > 1) {
+                    step1Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-success-subtle border border-success-subtle transition-all';
+                    step1Badge.className = 'rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold';
+                    step1Badge.innerHTML = '<i class="bi bi-check-lg" style="font-size:0.68rem;"></i>';
+                    step1Title.className = 'fw-bold text-success';
+                } else if (step === 1) {
+                    step1Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white border border-success shadow-2xs transition-all';
+                    step1Badge.className = 'rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold';
+                    step1Badge.innerHTML = '1';
+                    step1Title.className = 'fw-bold text-dark';
+                } else {
+                    step1Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all';
+                    step1Badge.className = 'rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold';
+                    step1Badge.innerHTML = '1';
+                    step1Title.className = 'text-muted';
+                }
+            }
+
+            // Step 2 styling
+            if (step2Item && step2Badge && step2Title) {
+                if (hasPlot && step > 2) {
+                    step2Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-success-subtle border border-success-subtle transition-all';
+                    step2Badge.className = 'rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold';
+                    step2Badge.innerHTML = '<i class="bi bi-check-lg" style="font-size:0.68rem;"></i>';
+                    step2Title.className = 'fw-bold text-success';
+                } else if (step === 2) {
+                    step2Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white border border-success shadow-2xs transition-all';
+                    step2Badge.className = 'rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold';
+                    step2Badge.innerHTML = '2';
+                    step2Title.className = 'fw-bold text-dark';
+                } else {
+                    step2Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all';
+                    step2Badge.className = 'rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold';
+                    step2Badge.innerHTML = '2';
+                    step2Title.className = 'text-muted';
+                }
+            }
+
+            // Step 3 styling
+            if (step3Item && step3Badge && step3Title) {
+                if (step === 3) {
+                    step3Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white border border-success shadow-2xs transition-all';
+                    step3Badge.className = 'rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold';
+                    step3Badge.innerHTML = '3';
+                    step3Title.className = 'fw-bold text-dark';
+                } else {
+                    step3Item.className = 'd-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all';
+                    step3Badge.className = 'rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold';
+                    step3Badge.innerHTML = '3';
+                    step3Title.className = 'text-muted';
+                }
+            }
+
+            // Guide Text update
+            if (guideText) {
+                if (step === 1) {
+                    guideText.innerHTML = '<i class="bi bi-geo-alt-fill text-danger"></i><span><strong>Step 1:</strong> Search location or click anywhere on the map to pinpoint.</span>';
+                } else if (step === 2) {
+                    guideText.innerHTML = '<i class="bi bi-pentagon-fill text-success"></i><span><strong>Step 2:</strong> Click corners on map to draw plot boundary (min 3 pts). Click "Finish" when done.</span>';
+                } else if (step === 3) {
+                    guideText.innerHTML = '<i class="bi bi-grid-3x3-gap-fill text-success"></i><span><strong>Step 3:</strong> Boundary created! Choose partition plots & complete land details below.</span>';
+                }
+            }
+        }
+
+        window.goToStep = function (targetStep) {
+            if (targetStep === 1) {
+                setPlotDrawMode('pan');
+                setRegistrationStep(1);
+            } else if (targetStep === 2) {
+                if (!marker) {
+                    alert('Please pinpoint a location on the map first (Step 1).');
+                    return;
+                }
+                if (!drawnPolygonLayer && (!drawnPoints || drawnPoints.length === 0)) {
+                    openLandAreaModal('polygon');
+                    return;
+                }
+                setPlotDrawMode('polygon');
+                setRegistrationStep(2);
+            } else if (targetStep === 3) {
+                if (!drawnPolygonLayer || drawnPoints.length < 3) {
+                    alert('Please draw and finish your plot boundary first (Step 2).');
+                    return;
+                }
+                setRegistrationStep(3);
+                const formEl = document.getElementById('landRegistrationForm');
+                if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        };
+
         function updateLotBoundary(lat, lng) {
             if (drawnPolygonLayer) return; // Do not draw square if custom polygon boundary is active
             const area = parseFloat(document.getElementById('area').value) || 200;
@@ -899,6 +1105,8 @@ $seedTypes = [
                     dashArray: '5, 5'
                 }).addTo(map);
             }
+
+            renderSubdivisions();
         }
 
         function setLocation(lat, lng, addressText = null, zoom = null) {
@@ -922,10 +1130,35 @@ $seedTypes = [
                 });
             }
 
-            updateLotBoundary(parseFloat(lat), parseFloat(lng));
+            // Reveal Draw Plot and Draw Box buttons now that location is pinpointed
+            const polyBtn = document.getElementById('drawModePolygonBtn');
+            const boxBtn = document.getElementById('drawModeBoxBtn');
+            if (polyBtn) polyBtn.classList.remove('d-none');
+            if (boxBtn) boxBtn.classList.remove('d-none');
 
-            if (zoom) {
-                map.flyTo(latlng, zoom, { animate: true, duration: 1.2 });
+            // If plot is not drawn yet, automatically zoom and prompt for square meters before drawing!
+            if (!drawnPolygonLayer) {
+                setRegistrationStep(2);
+
+                // Automatically zoom in close to lot level (zoom 18)
+                const targetZoom = 18;
+                map.flyTo(latlng, targetZoom, { animate: true, duration: 0.85 });
+
+                // Open modal to ask for square meters before drawing begins
+                let prompted = false;
+                const promptAreaModal = () => {
+                    if (prompted) return;
+                    prompted = true;
+                    openLandAreaModal('polygon');
+                };
+
+                map.once('moveend', promptAreaModal);
+                setTimeout(promptAreaModal, 950);
+            } else {
+                if (zoom) {
+                    map.flyTo(latlng, zoom, { animate: true, duration: 0.85 });
+                }
+                updateLotBoundary(parseFloat(lat), parseFloat(lng));
             }
 
             // Update status bar
@@ -963,6 +1196,13 @@ $seedTypes = [
                 handlePolygonMouseMove(e);
             } else if (currentDrawMode === 'box') {
                 handleBoxMouseMove(e);
+            }
+        });
+
+        map.on('dblclick', function (e) {
+            if (currentDrawMode === 'polygon' && drawnPoints.length >= 3) {
+                L.DomEvent.stopPropagation(e);
+                finishCurrentPolygon();
             }
         });
 
@@ -1206,6 +1446,11 @@ $seedTypes = [
                 }
                 map.getContainer().style.cursor = '';
                 if (helper) helper.classList.add('d-none');
+                if (!drawnPolygonLayer || drawnPoints.length < 3) {
+                    setRegistrationStep(1);
+                } else {
+                    setRegistrationStep(3);
+                }
             } else if (mode === 'polygon') {
                 if (polyBtn) {
                     polyBtn.classList.add('active', 'btn-success', 'text-white');
@@ -1213,8 +1458,10 @@ $seedTypes = [
                 }
                 map.getContainer().style.cursor = 'crosshair';
                 if (helper) helper.classList.remove('d-none');
-                if (helperText) helperText.textContent = 'Click on map to place corner 1';
+                const targetDisplay = targetSquareMeters ? `${targetSquareMeters.toLocaleString()} m²` : '250 m²';
+                if (helperText) helperText.innerHTML = `<i class="bi bi-pentagon-fill text-success me-1"></i><strong>Step 2 (${targetDisplay}):</strong> Click on map to place corner 1`;
                 if (finishBtn) finishBtn.classList.add('d-none');
+                setRegistrationStep(2);
             } else if (mode === 'box') {
                 if (boxBtn) {
                     boxBtn.classList.add('active', 'btn-success', 'text-white');
@@ -1222,8 +1469,10 @@ $seedTypes = [
                 }
                 map.getContainer().style.cursor = 'crosshair';
                 if (helper) helper.classList.remove('d-none');
-                if (helperText) helperText.textContent = 'Click on map to anchor corner 1 of the box';
+                const targetDisplay = targetSquareMeters ? `${targetSquareMeters.toLocaleString()} m²` : '250 m²';
+                if (helperText) helperText.innerHTML = `<i class="bi bi-bounding-box text-success me-1"></i><strong>Step 2 (${targetDisplay}):</strong> Click on map to anchor corner 1 of the box`;
                 if (finishBtn) finishBtn.classList.add('d-none');
+                setRegistrationStep(2);
             }
         };
 
@@ -1233,10 +1482,18 @@ $seedTypes = [
             if (drawingStartMarker) { map.removeLayer(drawingStartMarker); drawingStartMarker = null; }
             if (boxPreviewLayer) { map.removeLayer(boxPreviewLayer); boxPreviewLayer = null; }
             boxAnchor = null;
+        }
+
+        window.cancelPlotDrawing = function () {
+            cancelTempDrawing();
             if (!drawnPolygonLayer) {
                 drawnPoints = [];
+                setRegistrationStep(1);
+            } else {
+                setRegistrationStep(3);
             }
-        }
+            setPlotDrawMode('pan');
+        };
 
         function handlePolygonClick(e) {
             drawnPoints.push(e.latlng);
@@ -1246,18 +1503,23 @@ $seedTypes = [
 
             if (count === 1) {
                 drawingStartMarker = L.circleMarker(e.latlng, {
-                    radius: 7,
+                    radius: 9,
                     color: '#ffffff',
-                    weight: 2,
+                    weight: 3,
                     fillColor: '#198754',
                     fillOpacity: 1
                 }).addTo(map);
 
                 drawingStartMarker.on('click', function (ev) {
                     L.DomEvent.stopPropagation(ev);
-                    finishCurrentPolygon();
+                    L.DomEvent.preventDefault(ev);
+                    if (drawnPoints.length >= 3) {
+                        finishCurrentPolygon();
+                    } else {
+                        alert('Please add at least 3 corner points to close your plot.');
+                    }
                 });
-                drawingStartMarker.bindTooltip('Click to close plot', { permanent: false, direction: 'top' });
+                drawingStartMarker.bindTooltip('Click here to close plot', { permanent: false, direction: 'top' });
 
                 drawingTempLine = L.polyline([e.latlng], {
                     color: '#198754',
@@ -1271,7 +1533,7 @@ $seedTypes = [
             } else {
                 if (drawingTempLine) drawingTempLine.setLatLngs(drawnPoints);
                 if (finishBtn) finishBtn.classList.remove('d-none');
-                if (helperText) helperText.textContent = `Corner ${count} placed. Click next corner or "Finish Plot" to close`;
+                if (helperText) helperText.textContent = `Corner ${count} placed. Click next corner, or click corner 1 / "Finish" to close plot`;
             }
         }
 
@@ -1294,13 +1556,21 @@ $seedTypes = [
             const helperText = document.getElementById('mapDrawingHelperText');
             if (!boxAnchor) {
                 boxAnchor = e.latlng;
-                if (helperText) helperText.textContent = 'Anchor set! Move mouse and click opposite corner to finish box';
+                const targetArea = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
+                if (helperText) helperText.innerHTML = `<i class="bi bi-bounding-box text-success me-1"></i>Anchor set! Move mouse to size box (${targetArea.toLocaleString()} m² locked), then click to place`;
             } else {
-                const corner2 = e.latlng;
-                const minLat = Math.min(boxAnchor.lat, corner2.lat);
-                const maxLat = Math.max(boxAnchor.lat, corner2.lat);
-                const minLng = Math.min(boxAnchor.lng, corner2.lng);
-                const maxLng = Math.max(boxAnchor.lng, corner2.lng);
+                const targetArea = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
+                const cosLat = Math.cos(boxAnchor.lat * Math.PI / 180);
+                const dxMeters = Math.max(3, Math.abs(e.latlng.lng - boxAnchor.lng) * 111320 * cosLat);
+                const dyMeters = targetArea / dxMeters;
+                const deltaLat = dyMeters / 111320;
+                const latSign = e.latlng.lat >= boxAnchor.lat ? 1 : -1;
+                const constrainedLat = boxAnchor.lat + (latSign * deltaLat);
+
+                const minLat = Math.min(boxAnchor.lat, constrainedLat);
+                const maxLat = Math.max(boxAnchor.lat, constrainedLat);
+                const minLng = Math.min(boxAnchor.lng, e.latlng.lng);
+                const maxLng = Math.max(boxAnchor.lng, e.latlng.lng);
 
                 drawnPoints = [
                     L.latLng(maxLat, minLng), // NW
@@ -1320,7 +1590,16 @@ $seedTypes = [
 
         function handleBoxMouseMove(e) {
             if (boxAnchor) {
-                const bounds = L.latLngBounds(boxAnchor, e.latlng);
+                const targetArea = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
+                const cosLat = Math.cos(boxAnchor.lat * Math.PI / 180);
+                const dxMeters = Math.max(3, Math.abs(e.latlng.lng - boxAnchor.lng) * 111320 * cosLat);
+                const dyMeters = targetArea / dxMeters;
+                const deltaLat = dyMeters / 111320;
+                const latSign = e.latlng.lat >= boxAnchor.lat ? 1 : -1;
+                const constrainedLat = boxAnchor.lat + (latSign * deltaLat);
+                const constrainedCorner = L.latLng(constrainedLat, e.latlng.lng);
+
+                const bounds = L.latLngBounds(boxAnchor, constrainedCorner);
                 if (boxPreviewLayer) {
                     boxPreviewLayer.setBounds(bounds);
                 } else {
@@ -1332,30 +1611,58 @@ $seedTypes = [
                         fillOpacity: 0.18
                     }).addTo(map);
                 }
+
+                const helperText = document.getElementById('mapDrawingHelperText');
+                if (helperText) {
+                    helperText.innerHTML = `<i class="bi bi-rulers text-success me-1"></i><strong>${Math.round(targetArea)} m² Locked</strong> (${Math.round(dxMeters)}m × ${Math.round(dyMeters)}m) &mdash; Click to place box`;
+                }
             }
         }
 
         window.finishCurrentPolygon = function () {
-            if (drawnPoints.length < 3) {
+            if (!drawnPoints || drawnPoints.length < 3) {
                 alert('Please click at least 3 points on the map to create a closed plot boundary.');
                 return;
             }
 
+            // Calibrate/scale to exact targetSquareMeters so drawing matches inputted size!
+            const curArea = calculatePolygonArea(drawnPoints);
+            const targetArea = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
+            if (curArea > 0 && targetArea > 0) {
+                const scaleFactor = Math.sqrt(targetArea / curArea);
+                const centroid = calculateCentroid(drawnPoints);
+                drawnPoints = drawnPoints.map(p => {
+                    return L.latLng(
+                        centroid.lat + (p.lat - centroid.lat) * scaleFactor,
+                        centroid.lng + (p.lng - centroid.lng) * scaleFactor
+                    );
+                });
+            }
+
+            // Preserve drawn points so they are never wiped
+            const finalPoints = drawnPoints.slice();
+
+            // Clear temporary drawing overlays only
             cancelTempDrawing();
+
+            // Restore the points
+            drawnPoints = finalPoints;
 
             if (drawnPolygonLayer) {
                 map.removeLayer(drawnPolygonLayer);
+                drawnPolygonLayer = null;
             }
             if (boundaryPoly) {
                 map.removeLayer(boundaryPoly);
                 boundaryPoly = null;
             }
 
+            // Create solid closed polygon layer
             drawnPolygonLayer = L.polygon(drawnPoints, {
                 color: '#198754',
                 weight: 3,
                 fillColor: '#22c55e',
-                fillOpacity: 0.22
+                fillOpacity: 0.25
             }).addTo(map);
 
             createVertexMarkers();
@@ -1367,7 +1674,34 @@ $seedTypes = [
             const formClearBtn = document.getElementById('btnFormClearDrawn');
             if (formClearBtn) formClearBtn.classList.remove('d-none');
 
-            setPlotDrawMode('pan');
+            // Pop up the Partition Plots Overlay now that plot boundary is drawn
+            const plotOverlay = document.getElementById('plotControlOverlay');
+            if (plotOverlay) {
+                plotOverlay.classList.remove('d-none');
+            }
+
+            // Hide the drawing helper
+            const helper = document.getElementById('mapDrawingHelper');
+            if (helper) helper.classList.add('d-none');
+
+            // Switch to pan mode cleanly without clearing drawn points
+            currentDrawMode = 'pan';
+            map.getContainer().style.cursor = '';
+            const panBtn = document.getElementById('drawModePanBtn');
+            const polyBtn = document.getElementById('drawModePolygonBtn');
+            const boxBtn = document.getElementById('drawModeBoxBtn');
+            [polyBtn, boxBtn].forEach(b => {
+                if (b) {
+                    b.classList.remove('active', 'btn-success', 'text-white');
+                    b.classList.add('text-secondary');
+                }
+            });
+            if (panBtn) {
+                panBtn.classList.add('active', 'text-dark');
+                panBtn.classList.remove('text-secondary');
+            }
+
+            setRegistrationStep(3);
         };
 
         function createVertexMarkers() {
@@ -1435,6 +1769,12 @@ $seedTypes = [
             const areaInput = document.getElementById('area');
             if (areaInput) areaInput.value = roundedArea;
 
+            targetSquareMeters = roundedArea;
+            const badge = document.getElementById('targetAreaBadge');
+            if (badge) badge.textContent = `${roundedArea.toLocaleString()} m²`;
+            const editBtn = document.getElementById('btnEditPlotArea');
+            if (editBtn) editBtn.classList.remove('d-none');
+
             const polyInput = document.getElementById('lot_polygon');
             if (polyInput) {
                 polyInput.value = JSON.stringify(drawnPoints.map(p => [p.lat, p.lng]));
@@ -1480,36 +1820,78 @@ $seedTypes = [
             subdivisionLayers.forEach(l => map.removeLayer(l));
             subdivisionLayers = [];
 
-            if (!drawnPolygonLayer || drawnPoints.length < 3) return;
-
-            const count = parseInt(document.getElementById('plot_count').value) || 4;
-            if (count <= 1) return;
+            if (!drawnPolygonLayer || drawnPoints.length < 3) {
+                return;
+            }
 
             const bounds = drawnPolygonLayer.getBounds();
+            if (!bounds) return;
+
+            const count = parseInt(document.getElementById('plot_count').value) || 4;
+            const totalArea = parseFloat(document.getElementById('area').value) || 200;
+            const singlePlotArea = totalArea > 0 ? (totalArea / count).toFixed(1) : Math.round(totalArea / count);
+
             const cols = Math.ceil(Math.sqrt(count));
             const rows = Math.ceil(count / cols);
             const latStep = (bounds.getNorth() - bounds.getSouth()) / rows;
             const lngStep = (bounds.getEast() - bounds.getWest()) / cols;
 
-            for (let r = 1; r < rows; r++) {
-                const lat = bounds.getSouth() + r * latStep;
-                const line = L.polyline([[lat, bounds.getWest()], [lat, bounds.getEast()]], {
-                    color: '#15803d',
-                    weight: 1.5,
-                    dashArray: '4, 4',
-                    opacity: 0.7
-                }).addTo(map);
-                subdivisionLayers.push(line);
-            }
-            for (let c = 1; c < cols; c++) {
-                const lng = bounds.getWest() + c * lngStep;
-                const line = L.polyline([[bounds.getSouth(), lng], [bounds.getNorth(), lng]], {
-                    color: '#15803d',
-                    weight: 1.5,
-                    dashArray: '4, 4',
-                    opacity: 0.7
-                }).addTo(map);
-                subdivisionLayers.push(line);
+            const permittedCrops = Array.from(selectedCrops.values()).map(c => c.label);
+
+            let plotIndex = 1;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (plotIndex > count) break;
+
+                    const pMaxLat = bounds.getNorth() - (r * latStep);
+                    const pMinLat = bounds.getNorth() - ((r + 1) * latStep);
+                    const pMinLng = bounds.getWest() + (c * lngStep);
+                    const pMaxLng = bounds.getWest() + ((c + 1) * lngStep);
+
+                    const plotSquare = [
+                        [pMaxLat, pMinLng],
+                        [pMaxLat, pMaxLng],
+                        [pMinLat, pMaxLng],
+                        [pMinLat, pMinLng]
+                    ];
+
+                    const plotPoly = L.polygon(plotSquare, {
+                        color: '#16a34a',
+                        weight: 1.5,
+                        fillColor: '#22c55e',
+                        fillOpacity: 0.22,
+                        dashArray: '3, 4'
+                    }).addTo(map);
+
+                    const plotName = `Plot A-${plotIndex}`;
+                    const cropName = permittedCrops.length > 0 ? permittedCrops[(plotIndex - 1) % permittedCrops.length] : 'Available for Gardeners';
+
+                    plotPoly.bindTooltip(
+                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;line-height:1.3;padding:1px;">
+                            <strong class="text-success"><i class="bi bi-grid-3x3-gap-fill me-1"></i>${plotName}</strong><br>
+                            <span class="text-dark font-monospace">${singlePlotArea} m²</span><br>
+                            <span class="badge bg-success-subtle text-success mt-1" style="font-size:9px;">${cropName}</span>
+                        </div>`,
+                        { permanent: false, direction: 'center' }
+                    );
+
+                    // Add subtle center badge icon
+                    const centerLat = (pMinLat + pMaxLat) / 2;
+                    const centerLng = (pMinLng + pMaxLng) / 2;
+                    const centerLabel = L.marker([centerLat, centerLng], {
+                        icon: L.divIcon({
+                            className: 'partition-plot-label',
+                            html: `<div style="background:rgba(22,163,74,0.85);color:#fff;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.25);pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);">${plotName}</div>`,
+                            iconSize: [0, 0]
+                        }),
+                        interactive: false
+                    }).addTo(map);
+
+                    subdivisionLayers.push(plotPoly);
+                    subdivisionLayers.push(centerLabel);
+
+                    plotIndex++;
+                }
             }
         }
 
@@ -1539,13 +1921,20 @@ $seedTypes = [
             const formClearBtn = document.getElementById('btnFormClearDrawn');
             if (formClearBtn) formClearBtn.classList.add('d-none');
 
-            // Restore standard square boundary
-            const latVal = parseFloat(document.getElementById('latitude').value);
-            const lngVal = parseFloat(document.getElementById('longitude').value);
-            if (!isNaN(latVal) && !isNaN(lngVal)) {
-                updateLotBoundary(latVal, lngVal);
+            // Hide the Plot Control Overlay when plot is cleared
+            const plotOverlay = document.getElementById('plotControlOverlay');
+            if (plotOverlay) {
+                plotOverlay.classList.add('d-none');
             }
-            setPlotDrawMode('pan');
+
+            setRegistrationStep(2);
+            setPlotDrawMode('polygon');
+            const helper = document.getElementById('mapDrawingHelper');
+            const helperText = document.getElementById('mapDrawingHelperText');
+            if (helper && helperText) {
+                helperText.innerHTML = '<i class="bi bi-pentagon-fill text-success me-1"></i>Plot cleared. Click corners on map to redraw your boundary.';
+                helper.classList.remove('d-none');
+            }
         };
 
         function initLayoutPlots(count) {
@@ -1601,20 +1990,58 @@ $seedTypes = [
         }
 
         // ─── Partition Plots Setup & Calculation ───
-        window.updatePlotCalculation = function () {
+        window.selectPlotCount = function (count, btn) {
+            const hiddenInput = document.getElementById('plot_count');
+            if (hiddenInput) hiddenInput.value = count;
+            const formPlotCount = document.getElementById('form_plot_count');
+            if (formPlotCount) formPlotCount.value = count;
+
+            document.querySelectorAll('.plot-count-btn').forEach(b => {
+                b.classList.remove('btn-success', 'active', 'text-white');
+                b.classList.add('btn-light', 'text-secondary');
+            });
+            if (btn) {
+                btn.classList.remove('btn-light', 'text-secondary');
+                btn.classList.add('btn-success', 'active', 'text-white');
+            }
+            updatePlotCalculation();
+        };
+
+        window.updatePlotCalculation = function (syncTarget = true) {
             const areaInput = document.getElementById('area');
-            const totalArea = parseFloat(areaInput.value) || 0;
+            const totalArea = parseFloat(areaInput ? areaInput.value : 0) || 0;
+            if (syncTarget && totalArea > 0) {
+                targetSquareMeters = totalArea;
+                const badge = document.getElementById('targetAreaBadge');
+                if (badge) badge.textContent = `${totalArea.toLocaleString()} m²`;
+                const editBtn = document.getElementById('btnEditPlotArea');
+                if (editBtn) editBtn.classList.remove('d-none');
+            }
             const plotCountSelect = document.getElementById('plot_count');
-            const count = parseInt(plotCountSelect.value) || 4;
+            const count = parseInt(plotCountSelect ? plotCountSelect.value : 4) || 4;
             const singleAreaInput = document.getElementById('singlePlotArea');
             const badge = document.getElementById('plotCalcBadge');
             const previewGrid = document.getElementById('plotGridPreviewBadges');
+
+            const formPlotCount = document.getElementById('form_plot_count');
+            if (formPlotCount) formPlotCount.value = count;
+
+            // Sync button active state with count
+            const activeBtn = document.querySelector(`.plot-count-btn[data-count="${count}"]`);
+            if (activeBtn) {
+                document.querySelectorAll('.plot-count-btn').forEach(b => {
+                    b.classList.remove('btn-success', 'active', 'text-white');
+                    b.classList.add('btn-light', 'text-secondary');
+                });
+                activeBtn.classList.remove('btn-light', 'text-secondary');
+                activeBtn.classList.add('btn-success', 'active', 'text-white');
+            }
 
             const singleArea = totalArea > 0 ? (totalArea / count).toFixed(1) : '—';
             if (singleAreaInput) singleAreaInput.value = singleArea;
             if (badge) {
                 badge.textContent = totalArea > 0
-                    ? `${count} plot${count > 1 ? 's' : ''} (~${singleArea} m² each)`
+                    ? `${count} plot${count > 1 ? 's' : ''} (~${singleArea} m²)`
                     : `${count} plot${count > 1 ? 's' : ''}`;
             }
 
@@ -1654,6 +2081,8 @@ $seedTypes = [
             const drawToolbar = document.getElementById('plotDrawToolbar');
             const helper = document.getElementById('mapDrawingHelper');
             const clearBtn = document.getElementById('btnClearDrawnPlot');
+            const plotOverlay = document.getElementById('plotControlOverlay');
+            const scrim = document.getElementById('mapTopGradientScrim');
 
             if (mode === '3d') {
                 const latVal = document.getElementById('latitude').value.trim();
@@ -1676,6 +2105,8 @@ $seedTypes = [
                 if (helper) helper.classList.add('d-none');
                 if (clearBtn) clearBtn.classList.add('d-none');
                 if (searchBox) searchBox.classList.add('d-none');
+                if (plotOverlay) plotOverlay.classList.add('d-none');
+                if (scrim) scrim.classList.add('d-none');
                 if (statusBar) statusBar.classList.add('d-none');
                 if (map2D) map2D.style.display = 'none';
                 if (container3D) container3D.classList.add('active');
@@ -1718,6 +2149,8 @@ $seedTypes = [
                 if (drawToolbar) drawToolbar.classList.remove('d-none');
                 if (clearBtn && drawnPolygonLayer) clearBtn.classList.remove('d-none');
                 if (searchBox) searchBox.classList.remove('d-none');
+                if (plotOverlay && drawnPolygonLayer) plotOverlay.classList.remove('d-none');
+                if (scrim) scrim.classList.remove('d-none');
                 if (statusBar) statusBar.classList.remove('d-none');
                 if (container3D) container3D.classList.remove('active');
                 if (map2D) {

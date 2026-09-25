@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'login') {
         $email = trim($_POST['email']);
         $password = trim($_POST['password']);
-        
+
         // Simple authentication routing for demo
         if ($email === 'admin@garden.com') {
             $_SESSION['active_role'] = 'admin';
@@ -41,20 +41,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in - Idle Land Gardening</title>
     <link rel="icon" type="image/jpeg" href="logo.jpeg">
-    <!-- Google Fonts -->
+    <!-- Fonts (Local & Web Fallback) -->
+    <link rel="stylesheet" href="assets/vendor/fonts/fonts.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 CSS (still loaded as backup/modal framework) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Tailwind CSS Play CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.css">
+    <!-- Tailwind CSS -->
+    <script src="assets/vendor/tailwind/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -87,99 +91,123 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     </script>
 </head>
-<body class="bg-drive-canvas text-drive-text-main font-sans flex items-center justify-center min-h-screen w-screen m-0 p-4">
 
-<div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[450px] w-full shadow-lg">
-    <!-- Google-style Logo -->
-    <div class="flex justify-center items-center gap-2.5 mb-3">
-        <img src="logo.jpeg" alt="IdleLand Logo" class="h-12 w-12 object-contain rounded-full shadow-sm">
-        <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Idle<span class="text-drive-text-main">Land</span></span>
+<body
+    class="bg-drive-canvas text-drive-text-main font-sans flex items-center justify-center min-h-screen w-screen m-0 p-4">
+
+    <div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[450px] w-full shadow-lg">
+        <!-- Google-style Logo -->
+        <div class="flex justify-center items-center gap-2.5 mb-3">
+            <img src="logo.jpeg" alt="IdleLand Logo" class="h-12 w-12 object-contain rounded-full shadow-sm">
+            <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Idle<span
+                    class="text-drive-text-main">Land</span></span>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-center text-drive-text-main mb-1">Sign in</h2>
+        <p class="text-center text-drive-text-muted mb-6 text-sm">Sign in to your account</p>
+
+        <!-- Sign-in Form -->
+        <form id="signinForm" action="index.php" method="POST" class="needs-validation m-0" novalidate>
+            <input type="hidden" name="action" value="login">
+
+            <div class="mb-4">
+                <label for="email"
+                    class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">Email</label>
+                <input type="email"
+                    class="w-full bg-white border border-drive-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-drive-primary focus:ring-1 focus:ring-drive-primary transition-all text-drive-text-main placeholder-drive-text-muted"
+                    id="email" name="email" placeholder="email@example.com" required>
+                <div class="invalid-feedback text-xs mt-1">Please enter a valid email address.</div>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <label for="password"
+                        class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Password</label>
+                    <a href="#"
+                        class="text-xs font-semibold text-drive-primary hover:underline text-decoration-none">Forgot
+                        password?</a>
+                </div>
+                <input type="password"
+                    class="w-full bg-white border border-drive-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-drive-primary focus:ring-1 focus:ring-drive-primary transition-all text-drive-text-main placeholder-drive-text-muted"
+                    id="password" name="password" placeholder="Enter password" required>
+                <div class="invalid-feedback text-xs mt-1">Please enter your password.</div>
+            </div>
+
+            <!-- Role Helper Tabs / Quick 1-Click Sign-in Grid -->
+            <div class="p-3.5 bg-drive-canvas border border-drive-border rounded-2xl mb-6">
+                <div class="flex items-center justify-between mb-2.5">
+                    <span class="text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Quick Sign
+                        In</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button"
+                        class="flex flex-col items-center justify-center py-2.5 px-2 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
+                        onclick="quickSignIn('admin@garden.com')" title="Sign in as Administrator">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-50 text-drive-primary flex items-center justify-center mb-1.5 group-hover:bg-drive-primary group-hover:text-white transition-colors">
+                            <i class="bi bi-shield-lock-fill text-sm"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-drive-text-main">Admin</span>
+                    </button>
+                    <button type="button"
+                        class="flex flex-col items-center justify-center py-2.5 px-2 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
+                        onclick="quickSignIn('landowner@garden.com')" title="Sign in as Landowner">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-50 text-drive-primary flex items-center justify-center mb-1.5 group-hover:bg-drive-primary group-hover:text-white transition-colors">
+                            <i class="bi bi-house-door-fill text-sm"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-drive-text-main">Landowner</span>
+                    </button>
+                    <button type="button"
+                        class="flex flex-col items-center justify-center py-2.5 px-2 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
+                        onclick="quickSignIn('gardener@garden.com')" title="Sign in as Gardener">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-50 text-drive-primary flex items-center justify-center mb-1.5 group-hover:bg-drive-primary group-hover:text-white transition-colors">
+                            <i class="bi bi-flower1 text-sm"></i>
+                        </div>
+                        <span class="text-xs font-semibold text-drive-text-main">Gardener</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <a href="create_account.php"
+                    class="text-xs font-semibold text-drive-primary hover:underline text-decoration-none">Create
+                    account</a>
+                <button type="submit"
+                    class="bg-drive-primary hover:bg-drive-primary-hover active:scale-95 text-white font-semibold text-sm px-6 py-2.5 rounded-full shadow-md transition-all">Next</button>
+            </div>
+        </form>
     </div>
-    
-    <h2 class="text-2xl font-semibold text-center text-drive-text-main mb-1">Sign in</h2>
-    <p class="text-center text-drive-text-muted mb-6 text-sm">Sign in to your account</p>
 
-    <!-- Sign-in Form -->
-    <form action="index.php" method="POST" class="needs-validation m-0" novalidate>
-        <input type="hidden" name="action" value="login">
-        
-        <div class="mb-4">
-            <label for="email" class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">Email</label>
-            <input 
-                type="email" 
-                class="w-full bg-white border border-drive-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-drive-primary focus:ring-1 focus:ring-drive-primary transition-all text-drive-text-main placeholder-drive-text-muted" 
-                id="email" 
-                name="email" 
-                placeholder="email@example.com" 
-                required
-            >
-            <div class="invalid-feedback text-xs mt-1">Please enter a valid email address.</div>
-        </div>
+    <script>
+        function quickSignIn(email) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = 'password123';
+            document.getElementById('signinForm').submit();
+        }
 
-        <div class="mb-6">
-            <div class="flex justify-between items-center mb-2">
-                <label for="password" class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Password</label>
-                <a href="#" class="text-xs font-semibold text-drive-primary hover:underline text-decoration-none">Forgot password?</a>
-            </div>
-            <input 
-                type="password" 
-                class="w-full bg-white border border-drive-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-drive-primary focus:ring-1 focus:ring-drive-primary transition-all text-drive-text-main placeholder-drive-text-muted" 
-                id="password" 
-                name="password" 
-                placeholder="Enter password" 
-                required
-            >
-            <div class="invalid-feedback text-xs mt-1">Please enter your password.</div>
-        </div>
+        function fillForm(email) {
+            quickSignIn(email);
+        }
 
-        <!-- Role Helper Tabs / Suggestions -->
-        <div class="p-4 bg-drive-canvas border border-drive-border rounded-2xl mb-6">
-            <p class="mb-3 text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Quick Sign In:</p>
-            <div class="flex flex-col gap-2">
-                <button type="button" class="w-full text-left bg-white hover:bg-drive-surface-hover border border-drive-border rounded-xl p-3 text-xs font-medium text-drive-text-main flex justify-between items-center transition-colors" onclick="fillForm('admin@garden.com')">
-                    <span class="flex items-center"><i class="bi bi-shield-lock me-2 text-drive-primary"></i>Admin Account</span>
-                    <span class="text-[10px] text-drive-text-muted bg-drive-canvas px-2 py-0.5 rounded border border-drive-border">admin@garden.com</span>
-                </button>
-                <button type="button" class="w-full text-left bg-white hover:bg-drive-surface-hover border border-drive-border rounded-xl p-3 text-xs font-medium text-drive-text-main flex justify-between items-center transition-colors" onclick="fillForm('landowner@garden.com')">
-                    <span class="flex items-center"><i class="bi bi-house me-2 text-drive-primary"></i>Landowner Account</span>
-                    <span class="text-[10px] text-drive-text-muted bg-drive-canvas px-2 py-0.5 rounded border border-drive-border">landowner@garden.com</span>
-                </button>
-                <button type="button" class="w-full text-left bg-white hover:bg-drive-surface-hover border border-drive-border rounded-xl p-3 text-xs font-medium text-drive-text-main flex justify-between items-center transition-colors" onclick="fillForm('gardener@garden.com')">
-                    <span class="flex items-center"><i class="bi bi-flower1 me-2 text-drive-primary"></i>Gardener Account</span>
-                    <span class="text-[10px] text-drive-text-muted bg-drive-canvas px-2 py-0.5 rounded border border-drive-border">gardener@garden.com</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="flex justify-between items-center">
-            <a href="create_account.php" class="text-xs font-semibold text-drive-primary hover:underline text-decoration-none">Create account</a>
-            <button type="submit" class="bg-drive-primary hover:bg-drive-primary-hover active:scale-95 text-white font-semibold text-sm px-6 py-2.5 rounded-full shadow-md transition-all">Next</button>
-        </div>
-    </form>
-</div>
-
-<script>
-    function fillForm(email) {
-        document.getElementById('email').value = email;
-        document.getElementById('password').value = 'password123';
-    }
-
-    // Bootstrap Validation
-    (function () {
-        'use strict'
-        var forms = document.querySelectorAll('.needs-validation')
-        Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-    })()
-</script>
-
+        // Bootstrap Validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+    <script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 980" width="760" height="980" style="background:#ffffff; font-family:'Segoe UI', Arial, sans-serif;">
+  <defs>
+    <marker id="sg-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b"/>
+    </marker>
+  </defs>
+
+  <!-- Outline Border & Header -->
+  <rect x="15" y="15" width="730" height="950" rx="8" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+  <text x="380" y="48" fill="#0f172a" font-size="18" font-weight="700" text-anchor="middle">Figure 3.2.2a: Gardener Process Flowchart (Simple Line Drawing)</text>
+  <line x1="30" y1="65" x2="730" y2="65" stroke="#cbd5e1" stroke-width="1"/>
+
+  <!-- 1. Start -->
+  <rect x="300" y="85" width="160" height="42" rx="21" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="111" fill="#0f172a" font-size="13" font-weight="600" text-anchor="middle">START</text>
+
+  <line x1="380" y1="127" x2="380" y2="155" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 2. Has Account? -->
+  <polygon points="380,155 465,190 380,225 295,190" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="187" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Has Account?</text>
+  <text x="380" y="201" fill="#475569" font-size="10" text-anchor="middle">Registered</text>
+
+  <!-- Register (No) -->
+  <line x1="295" y1="190" x2="190" y2="190" stroke="#1e293b" stroke-width="1.5" marker-end="url(#sg-arrow)"/>
+  <text x="235" y="182" fill="#0f172a" font-size="11" font-weight="600">No</text>
+  
+  <rect x="80" y="168" width="110" height="44" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="135" y="187" fill="#0f172a" font-size="11" font-weight="600" text-anchor="middle">Register Account</text>
+  <text x="135" y="201" fill="#475569" font-size="9" text-anchor="middle">Role = gardener</text>
+
+  <line x1="135" y1="212" x2="135" y2="245" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="135" y1="245" x2="380" y2="245" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="380" y1="225" x2="380" y2="265" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+  <text x="390" y="238" fill="#0f172a" font-size="11" font-weight="600">Yes</text>
+
+  <!-- 3. Gardener Login -->
+  <rect x="290" y="265" width="180" height="42" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="291" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Gardener Login</text>
+
+  <line x1="380" y1="307" x2="380" y2="335" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 4. Browse Lands & Map -->
+  <rect x="250" y="335" width="260" height="46" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="355" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Browse Approved Lands on Map</text>
+  <text x="380" y="371" fill="#475569" font-size="10" text-anchor="middle">OpenStreetMap / Leaflet directory</text>
+
+  <line x1="380" y1="381" x2="380" y2="408" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 5. Select Land & View Plots -->
+  <rect x="250" y="408" width="260" height="46" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="428" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Select Parcel &amp; Inspect Plots</text>
+  <text x="380" y="444" fill="#475569" font-size="10" text-anchor="middle">Check dimensions &amp; availability</text>
+
+  <line x1="380" y1="454" x2="380" y2="480" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 6. Decision: Apply for Plot? -->
+  <polygon points="380,480 470,515 380,550 290,515" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="512" fill="#0f172a" font-size="11" font-weight="600" text-anchor="middle">Apply for Plot?</text>
+  <text x="380" y="525" fill="#475569" font-size="9" text-anchor="middle">Submit Proposal</text>
+
+  <!-- No -> Back to Browse -->
+  <line x1="290" y1="515" x2="200" y2="515" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="200" y1="515" x2="200" y2="358" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="200" y1="358" x2="250" y2="358" stroke="#1e293b" stroke-width="1.5" marker-end="url(#sg-arrow)"/>
+  <text x="210" y="505" fill="#0f172a" font-size="10" font-weight="600">No (Browse)</text>
+
+  <!-- Yes -> Fill Application -->
+  <line x1="380" y1="550" x2="380" y2="580" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+  <text x="390" y="568" fill="#0f172a" font-size="11" font-weight="600">Yes</text>
+
+  <rect x="250" y="580" width="260" height="42" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="600" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Submit Plot Request Form</text>
+  <text x="380" y="614" fill="#475569" font-size="10" text-anchor="middle">Specify crop purpose &amp; duration</text>
+
+  <line x1="380" y1="622" x2="380" y2="650" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 7. Decision: Landowner Approval -->
+  <polygon points="380,650 470,685 380,720 290,685" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="682" fill="#0f172a" font-size="11" font-weight="600" text-anchor="middle">Owner Approved?</text>
+  <text x="380" y="695" fill="#475569" font-size="9" text-anchor="middle">Application review</text>
+
+  <!-- Rejected -->
+  <line x1="290" y1="685" x2="200" y2="685" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="200" y1="685" x2="200" y2="358" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="210" y="675" fill="#0f172a" font-size="10" font-weight="600">Declined</text>
+
+  <!-- Approved -->
+  <line x1="380" y1="720" x2="380" y2="750" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+  <text x="390" y="738" fill="#0f172a" font-size="11" font-weight="600">Approved</text>
+
+  <!-- 8. Plot Occupied & View Tasks -->
+  <rect x="250" y="750" width="260" height="42" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="770" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Plot Assigned &amp; Synchronize Tasks</text>
+  <text x="380" y="784" fill="#475569" font-size="10" text-anchor="middle">Participate in watering, weeding, planting</text>
+
+  <line x1="380" y1="792" x2="380" y2="820" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 9. Record Harvest -->
+  <rect x="250" y="820" width="260" height="44" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="840" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">Record Harvest Log</text>
+  <text x="380" y="855" fill="#475569" font-size="10" text-anchor="middle">Crop name, quantity (kg), photo upload</text>
+
+  <line x1="380" y1="864" x2="380" y2="888" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 10. Database Save -->
+  <rect x="270" y="888" width="220" height="34" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="380" y="909" fill="#0f172a" font-size="11" font-weight="600" text-anchor="middle">Save Yield to harvests Table</text>
+
+  <line x1="380" y1="922" x2="380" y2="940" stroke="#1e293b" stroke-width="2" marker-end="url(#sg-arrow)"/>
+
+  <!-- 11. End -->
+  <rect x="300" y="940" width="160" height="36" rx="18" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="380" y="963" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">END / LOGOUT</text>
+</svg>

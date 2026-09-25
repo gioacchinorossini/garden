@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" width="960" height="720" style="background:#ffffff; font-family:'Segoe UI', Arial, sans-serif;">
+  <defs>
+    <marker id="so-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b"/>
+    </marker>
+  </defs>
+
+  <!-- Border & Header -->
+  <rect x="15" y="15" width="930" height="690" rx="8" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+  <text x="480" y="46" fill="#0f172a" font-size="18" font-weight="700" text-anchor="middle">Figure 3.2.0: System Process Flow Overview (Simple Line Drawing)</text>
+  <line x1="30" y1="62" x2="930" y2="62" stroke="#cbd5e1" stroke-width="1"/>
+
+  <!-- Actor 1: Landowner Box (Top-Left) -->
+  <rect x="45" y="90" width="260" height="42" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="175" y="116" fill="#0f172a" font-size="14" font-weight="700" text-anchor="middle">LANDOWNER</text>
+
+  <rect x="45" y="150" width="260" height="70" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="175" y="174" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">1. Register Land &amp; LRA Docs</text>
+  <text x="175" y="192" fill="#475569" font-size="10" text-anchor="middle">Pin Leaflet Coordinates, Area,</text>
+  <text x="175" y="206" fill="#475569" font-size="10" text-anchor="middle">Title No, EPEB No &amp; Scans</text>
+
+
+  <!-- Actor 2: Administrator Box (Top-Center) -->
+  <rect x="350" y="90" width="260" height="42" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="480" y="116" fill="#0f172a" font-size="14" font-weight="700" text-anchor="middle">ADMINISTRATOR</text>
+
+  <rect x="350" y="150" width="260" height="70" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="480" y="174" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">2. Audit Legal LRA Title</text>
+  <text x="480" y="192" fill="#475569" font-size="10" text-anchor="middle">Review Ownership Legitimacy</text>
+  <text x="480" y="206" fill="#475569" font-size="10" text-anchor="middle">Set Status = Approved / Rejected</text>
+
+
+  <!-- Actor 3: Gardener Box (Top-Right) -->
+  <rect x="655" y="90" width="260" height="42" rx="4" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="785" y="116" fill="#0f172a" font-size="14" font-weight="700" text-anchor="middle">GARDENER</text>
+
+  <rect x="655" y="150" width="260" height="70" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="785" y="174" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">3. Discover &amp; Apply for Plot</text>
+  <text x="785" y="192" fill="#475569" font-size="10" text-anchor="middle">Browse Approved Lands on Map,</text>
+  <text x="785" y="206" fill="#475569" font-size="10" text-anchor="middle">Submit Proposal (Crop &amp; Duration)</text>
+
+
+  <!-- Central Relational Database Entity -->
+  <rect x="320" y="280" width="320" height="110" rx="8" fill="#f8fafc" stroke="#1e293b" stroke-width="2"/>
+  <text x="480" y="310" fill="#0f172a" font-size="14" font-weight="700" text-anchor="middle">CENTRAL DATABASE (MySQL)</text>
+  <text x="480" y="332" fill="#475569" font-size="11" text-anchor="middle">users  |  lands  |  plots</text>
+  <text x="480" y="352" fill="#475569" font-size="11" text-anchor="middle">requests  |  schedules  |  harvests</text>
+  <text x="480" y="372" fill="#0f172a" font-size="10" font-weight="600" text-anchor="middle">(System Data Movement Hub)</text>
+
+
+  <!-- Arrows from Actors to Database -->
+  <!-- Landowner -> DB -->
+  <line x1="175" y1="220" x2="175" y2="335" stroke="#1e293b" stroke-width="2"/>
+  <line x1="175" y1="335" x2="320" y2="335" stroke="#1e293b" stroke-width="2" marker-end="url(#so-arrow)"/>
+  <text x="210" y="325" fill="#0f172a" font-size="10" font-weight="600">Pending Land</text>
+
+  <!-- Admin -> DB -->
+  <line x1="480" y1="220" x2="480" y2="280" stroke="#1e293b" stroke-width="2" marker-end="url(#so-arrow)"/>
+  <text x="490" y="250" fill="#0f172a" font-size="10" font-weight="600">Verification Result</text>
+
+  <!-- Gardener -> DB -->
+  <line x1="785" y1="220" x2="785" y2="335" stroke="#1e293b" stroke-width="2"/>
+  <line x1="785" y1="335" x2="640" y2="335" stroke="#1e293b" stroke-width="2" marker-end="url(#so-arrow)"/>
+  <text x="690" y="325" fill="#0f172a" font-size="10" font-weight="600">Plot Application</text>
+
+
+  <!-- Bottom Interactive Processes -->
+  <!-- 4. Allocation (Landowner) -->
+  <rect x="45" y="440" width="260" height="70" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="175" y="464" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">4. Plot Review &amp; Allocation</text>
+  <text x="175" y="482" fill="#475569" font-size="10" text-anchor="middle">Evaluate Gardener Proposal</text>
+  <text x="175" y="496" fill="#475569" font-size="10" text-anchor="middle">Set Request = Approved, Plot = Occupied</text>
+
+  <!-- DB to Landowner Review -->
+  <line x1="380" y1="390" x2="380" y2="475" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="380" y1="475" x2="305" y2="475" stroke="#1e293b" stroke-width="1.5" marker-end="url(#so-arrow)"/>
+  <text x="315" y="465" fill="#0f172a" font-size="10" font-weight="600">New Request</text>
+
+  <!-- Allocation to DB -->
+  <line x1="175" y1="510" x2="175" y2="540" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="175" y1="540" x2="420" y2="540" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="420" y1="540" x2="420" y2="390" stroke="#1e293b" stroke-width="1.5" marker-end="url(#so-arrow)"/>
+  <text x="260" y="533" fill="#0f172a" font-size="10" font-weight="600">Plot Assigned</text>
+
+  <!-- 5. Schedules & Communal Farming (Center-Bottom) -->
+  <rect x="350" y="575" width="260" height="65" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="480" y="598" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">5. Shared Garden Schedules</text>
+  <text x="480" y="615" fill="#475569" font-size="10" text-anchor="middle">Planting, Watering, Weeding Tasks</text>
+  <text x="480" y="628" fill="#475569" font-size="10" text-anchor="middle">Synchronized Calendar Access</text>
+
+  <!-- Two-way link for Schedules -->
+  <line x1="480" y1="390" x2="480" y2="575" stroke="#1e293b" stroke-width="1.5" marker-end="url(#so-arrow)"/>
+
+
+  <!-- 6. Harvest Logging (Gardener) -->
+  <rect x="655" y="440" width="260" height="70" rx="4" fill="#ffffff" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="785" y="464" fill="#0f172a" font-size="12" font-weight="600" text-anchor="middle">6. Harvest Yield Logging</text>
+  <text x="785" y="482" fill="#475569" font-size="10" text-anchor="middle">Log Crop Name, Yield (kg),</text>
+  <text x="785" y="496" fill="#475569" font-size="10" text-anchor="middle">Harvest Date &amp; Proof Photo</text>
+
+  <!-- Harvest to DB -->
+  <line x1="785" y1="510" x2="785" y2="540" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="785" y1="540" x2="540" y2="540" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="540" y1="540" x2="540" y2="390" stroke="#1e293b" stroke-width="1.5" marker-end="url(#so-arrow)"/>
+  <text x="610" y="533" fill="#0f172a" font-size="10" font-weight="600">Save Yield Data</text>
+
+  <!-- 7. Analytics & Reports to Admin -->
+  <path d="M 450 280 L 450 250 L 410 250 L 410 220" fill="none" stroke="#1e293b" stroke-width="1.5"/>
+  <line x1="410" y1="220" x2="410" y2="220" stroke="#1e293b" stroke-width="1.5" marker-end="url(#so-arrow)"/>
+  <text x="350" y="260" fill="#0f172a" font-size="10" font-weight="600">Aggregate Reports</text>
+</svg>

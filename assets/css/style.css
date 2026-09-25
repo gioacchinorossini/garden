@@ -57,9 +57,281 @@ body {
     padding: 0;
 }
 
-/* Sidebar Navigation (Hidden, replaced by bottom floating dock) */
-.sidebar {
+/* ─── Ambient Header & Sidebar Focus States (Subtle dim when out of focus) ─── */
+#mainHeader {
+    height: 3.25rem !important; /* 52px proportionate height */
+    opacity: 0.90;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, border-color 0.25s ease;
+    will-change: opacity;
+}
+
+#mainSidebar {
+    opacity: 0.90;
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, border-color 0.25s ease;
+    will-change: opacity;
+}
+
+#mainHeader:hover,
+#mainHeader:focus-within,
+#mainHeader.focus-active,
+#mainHeader:has(.show),
+#mainHeader:has([aria-expanded="true"]),
+#mainSidebar:hover,
+#mainSidebar:focus-within,
+#mainSidebar.focus-active,
+#mainSidebar:has(.show),
+#mainSidebar:has([aria-expanded="true"]) {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.97) !important;
+}
+
+/* ─── Profile & Role Switcher Dropdown Styling ─── */
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+    background-color: #e8f7ec !important;
+    color: #0f5132 !important;
+    font-weight: 600 !important;
+}
+
+.dropdown-menu .dropdown-item:hover:not(.active) {
+    background-color: #f1f8f3 !important;
+    color: #191c1a !important;
+}
+
+/* ─── Full-Screen Dashboard Map Layout (Blended Transparency) ─── */
+body.has-fullscreen-map,
+body:has(.landowner-map-page),
+body:has(.gardener-map-page) {
+    overflow: hidden !important;
+}
+
+/* Translucent Glassmorphic Header over Fullscreen Map */
+body.has-fullscreen-map #mainHeader,
+body:has(.landowner-map-page) #mainHeader,
+body:has(.gardener-map-page) #mainHeader {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 3.25rem !important;
+    width: 100vw !important;
+    z-index: 1050 !important;
+    background: rgba(255, 255, 255, 0.90) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border-bottom: 1px solid rgba(225, 227, 225, 0.75) !important;
+}
+
+/* Translucent Glassmorphic Sidebar over Fullscreen Map */
+body.has-fullscreen-map #mainSidebar,
+body:has(.landowner-map-page) #mainSidebar,
+body:has(.gardener-map-page) #mainSidebar {
+    position: fixed !important;
+    top: 3.25rem !important; /* 52px below header */
+    bottom: 0 !important;
+    left: 0 !important;
+    height: calc(100vh - 3.25rem) !important;
+    z-index: 1040 !important;
+    background: rgba(255, 255, 255, 0.90) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    border-right: 1px solid rgba(225, 227, 225, 0.75) !important;
+}
+
+/* Edge-to-edge Map Surface extending under Header & Sidebar */
+body.has-fullscreen-map .workspace-surface.landowner-map-page,
+body.has-fullscreen-map .workspace-surface.gardener-map-page,
+body:has(.landowner-map-page) .workspace-surface.landowner-map-page,
+body:has(.gardener-map-page) .workspace-surface.gardener-map-page {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+body.has-fullscreen-map .landowner-map-wrapper,
+body:has(.landowner-map-page) .landowner-map-wrapper,
+body:has(.gardener-map-page) .landowner-map-wrapper {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+}
+
+body.has-fullscreen-map #landownerMainMap,
+body.has-fullscreen-map #gardenerMainMap,
+body:has(.landowner-map-page) #landownerMainMap,
+body:has(.gardener-map-page) #gardenerMainMap {
+    width: 100vw !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+}
+
+body.has-fullscreen-map .gardener-map-page .toolbar,
+body:has(.gardener-map-page) .gardener-map-page .toolbar {
     display: none !important;
+}
+
+/* ─── Ambient Dim Overlay Around the Whole Map ─── */
+.map-ambient-dim-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none !important;
+    z-index: 2;
+    /* Perimeter vignette darkening around the edges of the whole map + gentle ambient tint */
+    background:
+        /* Edge vignette on all 4 sides */
+        radial-gradient(ellipse at 50% 50%, rgba(15, 23, 42, 0.05) 35%, rgba(15, 23, 42, 0.35) 100%),
+        /* Top header blend gradient */
+        linear-gradient(180deg, rgba(15, 23, 42, 0.30) 0%, rgba(15, 23, 42, 0) 110px),
+        /* Left sidebar blend gradient */
+        linear-gradient(90deg, rgba(15, 23, 42, 0.25) 0%, rgba(15, 23, 42, 0) 230px);
+}
+
+/* Desktop positioning for map overlays on full-screen map */
+@media (min-width: 769px) {
+
+    body.has-fullscreen-map .map-top-gradient-scrim,
+    body:has(.landowner-map-page) .map-top-gradient-scrim,
+    body:has(.gardener-map-page) .map-top-gradient-scrim {
+        display: none !important;
+    }
+
+    body.has-fullscreen-map .mobile-map-chips-bar,
+    body:has(.landowner-map-page) .mobile-map-chips-bar,
+    body:has(.gardener-map-page) .mobile-map-chips-bar {
+        top: 64px !important;
+        left: 13rem !important;
+        padding-left: 18px !important;
+        transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body:has(#mainSidebar.sidebar-collapsed) .mobile-map-chips-bar {
+        left: 4.25rem !important;
+    }
+
+    body.has-fullscreen-map .mobile-land-sheet,
+    body:has(.landowner-map-page) .mobile-land-sheet,
+    body:has(.gardener-map-page) .mobile-land-sheet {
+        left: calc(13rem + 20px) !important;
+        transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease !important;
+    }
+
+    body:has(#mainSidebar.sidebar-collapsed) .mobile-land-sheet {
+        left: calc(4.25rem + 20px) !important;
+    }
+}
+
+/* ─── Collapsible Main Sidebar System ─── */
+#mainSidebar {
+    width: 13rem !important; /* 208px compact modern sidebar */
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease, transform 0.3s ease, opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#mainSidebar .sidebar-nav-link,
+#mainSidebar nav a {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 0.8125rem !important; /* 13px - matches navbar & chips */
+    height: 38px !important;
+    gap: 0.75rem !important;
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+    letter-spacing: 0.01em !important;
+}
+
+#mainSidebar .sidebar-nav-link i,
+#mainSidebar .sidebar-nav-link svg,
+#mainSidebar nav a i,
+#mainSidebar nav a svg {
+    width: 17px !important;
+    height: 17px !important;
+}
+
+#mainSidebar #sidebarCollapseBtn {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 0.8125rem !important; /* Matches nav links exactly */
+    height: 38px !important;
+    gap: 0.75rem !important;
+    padding-left: 0.85rem !important;
+    padding-right: 0.85rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em !important;
+}
+
+#mainSidebar #sidebarCollapseBtn i,
+#mainSidebar #sidebarCollapseBtn svg {
+    width: 15px !important;
+    height: 15px !important;
+}
+
+#mainSidebar.sidebar-collapsed {
+    width: 4.25rem !important;
+    /* 68px */
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+#mainSidebar.sidebar-collapsed .sidebar-text {
+    display: none !important;
+}
+
+#mainSidebar.sidebar-collapsed .sidebar-nav-link,
+#mainSidebar.sidebar-collapsed nav a {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    gap: 0 !important;
+}
+
+#mainSidebar.sidebar-collapsed #sidebarCollapseBtn {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    gap: 0 !important;
+}
+
+#mainSidebar.sidebar-collapsed .sidebar-collapse-icon {
+    transform: rotate(180deg);
+}
+
+/* Mobile Offcanvas Drawer */
+@media (max-width: 767.98px) {
+    #mainSidebar {
+        position: fixed !important;
+        top: 3.25rem;
+        bottom: 0;
+        left: 0;
+        z-index: 1045 !important;
+        display: flex !important;
+        transform: translateX(-100%);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    #mainSidebar.mobile-open {
+        transform: translateX(0) !important;
+        opacity: 1 !important;
+    }
+
+    #sidebarBackdrop.show {
+        display: block !important;
+    }
 }
 
 /* Google Drive-like "+ New" Floating Button */
@@ -690,7 +962,8 @@ a.text-decoration-none:hover {
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-.floating-profile-btn:hover, .floating-profile-btn:focus {
+.floating-profile-btn:hover,
+.floating-profile-btn:focus {
     color: #ffffff;
     opacity: 0.92;
     transform: scale(1.04);
@@ -717,8 +990,15 @@ a.text-decoration-none:hover {
 }
 
 @keyframes searchSuggestionsFadeIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .search-suggestion-item {
@@ -736,7 +1016,8 @@ a.text-decoration-none:hover {
     border-bottom: none;
 }
 
-.search-suggestion-item:hover, .search-suggestion-item:active {
+.search-suggestion-item:hover,
+.search-suggestion-item:active {
     background-color: #f8fafc;
 }
 
@@ -1188,9 +1469,20 @@ header,
 }
 
 @keyframes pulse3dDot {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
 }
 
 .map3d-floating-controls {
@@ -1241,8 +1533,15 @@ header,
 }
 
 @keyframes map3dFadeIn {
-    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .map3d-popup-card {
@@ -1289,8 +1588,15 @@ header,
 }
 
 @keyframes map3dModalFadeIn {
-    from { opacity: 0; transform: scale(0.97); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .map3d-processing-box {
@@ -1319,8 +1625,13 @@ header,
 }
 
 @keyframes map3dScanLine {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 /* Radar Pulse Graphic */
@@ -1347,8 +1658,15 @@ header,
 }
 
 @keyframes map3dRadarPing {
-    0% { transform: scale(0.6); opacity: 1; }
-    100% { transform: scale(1.4); opacity: 0; }
+    0% {
+        transform: scale(0.6);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.4);
+        opacity: 0;
+    }
 }
 
 .map3d-radar-core {
@@ -1548,16 +1866,16 @@ header,
 
 .map-picker-search-box {
     position: absolute;
-    top: 14px;
-    left: 14px;
-    width: 340px;
-    max-width: calc(100% - 190px);
+    top: 10px;
+    left: 10px;
+    width: 220px;
+    max-width: calc(100% - 230px);
     z-index: 1000;
 }
 
 @media (max-width: 576px) {
     .map-picker-search-box {
-        width: calc(100% - 28px);
+        width: calc(100% - 20px);
         max-width: none;
     }
 }
@@ -1708,8 +2026,24 @@ header,
         opacity: 0;
         transform: translateY(-6px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+.map-floating-toolbar {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+    .map-floating-toolbar {
+        top: 48px;
+        right: 10px;
     }
 }

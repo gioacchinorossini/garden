@@ -43,13 +43,26 @@ unset($land);
 ?>
 
 <style>
-    /* Filter chips positioned at top of map on desktop */
-    .mobile-map-chips-bar {
-        top: 14px !important;
-    }
+    /* Desktop Full-Screen Map Setup */
+    @media (min-width: 769px) {
+        .mobile-map-chips-bar {
+            top: 64px !important;
+            left: 13rem !important;
+            padding-left: 18px !important;
+            transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    .leaflet-top.leaflet-right {
-        top: 60px !important;
+        body:has(#mainSidebar.sidebar-collapsed) .mobile-map-chips-bar {
+            left: 4.25rem !important;
+        }
+
+        .leaflet-top.leaflet-right {
+            top: 64px !important;
+        }
+
+        .map-top-gradient-scrim {
+            display: none !important;
+        }
     }
 
     /* Mobile edge-to-edge view */
@@ -84,6 +97,9 @@ unset($land);
         }
     }
 </style>
+<script>
+    document.body.classList.add('has-fullscreen-map');
+</script>
 
 <main class="workspace-surface gardener-map-page d-flex flex-column overflow-hidden h-100">
 
@@ -106,6 +122,9 @@ unset($land);
 
             <!-- Top Black Gradient Scrim Overlay -->
             <div class="map-top-gradient-scrim"></div>
+
+            <!-- Ambient Dim & Vignette Overlay Around the Whole Map -->
+            <div class="map-ambient-dim-overlay"></div>
 
             <!-- Floating Search Bar & Profile Header (Mobile Only) -->
             <div class="floating-map-header d-md-none">

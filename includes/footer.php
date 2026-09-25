@@ -107,37 +107,97 @@ function get_dock_link_class($page_name, $bottom_page)
 
 
 
+<?php $base = isset($base_path) ? $base_path : ''; ?>
 <!-- Bootstrap Bundle with Popper JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?php echo $base; ?>assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 
 <!-- Leaflet.js Map script (Loads standard OpenStreetMap map) -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="<?php echo $base; ?>assets/vendor/leaflet/leaflet.js"></script>
 
 <!-- Initialize Tooltips and Mobile Navigation Toggle -->
 <script>
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
-    // Mobile Sidebar Toggle JS & Lucide Icons initialization
+    // Collapsible Sidebar & Mobile Navigation Controller
     document.addEventListener("DOMContentLoaded", function () {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
 
+        const sidebar = document.getElementById('mainSidebar');
         const toggleBtn = document.getElementById('sidebarToggleBtn');
-        const sidebar = document.querySelector('.sidebar');
+        const collapseBtn = document.getElementById('sidebarCollapseBtn');
         const backdrop = document.getElementById('sidebarBackdrop');
 
-        if (toggleBtn && sidebar && backdrop) {
-            toggleBtn.addEventListener('click', function () {
-                sidebar.classList.toggle('show');
-                backdrop.classList.toggle('show');
-            });
+        function updateCollapseBtnUI(isCollapsed) {
+            if (!collapseBtn) return;
+            const textSpan = collapseBtn.querySelector('.sidebar-text');
+            if (textSpan) {
+                textSpan.textContent = isCollapsed ? 'Expand' : 'Collapse';
+            }
+            collapseBtn.title = isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar';
+        }
 
-            backdrop.addEventListener('click', function () {
-                sidebar.classList.remove('show');
-                backdrop.classList.remove('show');
+        function toggleSidebarCollapse() {
+            if (!sidebar) return;
+            const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
+            updateCollapseBtnUI(isCollapsed);
+
+            // Re-trigger window resize so Leaflet/3D maps adapt instantly
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 260);
+        }
+
+        function toggleMobileSidebar() {
+            if (!sidebar || !backdrop) return;
+            const isOpen = sidebar.classList.toggle('mobile-open');
+            backdrop.classList.toggle('show', isOpen);
+            backdrop.classList.toggle('hidden', !isOpen);
+        }
+
+        function closeMobileSidebar() {
+            if (!sidebar || !backdrop) return;
+            sidebar.classList.remove('mobile-open');
+            backdrop.classList.remove('show');
+            backdrop.classList.add('hidden');
+        }
+
+        // Initialize state on load
+        if (sidebar && window.innerWidth >= 768) {
+            const savedState = localStorage.getItem('sidebar_collapsed') === 'true';
+            sidebar.classList.toggle('sidebar-collapsed', savedState);
+            updateCollapseBtnUI(savedState);
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                if (window.innerWidth < 768) {
+                    toggleMobileSidebar();
+                } else {
+                    toggleSidebarCollapse();
+                }
+            });
+        }
+
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', toggleSidebarCollapse);
+        }
+
+        if (backdrop) {
+            backdrop.addEventListener('click', closeMobileSidebar);
+        }
+
+        // Auto close mobile drawer when clicking a nav link
+        if (sidebar) {
+            sidebar.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                link.addEventListener('click', function () {
+                    if (window.innerWidth < 768) {
+                        closeMobileSidebar();
+                    }
+                });
             });
         }
     });
@@ -169,6 +229,20 @@ function get_dock_link_class($page_name, $bottom_page)
         const openModals = document.querySelectorAll('.modal.show');
         if (openModals.length > 0) {
             document.body.classList.add('modal-open');
+        }
+    });
+
+    // Keep header fully opaque when a header dropdown is active
+    document.addEventListener('show.bs.dropdown', function (e) {
+        const header = document.getElementById('mainHeader');
+        if (header && header.contains(e.target)) {
+            header.classList.add('focus-active');
+        }
+    });
+    document.addEventListener('hidden.bs.dropdown', function (e) {
+        const header = document.getElementById('mainHeader');
+        if (header) {
+            header.classList.remove('focus-active');
         }
     });
 </script>

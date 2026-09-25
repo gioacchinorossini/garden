@@ -50,13 +50,26 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 ?>
 
 <style>
-    /* Filter chips positioned at top of map on desktop */
-    .mobile-map-chips-bar {
-        top: 14px !important;
-    }
+    /* Desktop Full-Screen Map Setup */
+    @media (min-width: 769px) {
+        .mobile-map-chips-bar {
+            top: 64px !important;
+            left: 13rem !important;
+            padding-left: 18px !important;
+            transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    .leaflet-top.leaflet-right {
-        top: 60px !important;
+        body:has(#mainSidebar.sidebar-collapsed) .mobile-map-chips-bar {
+            left: 4.25rem !important;
+        }
+
+        .leaflet-top.leaflet-right {
+            top: 64px !important;
+        }
+
+        .map-top-gradient-scrim {
+            display: none !important;
+        }
     }
 
     /* Mobile edge-to-edge view */
@@ -91,19 +104,12 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         }
     }
 </style>
+<script>
+    document.body.classList.add('has-fullscreen-map');
+</script>
 
 <main class="workspace-surface landowner-map-page d-flex flex-column overflow-hidden h-100">
 
-    <!-- Desktop Toolbar -->
-    <div class="toolbar border-bottom d-none d-md-flex align-items-center justify-content-between px-4 py-2.5 bg-white flex-shrink-0">
-        <h1 class="fs-5 fw-semibold m-0 text-dark d-flex align-items-center gap-2">
-            <i data-lucide="map-pin" class="text-success" style="width:20px;height:20px;"></i>
-            Gardens Map
-        </h1>
-        <a href="register.php" class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill">
-            <i data-lucide="plus" style="width:15px;height:15px;"></i> Register Land
-        </a>
-    </div>
 
     <!-- Map Container -->
     <div class="flex-grow-1 position-relative overflow-hidden w-100 h-100" style="min-height:0;">
@@ -112,41 +118,56 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             <!-- Top Black Gradient Scrim Overlay -->
             <div class="map-top-gradient-scrim"></div>
 
+            <!-- Ambient Dim & Vignette Overlay Around the Whole Map -->
+            <div class="map-ambient-dim-overlay"></div>
+
             <!-- Floating Search Bar & Profile Header (Mobile Only) -->
             <div class="floating-map-header d-md-none">
-                <a href="<?php echo $base_path; ?>landowner/dashboard.php" class="d-flex align-items-center gap-1.5 text-decoration-none flex-shrink-0">
-                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm" style="width:28px;height:28px;object-fit:cover;">
+                <a href="<?php echo $base_path; ?>landowner/dashboard.php"
+                    class="d-flex align-items-center gap-1.5 text-decoration-none flex-shrink-0">
+                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm"
+                        style="width:28px;height:28px;object-fit:cover;">
                     <span class="fw-bold text-dark font-['Outfit']" style="font-size:0.88rem;line-height:1;">
                         <span class="text-success">Idle</span>Land
                     </span>
                 </a>
                 <div class="vr mx-1 my-auto text-muted opacity-25" style="height:20px;"></div>
                 <i class="bi bi-search text-muted fs-6 ms-0.5"></i>
-                <input type="text" id="mobileMapSearchInput" class="floating-map-search-input" placeholder="Search lands, crops..." oninput="handleMobileMapSearch(this.value)" autocomplete="off">
-                <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear" onclick="clearMobileMapSearch()">
+                <input type="text" id="mobileMapSearchInput" class="floating-map-search-input"
+                    placeholder="Search lands, crops..." oninput="handleMobileMapSearch(this.value)" autocomplete="off">
+                <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear"
+                    onclick="clearMobileMapSearch()">
                     <i class="bi bi-x-circle-fill"></i>
                 </button>
                 <div class="dropdown flex-shrink-0">
-                    <button class="floating-profile-btn" type="button" id="mobileProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Account & Profile">
+                    <button class="floating-profile-btn" type="button" id="mobileProfileDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Account & Profile">
                         <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'L', 0, 1)); ?>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end border border-drive-border rounded-4 shadow-lg p-2 mt-2" aria-labelledby="mobileProfileDropdown" style="min-width: 200px; z-index: 1060;">
+                    <ul class="dropdown-menu dropdown-menu-end border border-drive-border rounded-4 shadow-lg p-2 mt-2"
+                        aria-labelledby="mobileProfileDropdown" style="min-width: 200px; z-index: 1060;">
                         <li>
                             <div class="px-3 py-2 border-bottom mb-1">
-                                <div class="fw-bold text-dark text-sm"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Landowner'); ?></div>
+                                <div class="fw-bold text-dark text-sm">
+                                    <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Landowner'); ?></div>
                                 <span class="badge bg-success-subtle text-success text-xs">Landowner</span>
                             </div>
                         </li>
-                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2" href="<?php echo $base_path; ?>landowner/profile.php">
-                            <i class="bi bi-person text-success"></i> My Profile
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2" href="<?php echo $base_path; ?>landowner/register.php">
-                            <i class="bi bi-plus-circle text-primary"></i> Register Land
-                        </a></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm text-danger d-flex align-items-center gap-2" href="<?php echo $base_path; ?>index.php">
-                            <i class="bi bi-box-arrow-right"></i> Sign Out
-                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>landowner/profile.php">
+                                <i class="bi bi-person text-success"></i> My Profile
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>landowner/register.php">
+                                <i class="bi bi-plus-circle text-primary"></i> Register Land
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider my-1">
+                        </li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm text-danger d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>index.php">
+                                <i class="bi bi-box-arrow-right"></i> Sign Out
+                            </a></li>
                     </ul>
                 </div>
 
@@ -168,56 +189,91 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 
                 <!-- Crop Filter Dropdown -->
                 <div class="dropdown d-inline-block">
-                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
-                        <img id="selectedCropFilterIcon" src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;object-fit:contain;">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5" type="button"
+                        id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'
+                        aria-expanded="false">
+                        <img id="selectedCropFilterIcon"
+                            src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg"
+                            style="width:16px;height:16px;object-fit:contain;">
                         <span id="selectedCropFilterLabel">All Crops</span>
                     </button>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown" style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1060;">
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2 active" href="#" onclick="selectCropFilter('all', 'All Crops', 'generic-plant/generic-plant.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;"> <span>All Crops</span>
-                        </a></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('tomato', 'Tomato', 'tomato/tomato.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/tomato/tomato.svg" style="width:16px;height:16px;"> <span>Tomato</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('lettuce', 'Lettuce / Greens', 'romaine/romaine.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/romaine/romaine.svg" style="width:16px;height:16px;"> <span>Lettuce / Greens</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('herbs', 'Herbs / Basil', 'basil/basil.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/basil/basil.svg" style="width:16px;height:16px;"> <span>Herbs / Basil</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('carrot', 'Carrot / Root Vegs', 'carrot/carrot.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/carrot/carrot.svg" style="width:16px;height:16px;"> <span>Carrot / Root Vegs</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('potato', 'Potato / Tubers', 'russet-potato/russet-potato.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/russet-potato/russet-potato.svg" style="width:16px;height:16px;"> <span>Potato / Tubers</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('pepper', 'Pepper', 'red-bell-pepper/red-bell-pepper.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/red-bell-pepper/red-bell-pepper.svg" style="width:16px;height:16px;"> <span>Pepper</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('eggplant', 'Eggplant', 'eggplant/eggplant.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/eggplant/eggplant.svg" style="width:16px;height:16px;"> <span>Eggplant</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('cucumber', 'Cucumber', 'cucumber/cucumber.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/cucumber/cucumber.svg" style="width:16px;height:16px;"> <span>Cucumber</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('spinach', 'Spinach', 'spinach/spinach.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/spinach/spinach.svg" style="width:16px;height:16px;"> <span>Spinach</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('beans', 'Beans / Legumes', 'broad-bean/broad-bean.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/broad-bean/broad-bean.svg" style="width:16px;height:16px;"> <span>Beans / Legumes</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('corn', 'Corn', 'corn/corn.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/corn/corn.svg" style="width:16px;height:16px;"> <span>Corn</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('strawberry', 'Fruits / Berries', 'strawberry/strawberry.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/strawberry/strawberry.svg" style="width:16px;height:16px;"> <span>Fruits / Berries</span>
-                        </a></li>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown"
+                        style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1060;">
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2 active"
+                                href="#"
+                                onclick="selectCropFilter('all', 'All Crops', 'generic-plant/generic-plant.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg"
+                                    style="width:16px;height:16px;"> <span>All Crops</span>
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider my-1">
+                        </li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('tomato', 'Tomato', 'tomato/tomato.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/tomato/tomato.svg"
+                                    style="width:16px;height:16px;"> <span>Tomato</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('lettuce', 'Lettuce / Greens', 'romaine/romaine.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/romaine/romaine.svg"
+                                    style="width:16px;height:16px;"> <span>Lettuce / Greens</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('herbs', 'Herbs / Basil', 'basil/basil.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/basil/basil.svg"
+                                    style="width:16px;height:16px;"> <span>Herbs / Basil</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('carrot', 'Carrot / Root Vegs', 'carrot/carrot.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/carrot/carrot.svg"
+                                    style="width:16px;height:16px;"> <span>Carrot / Root Vegs</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('potato', 'Potato / Tubers', 'russet-potato/russet-potato.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/russet-potato/russet-potato.svg"
+                                    style="width:16px;height:16px;"> <span>Potato / Tubers</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('pepper', 'Pepper', 'red-bell-pepper/red-bell-pepper.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/red-bell-pepper/red-bell-pepper.svg"
+                                    style="width:16px;height:16px;"> <span>Pepper</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('eggplant', 'Eggplant', 'eggplant/eggplant.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/eggplant/eggplant.svg"
+                                    style="width:16px;height:16px;"> <span>Eggplant</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('cucumber', 'Cucumber', 'cucumber/cucumber.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/cucumber/cucumber.svg"
+                                    style="width:16px;height:16px;"> <span>Cucumber</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('spinach', 'Spinach', 'spinach/spinach.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/spinach/spinach.svg"
+                                    style="width:16px;height:16px;"> <span>Spinach</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('beans', 'Beans / Legumes', 'broad-bean/broad-bean.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/broad-bean/broad-bean.svg"
+                                    style="width:16px;height:16px;"> <span>Beans / Legumes</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('corn', 'Corn', 'corn/corn.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/corn/corn.svg"
+                                    style="width:16px;height:16px;"> <span>Corn</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('strawberry', 'Fruits / Berries', 'strawberry/strawberry.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/strawberry/strawberry.svg"
+                                    style="width:16px;height:16px;"> <span>Fruits / Berries</span>
+                            </a></li>
                     </ul>
                 </div>
 
                 <!-- 3D View Switcher -->
-                <button type="button" class="map-chip view-toggle-chip ms-auto d-flex align-items-center gap-1.5" id="toggle3DViewBtn" onclick="toggle3DMapMode()">
+                <button type="button" class="map-chip view-toggle-chip ms-auto d-flex align-items-center gap-1.5"
+                    id="toggle3DViewBtn" onclick="toggle3DMapMode()">
                     <i class="bi bi-box-fill"></i>
                     <span id="toggle3DViewLabel">3D View</span>
                 </button>
@@ -251,7 +307,8 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 <div id="sheetStatusStrip" class="sheet-status-strip" style="background:#198754;"></div>
 
                 <!-- Drag handle -->
-                <div class="sheet-drag-handle-container" id="sheetDragHandleContainer" title="Drag down or tap to slide down">
+                <div class="sheet-drag-handle-container" id="sheetDragHandleContainer"
+                    title="Drag down or tap to slide down">
                     <div class="sheet-drag-handle"></div>
                 </div>
 
@@ -274,11 +331,13 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                         </p>
                     </div>
                     <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
-                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                        <button type="button"
+                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
                             style="width:30px;height:30px;" onclick="navigateGardenCard(-1)" title="Previous Garden">
                             <i data-lucide="chevron-left" style="width:16px;height:16px;" class="text-dark"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                        <button type="button"
+                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
                             style="width:30px;height:30px;" onclick="navigateGardenCard(1)" title="Next Garden">
                             <i data-lucide="chevron-right" style="width:16px;height:16px;" class="text-dark"></i>
                         </button>
@@ -302,7 +361,9 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 <!-- Permitted Crops Section with Icons -->
                 <div class="mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-secondary fw-semibold" style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Permitted Crops</span>
+                        <span class="text-secondary fw-semibold"
+                            style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Permitted
+                            Crops</span>
                     </div>
                     <div id="sheetPermittedCropsContainer" class="d-flex flex-wrap gap-1.5 align-items-center"></div>
                 </div>
@@ -314,8 +375,12 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 <!-- Partition Plots Grid -->
                 <div class="mb-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="text-secondary fw-semibold" style="font-size:0.7rem;letter-spacing:0.5px;text-transform:uppercase;">Partition Plots Grid</span>
-                        <span id="sheetPlotsSummary" class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5" style="font-size:0.65rem;"></span>
+                        <span class="text-secondary fw-semibold"
+                            style="font-size:0.7rem;letter-spacing:0.5px;text-transform:uppercase;">Partition Plots
+                            Grid</span>
+                        <span id="sheetPlotsSummary"
+                            class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5"
+                            style="font-size:0.65rem;"></span>
                     </div>
                     <div id="sheetPlotsGrid" class="row g-2" style="max-height: 140px; overflow-y: auto;"></div>
                 </div>
@@ -466,7 +531,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         initLandownerMap();
         if (typeof initSheetSlider === 'function') {
             initSheetSlider({
@@ -557,7 +622,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             mapMarkers.push(gardenSquare);
 
             // 2. Main Garden Pin with Plant Icon Badge support
-            const activeCropIcon = selectedCropFilterVal !== 'all' 
+            const activeCropIcon = selectedCropFilterVal !== 'all'
                 ? getCropIconPath(selectedCropFilterVal)
                 : (land.crops && land.crops[0] ? getCropIconPath(land.crops[0]) : null);
 
@@ -734,7 +799,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     const bgClass = isAvail ? 'bg-success-subtle border-success-subtle text-success' : (isOccupied ? 'bg-primary-subtle border-primary-subtle text-primary' : 'bg-light border text-secondary');
                     const badgeText = isAvail ? 'Available' : (isOccupied ? 'Leased (Locked)' : 'Maintenance');
                     const lockIcon = isOccupied ? `<i class="bi bi-lock-fill text-primary" style="font-size:10px;" title="Leased Plot (Locked)"></i>` : (isAvail ? `<i class="bi bi-check-circle-fill text-success" style="font-size:10px;"></i>` : `<i class="bi bi-tools text-secondary" style="font-size:10px;"></i>`);
-                    
+
                     const allowedCrops = (p.crops && p.crops.length > 0) ? p.crops : (p.crop ? [p.crop] : []);
                     let cropsBadgesHtml = allowedCrops.slice(0, 3).map(c => `
                         <img src="${basePath}assets/crop-icons/${getCropIconPath(c)}" style="width:14px;height:14px;object-fit:contain;" title="Permitted: ${c}" alt="${c}">
@@ -980,9 +1045,9 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
 
             return title.includes(query) ||
-                   location.includes(query) ||
-                   owner.includes(query) ||
-                   allCrops.includes(query);
+                location.includes(query) ||
+                owner.includes(query) ||
+                allCrops.includes(query);
         }).slice(0, 5);
 
         if (matches.length === 0) {
@@ -1047,7 +1112,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
     }
 
     // Close suggestion box when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const box = document.getElementById('mobileSearchSuggestions');
         const header = document.querySelector('.floating-map-header');
         if (box && header && !header.contains(e.target)) {
@@ -1066,7 +1131,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
                 const landPlots = plotsData.filter(p => p.land_id == land.id);
                 const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
-                
+
                 const allCrops = [...rawCrops, ...plotCrops].map(c => c.toLowerCase());
                 return allCrops.some(c => c.includes(selectedCropFilterVal.toLowerCase()) || selectedCropFilterVal.toLowerCase().includes(c));
             });
@@ -1083,9 +1148,9 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
 
                 return title.includes(mobileSearchQuery) ||
-                       location.includes(mobileSearchQuery) ||
-                       owner.includes(mobileSearchQuery) ||
-                       allCrops.includes(mobileSearchQuery);
+                    location.includes(mobileSearchQuery) ||
+                    owner.includes(mobileSearchQuery) ||
+                    allCrops.includes(mobileSearchQuery);
             });
         }
 
@@ -1136,10 +1201,10 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     landsData: landsData,
                     plotsData: plotsData,
                     basePath: basePath,
-                    onLandClick: function(land) {
+                    onLandClick: function (land) {
                         openLandCardSheet(land);
                     },
-                    onExit3D: function() {
+                    onExit3D: function () {
                         toggle3DMapMode(false);
                     }
                 });

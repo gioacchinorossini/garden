@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.2 System Process Flow - Capstone Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+<body class="bg-[#f0f4f9] text-[#1f1f1f] font-sans antialiased min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-[#e1e3e1] sticky top-0 z-30 px-6 py-4 shadow-sm no-print">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">3.2 System Process Flow</h1>
+          <p class="text-xs text-slate-500">Idle Land for Community Gardening System - Architecture &amp; Diagrams</p>
+        </div>
+      </div>
+      
+      <!-- Tab Controls & Export Buttons -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="window.print()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-sm">
+          <i class="fa-solid fa-print"></i> Print / Save PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Overview Banner -->
+    <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 mb-8 shadow-sm">
+      <div class="max-w-4xl">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-3">
+          <i class="fa-solid fa-diagram-project"></i> Capstone Section 3.2
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">System Process Flow &amp; Data Movement</h2>
+        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+          This documentation chapter details how information and transactional requests travel across the 
+          <strong>Idle Land for Community Gardening System</strong>. It maps how users submit data, how the platform verifies land ownership through Land Registration Authority (LRA) records, how community plots are requested and approved, and how harvests are recorded.
+        </p>
+      </div>
+
+      <!-- Quick Nav Tabs -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100 no-print">
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider self-center mr-1">Detailed:</span>
+          <button onclick="switchTab('landowner')" id="tab-btn-landowner" class="tab-btn px-4 py-2.5 rounded-full text-xs font-semibold bg-[#c2e7ff] text-[#001d35] flex items-center gap-2 transition">
+            <i class="fa-solid fa-user-shield"></i> Landowner
+          </button>
+          <button onclick="switchTab('gardener')" id="tab-btn-gardener" class="tab-btn px-4 py-2.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2 transition">
+            <i class="fa-solid fa-person-digging"></i> Gardener
+          </button>
+          <button onclick="switchTab('admin')" id="tab-btn-admin" class="tab-btn px-4 py-2.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2 transition">
+            <i class="fa-solid fa-shield-halved"></i> Administrator
+          </button>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider self-center mr-1">Simple Drawing:</span>
+          <button onclick="switchTab('simple-overview')" id="tab-btn-simple-overview" class="tab-btn px-4 py-2.5 rounded-full text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-2 transition">
+            <i class="fa-solid fa-pen-nib"></i> Simple Overview
+          </button>
+          <button onclick="switchTab('simple-all')" id="tab-btn-simple-all" class="tab-btn px-4 py-2.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2 transition">
+            <i class="fa-solid fa-pencil"></i> Simple Per-User
+          </button>
+          <button onclick="switchTab('all')" id="tab-btn-all" class="tab-btn px-4 py-2.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2 transition">
+            <i class="fa-solid fa-layer-group"></i> View All
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: LANDOWNER -->
+    <div id="panel-landowner" class="tab-panel mb-10">
+      <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">User Flow 1</span>
+            <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.1: Landowner Process Flow</h3>
+            <p class="text-xs text-slate-500">Registration, LRA Land Certification, Plot Division, Application Review &amp; Event Scheduling</p>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <a href="flowchart_landowner.svg" download="flowchart_landowner.svg" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-download"></i> Download SVG
+            </a>
+            <a href="flowchart_landowner.svg" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw
+            </a>
+          </div>
+        </div>
+
+        <!-- SVG Preview Container -->
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center mb-6">
+          <img src="flowchart_landowner.svg" alt="Landowner Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 900px;" />
+        </div>
+
+        <!-- Descriptive Steps -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-emerald-800"><i class="fa-solid fa-file-signature mr-1"></i> 1. Land Registration &amp; LRA Audit</h4>
+            <p>Landowners pinpoint coordinates on Leaflet, input parcel area, and attach legal LRA verification documents (TCT/OCT, ROD branch, EPEB transaction no., CTC scans). Submissions start as <code>pending</code> awaiting admin review.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-blue-800"><i class="fa-solid fa-envelope-open-text mr-1"></i> 2. Plot Request Review</h4>
+            <p>Once lands are approved, landowners inspect inbound gardener applications, evaluating proposed crop types, durations, and gardener backgrounds before approving or rejecting.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-purple-800"><i class="fa-solid fa-calendar-days mr-1"></i> 3. Garden Coordination</h4>
+            <p>Landowners organize communal tasks (planting, weeding, watering, harvesting) and broadcast dates to assigned gardeners via the <code>schedules</code> calendar module.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: GARDENER -->
+    <div id="panel-gardener" class="tab-panel mb-10">
+      <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">User Flow 2</span>
+            <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.2: Gardener Process Flow</h3>
+            <p class="text-xs text-slate-500">Discovery via Leaflet Map, Plot Application, Community Task Schedules &amp; Harvest Recording</p>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <a href="flowchart_gardener.svg" download="flowchart_gardener.svg" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-download"></i> Download SVG
+            </a>
+            <a href="flowchart_gardener.svg" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw
+            </a>
+          </div>
+        </div>
+
+        <!-- SVG Preview Container -->
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center mb-6">
+          <img src="flowchart_gardener.svg" alt="Gardener Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 900px;" />
+        </div>
+
+        <!-- Descriptive Steps -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-emerald-800"><i class="fa-solid fa-map-location-dot mr-1"></i> 1. Map Search &amp; Plot Application</h4>
+            <p>Gardeners search verified lands via an interactive OpenStreetMap view, inspect vacant sub-plots, and submit targeted proposals specifying crop intent and duration.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-blue-800"><i class="fa-solid fa-calendar-check mr-1"></i> 2. Task Participation</h4>
+            <p>Gardeners access synced calendar tasks created by the landowner, coordinating maintenance, soil enrichment, and watering sessions.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-amber-800"><i class="fa-solid fa-basket-shopping mr-1"></i> 3. Harvest Documentation</h4>
+            <p>Upon harvesting, gardeners enter crop weight (kg), crop variety, date, and photographic proof into the system to record community yield metrics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ADMIN -->
+    <div id="panel-admin" class="tab-panel mb-10">
+      <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">Administrative Flow</span>
+            <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.3: Administrator Process Flow</h3>
+            <p class="text-xs text-slate-500">LRA Document Audits, User Account Governance &amp; Cross-Table Capstone Reporting</p>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <a href="flowchart_admin.svg" download="flowchart_admin.svg" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-download"></i> Download SVG
+            </a>
+            <a href="flowchart_admin.svg" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw
+            </a>
+          </div>
+        </div>
+
+        <!-- SVG Preview Container -->
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center mb-6">
+          <img src="flowchart_admin.svg" alt="Admin Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 900px;" />
+        </div>
+
+        <!-- Descriptive Steps -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-indigo-800"><i class="fa-solid fa-stamp mr-1"></i> 1. Land Title &amp; LRA Audit</h4>
+            <p>Admin inspects scanned land titles, registry receipts, and cross-references Registry of Deeds and EPEB references. Valid submissions are approved and made active.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-purple-800"><i class="fa-solid fa-users-gear mr-1"></i> 2. User Account Moderation</h4>
+            <p>Supervises platform behavior, verifies landowner and gardener accounts, and can suspend or reactivate users in accordance with security policies.</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-teal-800"><i class="fa-solid fa-chart-line mr-1"></i> 3. Analytics &amp; Reports</h4>
+            <p>Aggregates platform statistics: square meters of idle land utilized, aggregate harvest yields, active community participation, and printable capstone summaries.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SIMPLE DRAWING OVERVIEW -->
+    <div id="panel-simple-overview" class="tab-panel mb-10 hidden">
+      <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Simple Drawing Style</span>
+            <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.0: System Process Flow Overview (Simple Line Drawing)</h3>
+            <p class="text-xs text-slate-500">Black &amp; white thesis outline showing Landowner, Admin, Gardener and Central MySQL Database interaction</p>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <a href="simple_drawing_overview.svg" download="simple_drawing_overview.svg" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-download"></i> Download SVG
+            </a>
+            <a href="simple_drawing_overview.svg" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Raw
+            </a>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center mb-6">
+          <img src="simple_drawing_overview.svg" alt="Simple Overview Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 800px;" />
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: SIMPLE DRAWING PER-USER -->
+    <div id="panel-simple-all" class="tab-panel mb-10 hidden">
+      <div class="space-y-8">
+        
+        <!-- Simple Landowner -->
+        <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300">Simple Line Drawing</span>
+              <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.1a: Landowner Process (Simple Drawing)</h3>
+              <p class="text-xs text-slate-500">Clean linear flowchart showing registration, LRA documents, review, and activity scheduling</p>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+              <a href="simple_drawing_landowner.svg" download="simple_drawing_landowner.svg" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-download"></i> Download SVG
+              </a>
+            </div>
+          </div>
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center">
+            <img src="simple_drawing_landowner.svg" alt="Simple Landowner Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 800px;" />
+          </div>
+        </div>
+
+        <!-- Simple Gardener -->
+        <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300">Simple Line Drawing</span>
+              <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.2a: Gardener Process (Simple Drawing)</h3>
+              <p class="text-xs text-slate-500">Clean linear flowchart showing map exploration, plot proposal, synced calendar duties, and harvest yields</p>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+              <a href="simple_drawing_gardener.svg" download="simple_drawing_gardener.svg" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-download"></i> Download SVG
+              </a>
+            </div>
+          </div>
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center">
+            <img src="simple_drawing_gardener.svg" alt="Simple Gardener Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 800px;" />
+          </div>
+        </div>
+
+        <!-- Simple Administrator -->
+        <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-300">Simple Line Drawing</span>
+              <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.3a: Administrator Process (Simple Drawing)</h3>
+              <p class="text-xs text-slate-500">Clean linear flowchart showing LRA title inspection, account status toggle, and analytical reporting</p>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+              <a href="simple_drawing_admin.svg" download="simple_drawing_admin.svg" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-download"></i> Download SVG
+              </a>
+            </div>
+          </div>
+          <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4 overflow-x-auto flex justify-center">
+            <img src="simple_drawing_admin.svg" alt="Simple Admin Flowchart" class="max-w-full h-auto rounded-lg shadow-sm" style="max-height: 800px;" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Data Movement Summary Table -->
+    <div class="bg-white rounded-[24px] border border-[#e1e3e1] p-6 sm:p-8 shadow-sm">
+      <h3 class="text-xl font-bold text-slate-900 mb-2">Table 3.2: System Information Movement Matrix</h3>
+      <p class="text-xs text-slate-500 mb-6">Comprehensive cross-actor data movement mapping showing sources, targets, and database impacts.</p>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600 border border-slate-200 rounded-xl overflow-hidden">
+          <thead class="bg-slate-100 text-slate-800 font-bold uppercase text-[11px] tracking-wider border-b border-slate-200">
+            <tr>
+              <th class="p-3">Process Phase</th>
+              <th class="p-3">Source Actor</th>
+              <th class="p-3">Target Actor</th>
+              <th class="p-3">Data Exchanged</th>
+              <th class="p-3">Database Target</th>
+              <th class="p-3">System State Impact</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Land Registration</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-medium">Admin Queue</span></td>
+              <td class="p-3">Address, Leaflet GPS (lat/long), Area, LRA Title No, EPEB No, Scans</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">lands, plots, land_images</td>
+              <td class="p-3">Record inserted with <code>status = 'pending'</code></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Title Verification</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-medium">Administrator</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner / Public</span></td>
+              <td class="p-3">Verification determination (Approved/Rejected) &amp; review notes</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">lands</td>
+              <td class="p-3"><code>is_lra_verified = 1</code>; parcel published for discovery</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Plot Application</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">Gardener</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner</span></td>
+              <td class="p-3">Plot ID, proposed crops, requested duration, farming purpose</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">requests</td>
+              <td class="p-3">Application queued with <code>status = 'pending'</code></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Plot Allocation</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">Gardener</span></td>
+              <td class="p-3">Decision note &amp; confirmation of plot assignment</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">requests, plots</td>
+              <td class="p-3"><code>requests.status = 'approved'</code>, <code>plots.status = 'occupied'</code></td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Task Scheduling</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">Assigned Gardeners</span></td>
+              <td class="p-3">Task type, description, start and end timestamps</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">schedules</td>
+              <td class="p-3">Event populated on calendar dashboard</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Harvest Logging</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">Gardener</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-medium">System Metrics</span></td>
+              <td class="p-3">Crop name, yield volume (kg), date, uploaded proof photo</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">harvests</td>
+              <td class="p-3">Yield logged into agricultural productivity database</td>
+            </tr>
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-slate-800">Reporting Engine</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-medium">Database</span></td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-medium">Administrator</span></td>
+              <td class="p-3">Calculated KPIs, land utilization %, harvest totals</td>
+              <td class="p-3 font-mono text-[11px] text-blue-600">Cross-table SQL Joins</td>
+              <td class="p-3">Generates analytical charts and exportable reports</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function switchTab(tab) {
+      // Update buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-[#c2e7ff]', 'text-[#001d35]');
+        btn.classList.add('bg-slate-100', 'text-slate-700');
+      });
+
+      const activeBtn = document.getElementById('tab-btn-' + tab);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#c2e7ff]', 'text-[#001d35]');
+        activeBtn.classList.remove('bg-slate-100', 'text-slate-700');
+      }
+
+      // Show/Hide Panels
+      if (tab === 'all') {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('hidden'));
+      } else {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        const activePanel = document.getElementById('panel-' + tab);
+        if (activePanel) activePanel.classList.remove('hidden');
+      }
+    }
+
+    // Initialize default tab
+    switchTab('landowner');
+  </script>
+</body>
+</html>

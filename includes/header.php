@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . " - Idle Land Gardening" : "Idle Land for Community Gardening System"; ?></title>
     <link rel="icon" type="image/jpeg" href="<?php echo isset($base_path) ? $base_path : ''; ?>logo.jpeg">
-    <!-- Google Fonts (Outfit & Inter) -->
+    <?php $bp = isset($base_path) ? $base_path : ''; ?>
+    <!-- Fonts (Local & Web Fallback) -->
+    <link rel="stylesheet" href="<?php echo $bp; ?>assets/vendor/fonts/fonts.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/style.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <!-- Bootstrap CSS alternative via cdnjs to make sure it loads standard styles -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <!-- Tailwind CSS Play CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="<?php echo $bp; ?>assets/vendor/bootstrap/bootstrap.min.css">
+    <!-- Tailwind CSS -->
+    <script src="<?php echo $bp; ?>assets/vendor/tailwind/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -47,17 +47,17 @@
         }
     </script>
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="<?php echo $bp; ?>assets/vendor/bootstrap-icons/bootstrap-icons.css">
+    <!-- Lucide Icons -->
+    <script src="<?php echo $bp; ?>assets/vendor/lucide/lucide.min.js"></script>
     <!-- Leaflet.js Map CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <link rel="stylesheet" href="<?php echo $bp; ?>assets/vendor/leaflet/leaflet.css">
+    <script src="<?php echo $bp; ?>assets/vendor/leaflet/leaflet.js"></script>
     <!-- Three.js & OrbitControls for 3D City & Garden Map View -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="<?php echo $bp; ?>assets/vendor/three/three.min.js"></script>
+    <script src="<?php echo $bp; ?>assets/vendor/three/OrbitControls.js"></script>
     <!-- Custom Design System Styles -->
-    <link rel="stylesheet" href="<?php echo isset($base_path) ? $base_path : ''; ?>assets/css/style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo $bp; ?>assets/css/style.css?v=<?php echo time(); ?>">
     <style>
         /* Small adjustments to integrate with Bootstrap */
         .leaflet-container {

@@ -81,15 +81,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account - Idle Land Gardening</title>
     <link rel="icon" type="image/jpeg" href="logo.jpeg">
-    <!-- Google Fonts -->
+    <!-- Fonts (Local & Web Fallback) -->
+    <link rel="stylesheet" href="assets/vendor/fonts/fonts.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 & Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Tailwind CSS Play CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/vendor/bootstrap-icons/bootstrap-icons.css">
+    <!-- Tailwind CSS -->
+    <script src="assets/vendor/tailwind/tailwind.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -270,6 +271,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             })
     })()
 </script>
-
+<script src="assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 </body>
 </html>
