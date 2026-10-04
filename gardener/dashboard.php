@@ -11,28 +11,12 @@ $_SESSION['active_role'] = 'gardener';
 if (!isset($_SESSION['user_name']))
     $_SESSION['user_name'] = 'Mary Gardener';
 
-if (!isset($_SESSION['mock_lands'])) {
-    $_SESSION['mock_lands'] = [
-        ['id' => 1, 'title' => 'Sunnyvale Gardening Lot', 'landowner' => 'John Landowner', 'address' => '124 Green Ave, Sunnyvale', 'latitude' => 14.5995, 'longitude' => 120.9842, 'area' => 250.00, 'status' => 'approved', 'reason' => '', 'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.', 'crops' => ['Root Vegetables', 'Tuber Crops']],
-        ['id' => 2, 'title' => 'Downtown Rooftop Garden', 'landowner' => 'John Landowner', 'address' => '45 Main St, Business District', 'latitude' => 14.6010, 'longitude' => 120.9890, 'area' => 85.50, 'status' => 'approved', 'reason' => '', 'description' => 'An elevated deck prepared with planters and drip irrigation, ideal for leafy greens and culinary herbs.', 'crops' => ['Leafy Greens', 'Herbs']],
-        ['id' => 3, 'title' => 'Riverdale Acres', 'landowner' => 'Robert Johnson', 'address' => 'Riverside Dr, Block B', 'latitude' => 14.5950, 'longitude' => 120.9780, 'area' => 500.00, 'status' => 'approved', 'reason' => '', 'description' => 'Large idle pasture near the riverbed. High soil quality, direct sunlight access. Excellent for fruits, tomatoes and legumes.', 'crops' => ['Fruits', 'Legumes', 'Leafy Greens']],
-        ['id' => 4, 'title' => 'Eastside Clay Meadows', 'landowner' => 'Sarah Connor', 'address' => '789 East Blvd, Clay District', 'latitude' => 14.6120, 'longitude' => 121.0020, 'area' => 180.00, 'status' => 'approved', 'reason' => '', 'description' => 'Rich heavy clay loam soil retaining moisture well. Best suited for cabbage, broccoli, and tuber crops.', 'crops' => ['Cruciferous', 'Tuber Crops']],
-    ];
-}
-if (!isset($_SESSION['mock_plots'])) {
-    $_SESSION['mock_plots'] = [
-        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg'],
-        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Romaine', 'crop_icon' => 'romaine/romaine.svg'],
-        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available', 'crop' => 'Carrot', 'crop_icon' => 'carrot/carrot.svg'],
-        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available', 'crop' => 'Basil', 'crop_icon' => 'basil/basil.svg'],
-        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available', 'crop' => 'Strawberry', 'crop_icon' => 'strawberry/strawberry.svg'],
-        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available', 'crop' => 'Broccoli', 'crop_icon' => 'broccoli/broccoli.svg'],
-        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available', 'crop' => 'Corn', 'crop_icon' => 'corn/corn.svg'],
-    ];
-}
+require_once '../includes/db.php';
+require_once '../includes/lands_helper.php';
 
-$lands_data = $_SESSION['mock_lands'];
-$plots_data = $_SESSION['mock_plots'];
+$lands_data = get_all_lands($pdo);
+$plots_data = get_all_plots($pdo);
+
 foreach ($lands_data as &$land) {
     $lp = array_filter($plots_data, fn($p) => $p['land_id'] == $land['id']);
     $land['total_plots'] = count($lp);
@@ -103,15 +87,37 @@ unset($land);
 
 <main class="workspace-surface gardener-map-page d-flex flex-column overflow-hidden h-100">
 
-    <!-- Desktop Toolbar -->
-    <div class="toolbar border-bottom d-none d-md-flex align-items-center justify-content-between px-4 py-2.5 bg-white flex-shrink-0">
-        <h1 class="fs-5 fw-semibold m-0 text-dark d-flex align-items-center gap-2">
-            <i data-lucide="map-pin" class="text-success" style="width:20px;height:20px;"></i>
-            Gardens & Plots Map
-        </h1>
+    <!-- Desktop Toolbar with Integrated Search Lands -->
+    <div
+        class="toolbar border-bottom d-none d-md-flex align-items-center justify-content-between px-4 py-2 bg-white flex-shrink-0">
         <div class="d-flex align-items-center gap-2">
-            <a href="browse.php" class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill">
-                <i data-lucide="search" style="width:15px;height:15px;"></i> Browse All Lands
+            <h1 class="fs-5 fw-semibold m-0 text-dark d-flex align-items-center gap-2 text-nowrap">
+                <i data-lucide="map-pin" class="text-success" style="width:20px;height:20px;"></i>
+                Gardens & Plots Map
+            </h1>
+        </div>
+
+        <!-- Integrated Search Lands Bar -->
+        <div class="position-relative flex-grow-1 mx-4" style="max-width: 480px;">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="desktopMapSearchInput" class="form-control bg-light border-start-0 border-end-0 py-1.5 text-xs focus-ring-none"
+                    placeholder="Search lands by name, location, or crop type..."
+                    oninput="handleGardenerMapSearch(this.value)" autocomplete="off">
+                <button type="button" id="desktopMapSearchClear" class="input-group-text bg-light border-start-0 rounded-end-pill pe-3 text-muted border-0 d-none"
+                    onclick="clearGardenerMapSearch()" style="cursor: pointer;" title="Clear search">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
+            </div>
+            <!-- Desktop Suggestions Dropdown -->
+            <div id="desktopGardenerSearchSuggestions" class="floating-search-suggestions shadow-lg rounded-3 border bg-white mt-1 w-100" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1070; max-height:280px; overflow-y:auto;"></div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <a href="browse.php" class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill text-nowrap">
+                <i data-lucide="compass" style="width:15px;height:15px;"></i> Browse All Lands
             </a>
         </div>
     </div>
@@ -123,44 +129,55 @@ unset($land);
             <!-- Top Black Gradient Scrim Overlay -->
             <div class="map-top-gradient-scrim"></div>
 
-            <!-- Ambient Dim & Vignette Overlay Around the Whole Map -->
-            <div class="map-ambient-dim-overlay"></div>
-
             <!-- Floating Search Bar & Profile Header (Mobile Only) -->
             <div class="floating-map-header d-md-none">
-                <a href="<?php echo $base_path; ?>gardener/dashboard.php" class="d-flex align-items-center gap-1.5 text-decoration-none flex-shrink-0">
-                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm" style="width:28px;height:28px;object-fit:cover;">
+                <a href="<?php echo $base_path; ?>gardener/dashboard.php"
+                    class="d-flex align-items-center gap-1.5 text-decoration-none flex-shrink-0">
+                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm"
+                        style="width:28px;height:28px;object-fit:cover;">
                     <span class="fw-bold text-dark font-['Outfit']" style="font-size:0.88rem;line-height:1;">
                         <span class="text-success">Idle</span>Land
                     </span>
                 </a>
                 <div class="vr mx-1 my-auto text-muted opacity-25" style="height:20px;"></div>
                 <i class="bi bi-search text-muted fs-6 ms-0.5"></i>
-                <input type="text" id="mobileMapSearchInput" class="floating-map-search-input" placeholder="Search gardens, crops..." oninput="handleMobileGardenerMapSearch(this.value)" autocomplete="off">
-                <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear" onclick="clearMobileGardenerMapSearch()">
+                <input type="text" id="mobileMapSearchInput" class="floating-map-search-input"
+                    placeholder="Search gardens, crops..." oninput="handleMobileGardenerMapSearch(this.value)"
+                    autocomplete="off">
+                <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear"
+                    onclick="clearMobileGardenerMapSearch()">
                     <i class="bi bi-x-circle-fill"></i>
                 </button>
                 <div class="dropdown flex-shrink-0">
-                    <button class="floating-profile-btn" type="button" id="mobileProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Account & Profile">
+                    <button class="floating-profile-btn" type="button" id="mobileProfileDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Account & Profile">
                         <?php echo strtoupper(substr($_SESSION['user_name'] ?? 'G', 0, 1)); ?>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end border border-drive-border rounded-4 shadow-lg p-2 mt-2" aria-labelledby="mobileProfileDropdown" style="min-width: 200px; z-index: 1060;">
+                    <ul class="dropdown-menu dropdown-menu-end border border-drive-border rounded-4 shadow-lg p-2 mt-2"
+                        aria-labelledby="mobileProfileDropdown" style="min-width: 200px; z-index: 1060;">
                         <li>
                             <div class="px-3 py-2 border-bottom mb-1">
-                                <div class="fw-bold text-dark text-sm"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Gardener'); ?></div>
+                                <div class="fw-bold text-dark text-sm">
+                                    <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Gardener'); ?>
+                                </div>
                                 <span class="badge bg-success-subtle text-success text-xs">Gardener</span>
                             </div>
                         </li>
-                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2" href="<?php echo $base_path; ?>gardener/browse.php">
-                            <i class="bi bi-search text-success"></i> Browse Lands
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2" href="<?php echo $base_path; ?>gardener/harvests.php">
-                            <i class="bi bi-flower1 text-warning"></i> My Harvests
-                        </a></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm text-danger d-flex align-items-center gap-2" href="<?php echo $base_path; ?>index.php">
-                            <i class="bi bi-box-arrow-right"></i> Sign Out
-                        </a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>gardener/browse.php">
+                                <i class="bi bi-search text-success"></i> Browse Lands
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>gardener/harvests.php">
+                                <i class="bi bi-flower1 text-warning"></i> My Harvests
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider my-1">
+                        </li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm text-danger d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>index.php">
+                                <i class="bi bi-box-arrow-right"></i> Sign Out
+                            </a></li>
                     </ul>
                 </div>
 
@@ -182,58 +199,93 @@ unset($land);
 
                 <!-- Crop Filter Dropdown -->
                 <div class="dropdown d-inline-block">
-                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5" type="button" id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
-                        <img id="selectedCropFilterIcon" src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;object-fit:contain;">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5" type="button"
+                        id="cropFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'
+                        aria-expanded="false">
+                        <img id="selectedCropFilterIcon"
+                            src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg"
+                            style="width:16px;height:16px;object-fit:contain;">
                         <span id="selectedCropFilterLabel">All Crops</span>
                     </button>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown" style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1060;">
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2 active" href="#" onclick="selectCropFilter('all', 'All Crops', 'generic-plant/generic-plant.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg" style="width:16px;height:16px;"> <span>All Crops</span>
-                        </a></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('tomato', 'Tomato', 'tomato/tomato.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/tomato/tomato.svg" style="width:16px;height:16px;"> <span>Tomato</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('lettuce', 'Lettuce / Greens', 'romaine/romaine.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/romaine/romaine.svg" style="width:16px;height:16px;"> <span>Lettuce / Greens</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('herbs', 'Herbs / Basil', 'basil/basil.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/basil/basil.svg" style="width:16px;height:16px;"> <span>Herbs / Basil</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('carrot', 'Carrot / Root Vegs', 'carrot/carrot.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/carrot/carrot.svg" style="width:16px;height:16px;"> <span>Carrot / Root Vegs</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('potato', 'Potato / Tubers', 'russet-potato/russet-potato.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/russet-potato/russet-potato.svg" style="width:16px;height:16px;"> <span>Potato / Tubers</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('pepper', 'Pepper', 'red-bell-pepper/red-bell-pepper.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/red-bell-pepper/red-bell-pepper.svg" style="width:16px;height:16px;"> <span>Pepper</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('eggplant', 'Eggplant', 'eggplant/eggplant.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/eggplant/eggplant.svg" style="width:16px;height:16px;"> <span>Eggplant</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('cucumber', 'Cucumber', 'cucumber/cucumber.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/cucumber/cucumber.svg" style="width:16px;height:16px;"> <span>Cucumber</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('spinach', 'Spinach', 'spinach/spinach.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/spinach/spinach.svg" style="width:16px;height:16px;"> <span>Spinach</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('beans', 'Beans / Legumes', 'broad-bean/broad-bean.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/broad-bean/broad-bean.svg" style="width:16px;height:16px;"> <span>Beans / Legumes</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('corn', 'Corn', 'corn/corn.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/corn/corn.svg" style="width:16px;height:16px;"> <span>Corn</span>
-                        </a></li>
-                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#" onclick="selectCropFilter('strawberry', 'Fruits / Berries', 'strawberry/strawberry.svg', this)">
-                            <img src="<?php echo $base_path; ?>assets/crop-icons/strawberry/strawberry.svg" style="width:16px;height:16px;"> <span>Fruits / Berries</span>
-                        </a></li>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="cropFilterDropdown"
+                        style="max-height: 280px; overflow-y: auto; min-width: 190px; font-size: 0.82rem; z-index: 1060;">
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2 active"
+                                href="#"
+                                onclick="selectCropFilter('all', 'All Crops', 'generic-plant/generic-plant.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/generic-plant/generic-plant.svg"
+                                    style="width:16px;height:16px;"> <span>All Crops</span>
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider my-1">
+                        </li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('tomato', 'Tomato', 'tomato/tomato.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/tomato/tomato.svg"
+                                    style="width:16px;height:16px;"> <span>Tomato</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('lettuce', 'Lettuce / Greens', 'romaine/romaine.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/romaine/romaine.svg"
+                                    style="width:16px;height:16px;"> <span>Lettuce / Greens</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('herbs', 'Herbs / Basil', 'basil/basil.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/basil/basil.svg"
+                                    style="width:16px;height:16px;"> <span>Herbs / Basil</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('carrot', 'Carrot / Root Vegs', 'carrot/carrot.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/carrot/carrot.svg"
+                                    style="width:16px;height:16px;"> <span>Carrot / Root Vegs</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('potato', 'Potato / Tubers', 'russet-potato/russet-potato.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/russet-potato/russet-potato.svg"
+                                    style="width:16px;height:16px;"> <span>Potato / Tubers</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('pepper', 'Pepper', 'red-bell-pepper/red-bell-pepper.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/red-bell-pepper/red-bell-pepper.svg"
+                                    style="width:16px;height:16px;"> <span>Pepper</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('eggplant', 'Eggplant', 'eggplant/eggplant.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/eggplant/eggplant.svg"
+                                    style="width:16px;height:16px;"> <span>Eggplant</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('cucumber', 'Cucumber', 'cucumber/cucumber.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/cucumber/cucumber.svg"
+                                    style="width:16px;height:16px;"> <span>Cucumber</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('spinach', 'Spinach', 'spinach/spinach.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/spinach/spinach.svg"
+                                    style="width:16px;height:16px;"> <span>Spinach</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('beans', 'Beans / Legumes', 'broad-bean/broad-bean.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/broad-bean/broad-bean.svg"
+                                    style="width:16px;height:16px;"> <span>Beans / Legumes</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('corn', 'Corn', 'corn/corn.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/corn/corn.svg"
+                                    style="width:16px;height:16px;"> <span>Corn</span>
+                            </a></li>
+                        <li><a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center gap-2" href="#"
+                                onclick="selectCropFilter('strawberry', 'Fruits / Berries', 'strawberry/strawberry.svg', this)">
+                                <img src="<?php echo $base_path; ?>assets/crop-icons/strawberry/strawberry.svg"
+                                    style="width:16px;height:16px;"> <span>Fruits / Berries</span>
+                            </a></li>
                     </ul>
                 </div>
 
                 <!-- 3D View Switcher -->
-                <button type="button" class="map-chip view-toggle-chip ms-auto d-flex align-items-center gap-1.5" id="toggle3DViewBtn" onclick="toggle3DMapMode()">
+                <button type="button" class="map-chip view-toggle-chip ms-auto d-flex align-items-center gap-1.5"
+                    id="toggle3DViewBtn" onclick="toggle3DMapMode()">
                     <i class="bi bi-box-fill"></i>
-                    <span id="toggle3DViewLabel">3D View</span>
+                    <span id="toggle3DViewLabel">3D</span>
                 </button>
             </div>
 
@@ -250,8 +302,7 @@ unset($land);
                 </button>
             </div>
 
-            <!-- Backdrop (mobile, dims map behind sheet) -->
-            <div class="map-sheet-backdrop" id="mapSheetBackdrop" onclick="closeLandCardSheet()"></div>
+
 
             <!-- Bottom Sheet -->
             <div id="mobileLandCardSheet" class="mobile-land-sheet hidden">
@@ -259,34 +310,52 @@ unset($land);
                 <div id="sheetStatusStrip" class="sheet-status-strip" style="background:#198754;"></div>
 
                 <!-- Drag handle -->
-                <div class="sheet-drag-handle-container" id="sheetDragHandleContainer" title="Drag down or tap to slide down">
+                <div class="sheet-drag-handle-container" id="sheetDragHandleContainer"
+                    title="Drag down or tap to slide down">
                     <div class="sheet-drag-handle"></div>
                 </div>
 
                 <!-- Header row -->
                 <div class="d-flex align-items-start justify-content-between mb-2 px-1">
-                    <div>
+                    <div class="flex-grow-1 min-w-0">
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <span id="sheetStatusBadge" class="badge rounded-pill text-white px-2 py-1"
+                            <span id="sheetStatusBadge" class="badge rounded-pill text-white px-2 py-0.5"
                                 style="font-size:0.68rem;background:#198754;">Available</span>
-                            <span id="sheetOwnerBadge" class="badge rounded-pill border text-secondary px-2 py-1"
+                            <span id="sheetOwnerBadge" class="badge rounded-pill border text-secondary px-2 py-0.5"
                                 style="font-size:0.68rem;background:#f8f9fa;">Landowner</span>
                         </div>
-                        <h3 id="sheetLandTitle" class="fw-bold text-dark mb-0" style="font-size:1rem;line-height:1.2;">
-                            Land Title</h3>
-                        <p id="sheetLandAddress" class="text-secondary mb-0 d-flex align-items-center gap-1 mt-1"
-                            style="font-size:0.75rem;">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                            <h3 id="sheetLandTitle" class="fw-bold text-dark mb-0"
+                                style="font-size:1.05rem;line-height:1.2;">
+                                Land Title</h3>
+                            <span
+                                class="badge rounded-pill bg-light border text-dark px-2 py-0.5 d-inline-flex align-items-center gap-1 shadow-xs"
+                                style="font-size:0.72rem;font-weight:600;" title="Total Land Area">
+                                <i class="bi bi-rulers text-secondary" style="font-size:0.75rem;"></i>
+                                <span id="sheetLandArea">— m²</span>
+                            </span>
+                            <span
+                                class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-0.5 d-inline-flex align-items-center gap-1 shadow-xs"
+                                style="font-size:0.72rem;font-weight:600;" title="Partition Plots">
+                                <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:0.75rem;"></i>
+                                <span id="sheetPlotsCount">— / —</span>
+                                <span style="font-weight:500;">plots</span>
+                            </span>
+                        </div>
+                        <p id="sheetLandAddress" class="text-secondary mb-0" style="font-size:0.75rem;">
                             <i data-lucide="map-pin" style="width:12px;height:12px;"
                                 class="text-success flex-shrink-0"></i>
                             Address here
                         </p>
                     </div>
                     <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
-                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                        <button type="button"
+                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
                             style="width:30px;height:30px;" onclick="navigateGardenCard(-1)" title="Previous Garden">
                             <i data-lucide="chevron-left" style="width:16px;height:16px;" class="text-dark"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
+                        <button type="button"
+                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
                             style="width:30px;height:30px;" onclick="navigateGardenCard(1)" title="Next Garden">
                             <i data-lucide="chevron-right" style="width:16px;height:16px;" class="text-dark"></i>
                         </button>
@@ -295,22 +364,12 @@ unset($land);
                     </div>
                 </div>
 
-                <!-- Stat tiles -->
-                <div class="d-flex gap-2 mb-2 mt-1">
-                    <div class="sheet-stat-tile">
-                        <span class="stat-label">Area</span>
-                        <span id="sheetLandArea" class="stat-value">— m²</span>
-                    </div>
-                    <div class="sheet-stat-tile">
-                        <span class="stat-label">Plots</span>
-                        <span id="sheetPlotsCount" class="stat-value" style="color:#198754;">— / —</span>
-                    </div>
-                </div>
-
                 <!-- Permitted Crops Section with Icons -->
                 <div class="mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-secondary fw-semibold" style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Permitted Crops</span>
+                        <span class="text-secondary fw-semibold"
+                            style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Permitted
+                            Crops</span>
                     </div>
                     <div id="sheetPermittedCropsContainer" class="d-flex flex-wrap gap-1.5 align-items-center"></div>
                 </div>
@@ -320,12 +379,17 @@ unset($land);
                     style="font-size:0.78rem;line-height:1.5;max-height:48px;overflow:hidden;"></p>
 
                 <!-- Partition Plots Grid -->
-                <div class="mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="text-secondary fw-semibold" style="font-size:0.7rem;letter-spacing:0.5px;text-transform:uppercase;">Partition Plots Grid</span>
-                        <span id="sheetPlotsSummary" class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5" style="font-size:0.65rem;"></span>
+                <div class="mb-2.5">
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                        <span class="text-secondary fw-semibold"
+                            style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Partition
+                            Plots</span>
+                        <span id="sheetPlotsSummary"
+                            class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5"
+                            style="font-size:0.65rem;"></span>
                     </div>
-                    <div id="sheetPlotsGrid" class="row g-2" style="max-height: 140px; overflow-y: auto;"></div>
+                    <div id="sheetPlotsGrid" class="d-flex align-items-center gap-1.5 overflow-x-auto pb-1 flex-nowrap"
+                        style="scrollbar-width: thin;"></div>
                 </div>
 
 
@@ -343,7 +407,8 @@ unset($land);
                         <span class="d-none d-sm-inline">Schedules</span>
                     </a>
                     <a href="harvests.php" class="btn btn-sm rounded-pill d-flex align-items-center gap-1 px-3"
-                        style="padding:10px;background:#f0fdf4;border:1px solid #c3e6cb;color:#198754;" title="Harvests">
+                        style="padding:10px;background:#f0fdf4;border:1px solid #c3e6cb;color:#198754;"
+                        title="Harvests">
                         <i data-lucide="sprout" style="width:14px;height:14px;"></i>
                     </a>
                 </div>
@@ -391,6 +456,16 @@ unset($land);
         'strawberry': 'strawberry/strawberry.svg',
         'broccoli': 'broccoli/broccoli.svg'
     };
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     function getCropIconPath(cropName) {
         if (!cropName) return 'generic-plant/generic-plant.svg';
@@ -474,12 +549,15 @@ unset($land);
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
+        const sheetEl = document.getElementById('mobileLandCardSheet');
+        if (sheetEl && sheetEl.parentElement !== document.body) {
+            document.body.appendChild(sheetEl);
+        }
         initGardenerMap();
         if (typeof initSheetSlider === 'function') {
             initSheetSlider({
                 sheet: 'mobileLandCardSheet',
-                backdrop: 'mapSheetBackdrop',
                 handle: '#sheetDragHandleContainer',
                 onClose: closeLandCardSheet
             });
@@ -505,7 +583,7 @@ unset($land);
 
         renderGardenerMapPins(landsData);
 
-        // Check if URL has ?id=X parameter
+        // Check if URL has ?id=X or ?search=X parameters
         const urlParams = new URLSearchParams(window.location.search);
         const paramId = urlParams.get('id');
         if (paramId) {
@@ -513,6 +591,10 @@ unset($land);
             if (targetLand) {
                 setTimeout(() => openLandCardSheet(targetLand), 300);
             }
+        }
+        const paramSearch = urlParams.get('search');
+        if (paramSearch) {
+            setTimeout(() => handleGardenerMapSearch(paramSearch), 200);
         }
 
         gardenerMap.on('click', closeLandCardSheet);
@@ -538,33 +620,27 @@ unset($land);
 
             const pinColor = '#198754';
 
-            // 1. Garden Square Perimeter
-            const totalArea = parseFloat(land.area) || 100;
-            const sideMeters = Math.sqrt(totalArea);
-            const halfSide = sideMeters / 2;
-            const deltaLat = halfSide / 111320;
-            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+            // Main Garden Pin with Plant Icon Badge support
+            let firstCrop = null;
+            if (Array.isArray(land.crops) && land.crops.length > 0) {
+                firstCrop = land.crops[0];
+            } else if (typeof land.crops === 'string' && land.crops.trim()) {
+                try {
+                    const parsed = JSON.parse(land.crops);
+                    if (Array.isArray(parsed) && parsed.length > 0) firstCrop = parsed[0];
+                    else firstCrop = land.crops.split(',')[0].trim();
+                } catch (e) {
+                    firstCrop = land.crops.split(',')[0].trim();
+                }
+            } else if (Array.isArray(land.allowed_seeds) && land.allowed_seeds.length > 0) {
+                firstCrop = land.allowed_seeds[0];
+            } else if (typeof land.allowed_seeds === 'string' && land.allowed_seeds.trim()) {
+                firstCrop = land.allowed_seeds.split(',')[0].trim();
+            }
 
-            const boundsSquare = [
-                [lat + deltaLat, lng - deltaLng],
-                [lat + deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng - deltaLng]
-            ];
-
-            const gardenSquare = L.polygon(boundsSquare, {
-                color: pinColor,
-                weight: 2,
-                fillColor: pinColor,
-                fillOpacity: 0.12,
-                dashArray: '5, 5'
-            }).addTo(gardenerMap);
-            mapMarkers.push(gardenSquare);
-
-            // 2. Main Garden Pin with Plant Icon Badge support
-            const activeCropIcon = selectedCropFilterVal !== 'all' 
+            const activeCropIcon = selectedCropFilterVal !== 'all'
                 ? getCropIconPath(selectedCropFilterVal)
-                : (land.crops && land.crops[0] ? getCropIconPath(land.crops[0]) : null);
+                : (firstCrop ? getCropIconPath(firstCrop) : null);
 
             const cropPinContent = activeCropIcon
                 ? `<img src="${basePath}assets/crop-icons/${activeCropIcon}" style="width:24px;height:24px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;box-shadow: 0 2px 6px rgba(0,0,0,0.3);" alt="Crop Icon">`
@@ -582,56 +658,6 @@ unset($land);
             const marker = L.marker([lat, lng], { icon }).addTo(gardenerMap);
             marker.on('click', () => openLandCardSheet(land));
             mapMarkers.push(marker);
-
-            // 3. Partition Plots Square Grid on Dashboard Map
-            const landPlots = plotsData.filter(p => p.land_id == land.id);
-            if (landPlots.length > 0) {
-                const N = landPlots.length;
-                const cols = Math.ceil(Math.sqrt(N));
-                const rows = Math.ceil(N / cols);
-                const plotW = (deltaLng * 2) / cols;
-                const plotH = (deltaLat * 2) / rows;
-
-                landPlots.forEach((p, idx) => {
-                    const c = idx % cols;
-                    const r = Math.floor(idx / cols);
-
-                    const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
-                    const pMaxLat = (lat + deltaLat) - (r * plotH);
-                    const pMinLng = (lng - deltaLng) + (c * plotW);
-                    const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
-
-                    const plotSquare = [
-                        [pMaxLat, pMinLng],
-                        [pMaxLat, pMaxLng],
-                        [pMinLat, pMaxLng],
-                        [pMinLat, pMinLng]
-                    ];
-
-                    const isAvail = p.status === 'available';
-                    const isOccupied = p.status === 'occupied';
-                    const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
-                    const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
-
-                    const plotPoly = L.polygon(plotSquare, {
-                        color: plotColor,
-                        weight: 1.5,
-                        fillColor: plotFill,
-                        fillOpacity: 0.28
-                    }).addTo(gardenerMap);
-
-                    plotPoly.bindTooltip(
-                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
-                            <strong>${p.plot_number}</strong> (${p.area} m²)<br>
-                            <span class="text-secondary">${land.title}</span><br>
-                            <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;margin-top:2px;">${p.status}</span>
-                        </div>`,
-                        { permanent: false, direction: 'center' }
-                    );
-                    plotPoly.on('click', () => openLandCardSheet(land));
-                    mapMarkers.push(plotPoly);
-                });
-            }
         });
 
         if (bounds.length) {
@@ -646,7 +672,6 @@ unset($land);
         if (sheet3DText) sheet3DText.textContent = 'Generate 3D Map for Garden';
 
         const sheet = document.getElementById('mobileLandCardSheet');
-        const backdrop = document.getElementById('mapSheetBackdrop');
         if (!sheet) return;
 
         // Ultra high detail zoom level 20 animation
@@ -679,14 +704,38 @@ unset($land);
         document.getElementById('sheetStatusBadge').style.background = '#198754';
         document.getElementById('sheetStatusBadge').style.color = '#fff';
         document.getElementById('sheetOwnerBadge').textContent = land.landowner || 'Landowner';
-        document.getElementById('sheetLandTitle').textContent = land.title;
-        document.getElementById('sheetLandAddress').innerHTML =
-            `<i data-lucide="map-pin" style="width:12px;height:12px;" class="text-success flex-shrink-0"></i> ${land.address}`;
-        document.getElementById('sheetLandArea').textContent = `${parseFloat(land.area).toFixed(0)} m²`;
+        document.getElementById('sheetLandTitle').textContent = land.title || 'Untitled Garden';
+        const addressEl = document.getElementById('sheetLandAddress');
+        if (addressEl) {
+            addressEl.innerHTML = `<i data-lucide="map-pin" style="width:12px;height:12px;" class="text-success flex-shrink-0"></i> ${escapeHtml(land.address || 'Address not specified')}`;
+            addressEl.title = land.address || '';
+        }
+        const landArea = parseFloat(land.area) || 0;
+        document.getElementById('sheetLandArea').textContent = `${landArea > 0 ? landArea.toFixed(0) : '0'} m²`;
         document.getElementById('sheetPlotsCount').textContent = `${land.occupied_plots ?? 0} / ${land.total_plots ?? 0}`;
 
-        // Render Permitted Crops as SVG icons inside sheet
-        const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+        // Render Permitted Crops as SVG icons inside sheet (support Array, JSON string, or comma-separated string)
+        let rawCrops = [];
+        if (Array.isArray(land.crops)) {
+            rawCrops = land.crops;
+        } else if (typeof land.crops === 'string' && land.crops.trim()) {
+            try {
+                const parsed = JSON.parse(land.crops);
+                rawCrops = Array.isArray(parsed) ? parsed : [land.crops];
+            } catch (e) {
+                rawCrops = land.crops.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        } else if (Array.isArray(land.allowed_seeds)) {
+            rawCrops = land.allowed_seeds;
+        } else if (typeof land.allowed_seeds === 'string' && land.allowed_seeds.trim()) {
+            try {
+                const parsed = JSON.parse(land.allowed_seeds);
+                rawCrops = Array.isArray(parsed) ? parsed : [land.allowed_seeds];
+            } catch (e) {
+                rawCrops = land.allowed_seeds.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        }
+
         const cropsContainer = document.getElementById('sheetPermittedCropsContainer');
         if (cropsContainer) {
             if (!rawCrops || rawCrops.length === 0) {
@@ -731,24 +780,12 @@ unset($land);
                         : `<i class="bi bi-sprout-fill text-success" style="font-size:12px;"></i>`;
 
                     return `
-                        <div class="col-6 col-sm-4" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;" title="${badgeText}">
-                            <div class="p-2 rounded-3 border ${bgClass} d-flex flex-column justify-content-between h-100 shadow-xs hover-elevate transition-all">
-                                <div class="fw-bold d-flex align-items-center justify-content-between">
-                                    <span class="d-flex align-items-center gap-1">
-                                        ${cropImg}
-                                        <span style="font-size:0.75rem;">${p.plot_number}</span>
-                                    </span>
-                                    <div class="d-flex align-items-center gap-1">
-                                        <button type="button" class="btn-plot-3d-quick" onclick="event.stopPropagation(); generate3DForSelectedPlot(${land.id}, ${p.id});" title="Generate 3D Map for ${p.plot_number}">
-                                            <i class="bi bi-box-fill"></i> 3D
-                                        </button>
-                                        ${lockIcon}
-                                    </div>
-                                </div>
-                                <div class="mt-1 d-flex justify-content-between align-items-center text-muted" style="font-size:0.68rem;">
-                                    <span>${parseFloat(p.area).toFixed(0)} m²</span>
-                                    <span class="fw-medium text-capitalize">${p.crop ? p.crop : badgeText}</span>
-                                </div>
+                        <div class="flex-shrink-0" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;" title="${badgeText} - ${parseFloat(p.area || 0).toFixed(0)} m²">
+                            <div class="px-2.5 py-1 rounded-pill border ${bgClass} d-flex align-items-center gap-1.5 shadow-xs hover-elevate transition-all" style="font-size:0.72rem; white-space:nowrap; height: 28px;">
+                                ${cropImg}
+                                <span class="fw-bold text-dark">${p.plot_number}</span>
+                                <span class="text-secondary" style="font-size:0.68rem;">${parseFloat(p.area || 0).toFixed(0)}m²</span>
+                                <span class="badge ${isAvail ? 'bg-success text-white' : 'bg-secondary text-white'}" style="font-size:9px; padding: 2px 5px;">${isAvail ? 'Avail' : 'Leased'}</span>
                             </div>
                         </div>
                     `;
@@ -762,134 +799,198 @@ unset($land);
         }
         activePlotLayers = [];
 
-        if (landPlots.length > 0 && !isNaN(lat) && !isNaN(lng) && gardenerMap) {
-            const totalArea = parseFloat(land.area) || 100;
-            const sideMeters = Math.sqrt(totalArea);
-            const halfSide = sideMeters / 2;
-            const deltaLat = halfSide / 111320;
-            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+        try {
+            if (landPlots.length > 0 && !isNaN(lat) && !isNaN(lng) && gardenerMap) {
+                const totalArea = parseFloat(land.area) || 100;
+                const sideMeters = Math.sqrt(totalArea);
+                const halfSide = sideMeters / 2;
+                const cosLat = (!isNaN(lat) && Math.abs(Math.cos(lat * Math.PI / 180)) > 0.0001) ? Math.abs(Math.cos(lat * Math.PI / 180)) : 1;
+                const deltaLat = halfSide / 111320;
+                const deltaLng = halfSide / (111320 * cosLat);
 
-            // Outer boundary square polygon
-            const boundsSquare = [
-                [lat + deltaLat, lng - deltaLng],
-                [lat + deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng - deltaLng]
-            ];
+                let polyPts = null;
+                if (land.polygon) {
+                    try {
+                        const parsed = typeof land.polygon === 'string' ? JSON.parse(land.polygon) : land.polygon;
+                        if (Array.isArray(parsed) && parsed.length >= 3) {
+                            polyPts = parsed.map(pt => ({
+                                lat: Array.isArray(pt) ? pt[0] : pt.lat,
+                                lng: Array.isArray(pt) ? pt[1] : pt.lng
+                            }));
+                        }
+                    } catch (e) {
+                        polyPts = null;
+                    }
+                }
 
-            const outerSquare = L.polygon(boundsSquare, {
-                color: '#198754',
-                weight: 3,
-                fillColor: '#198754',
-                fillOpacity: 0.08,
-                dashArray: '6, 6'
-            }).addTo(gardenerMap);
-            activePlotLayers.push(outerSquare);
+                // Outer boundary polygon (custom polygon or default square)
+                const boundsSquare = polyPts
+                    ? polyPts.map(p => [p.lat, p.lng])
+                    : [
+                        [lat + deltaLat, lng - deltaLng],
+                        [lat + deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng - deltaLng]
+                    ];
 
-            // Sub-partition square plot grid polygons
-            const N = landPlots.length;
-            const cols = Math.ceil(Math.sqrt(N));
-            const rows = Math.ceil(N / cols);
-            const plotW = (deltaLng * 2) / cols;
-            const plotH = (deltaLat * 2) / rows;
-
-            landPlots.forEach((p, idx) => {
-                const c = idx % cols;
-                const r = Math.floor(idx / cols);
-
-                const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
-                const pMaxLat = (lat + deltaLat) - (r * plotH);
-                const pMinLng = (lng - deltaLng) + (c * plotW);
-                const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
-
-                const plotSquare = [
-                    [pMaxLat, pMinLng],
-                    [pMaxLat, pMaxLng],
-                    [pMinLat, pMaxLng],
-                    [pMinLat, pMinLng]
-                ];
-
-                const isAvail = p.status === 'available';
-                const isOccupied = p.status === 'occupied';
-                const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
-                const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
-
-                const plotPoly = L.polygon(plotSquare, {
-                    color: plotColor,
-                    weight: 2,
-                    fillColor: plotFill,
-                    fillOpacity: 0.38
+                const outerSquare = L.polygon(boundsSquare, {
+                    color: '#198754',
+                    weight: 3,
+                    fillColor: '#198754',
+                    fillOpacity: 0.08,
+                    dashArray: '6, 6'
                 }).addTo(gardenerMap);
+                activePlotLayers.push(outerSquare);
 
-                const cropBadge = p.crop_icon
-                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
-                    : '';
+                // Sub-partition plot grid polygons
+                const N = landPlots.length;
+                let subPlotsSquares = [];
 
-                const lockBadgeText = isOccupied ? '🔒 Leased (Locked)' : (isAvail ? '🟢 Available' : '⚙️ Maintenance');
+                if (polyPts && polyPts.length === 4) {
+                    const widthDist = (Math.hypot(polyPts[1].lat - polyPts[0].lat, polyPts[1].lng - polyPts[0].lng) +
+                        Math.hypot(polyPts[2].lat - polyPts[3].lat, polyPts[2].lng - polyPts[3].lng)) / 2;
+                    const heightDist = (Math.hypot(polyPts[3].lat - polyPts[0].lat, polyPts[3].lng - polyPts[0].lng) +
+                        Math.hypot(polyPts[2].lat - polyPts[1].lat, polyPts[2].lng - polyPts[1].lng)) / 2;
+                    const isTaller = heightDist > widthDist * 1.15;
 
-                plotPoly.bindTooltip(
-                    `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
-                        <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
-                        ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
-                        <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${lockBadgeText}</span>
-                    </div>`,
-                    { permanent: false, direction: 'center' }
-                );
-                plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
-                activePlotLayers.push(plotPoly);
+                    let cols, rows;
+                    if (N === 1) { cols = 1; rows = 1; }
+                    else if (N === 2) { cols = isTaller ? 1 : 2; rows = isTaller ? 2 : 1; }
+                    else if (N === 3) { cols = isTaller ? 1 : 3; rows = isTaller ? 3 : 1; }
+                    else if (N === 4) { cols = 2; rows = 2; }
+                    else if (N === 6) { cols = isTaller ? 2 : 3; rows = isTaller ? 3 : 2; }
+                    else if (N === 8) { cols = isTaller ? 2 : 4; rows = isTaller ? 4 : 2; }
+                    else {
+                        cols = Math.ceil(Math.sqrt(N));
+                        rows = Math.ceil(N / cols);
+                    }
 
-                // Center Plot Tag Marker with Plant Icon & Lock Badge
-                const pCenterLat = (pMinLat + pMaxLat) / 2;
-                const pCenterLng = (pMinLng + pMaxLng) / 2;
+                    const interp = (u, v) => {
+                        const plat = (1 - v) * ((1 - u) * polyPts[0].lat + u * polyPts[1].lat) +
+                            v * ((1 - u) * polyPts[3].lat + u * polyPts[2].lat);
+                        const plng = (1 - v) * ((1 - u) * polyPts[0].lng + u * polyPts[1].lng) +
+                            v * ((1 - u) * polyPts[3].lng + u * polyPts[2].lng);
+                        return [plat, plng];
+                    };
 
-                const cropImgTag = p.crop_icon
-                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
-                    : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            if (subPlotsSquares.length >= N) break;
+                            const u0 = c / cols, u1 = (c + 1) / cols;
+                            const v0 = r / rows, v1 = (r + 1) / rows;
+                            subPlotsSquares.push([
+                                interp(u0, v0),
+                                interp(u1, v0),
+                                interp(u1, v1),
+                                interp(u0, v1)
+                            ]);
+                        }
+                    }
+                } else {
+                    const cols = Math.ceil(Math.sqrt(N));
+                    const rows = Math.ceil(N / cols);
+                    const plotW = (deltaLng * 2) / cols;
+                    const plotH = (deltaLat * 2) / rows;
 
-                const lockIconTag = isOccupied ? `<i class="bi bi-lock-fill" style="font-size:9px;color:#ffc107;"></i>` : '';
+                    for (let idx = 0; idx < N; idx++) {
+                        const c = idx % cols;
+                        const r = Math.floor(idx / cols);
+                        const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+                        const pMaxLat = (lat + deltaLat) - (r * plotH);
+                        const pMinLng = (lng - deltaLng) + (c * plotW);
+                        const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+                        subPlotsSquares.push([
+                            [pMaxLat, pMinLng],
+                            [pMaxLat, pMaxLng],
+                            [pMinLat, pMaxLng],
+                            [pMinLat, pMinLng]
+                        ]);
+                    }
+                }
 
-                const plotTagIcon = L.divIcon({
-                    className: '',
-                    html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
-                        style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
-                        ${cropImgTag}
-                        <span>${p.plot_number}</span>
-                        ${lockIconTag}
-                    </div>`,
-                    iconSize: [92, 26],
-                    iconAnchor: [46, 13]
+                landPlots.forEach((p, idx) => {
+                    const plotSquare = subPlotsSquares[idx] || [
+                        [lat + deltaLat, lng - deltaLng],
+                        [lat + deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng - deltaLng]
+                    ];
+
+                    const isAvail = p.status === 'available';
+                    const isOccupied = p.status === 'occupied';
+                    const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
+                    const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
+
+                    const plotPoly = L.polygon(plotSquare, {
+                        color: plotColor,
+                        weight: 2,
+                        fillColor: plotFill,
+                        fillOpacity: 0.38
+                    }).addTo(gardenerMap);
+
+                    const cropBadge = p.crop_icon
+                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
+                        : '';
+
+                    const lockBadgeText = isOccupied ? '🔒 Leased (Locked)' : (isAvail ? '🟢 Available' : '⚙️ Maintenance');
+
+                    plotPoly.bindTooltip(
+                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
+                            <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
+                            ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
+                            <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${lockBadgeText}</span>
+                        </div>`,
+                        { permanent: false, direction: 'center' }
+                    );
+                    plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                    activePlotLayers.push(plotPoly);
+
+                    // Center Plot Tag Marker with Plant Icon & Lock Badge
+                    const pCenterLat = plotSquare.reduce((s, pt) => s + pt[0], 0) / plotSquare.length;
+                    const pCenterLng = plotSquare.reduce((s, pt) => s + pt[1], 0) / plotSquare.length;
+
+                    const cropImgTag = p.crop_icon
+                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
+                        : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
+
+                    const plotTagIcon = L.divIcon({
+                        className: '',
+                        html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
+                            style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
+                            ${cropImgTag}
+                            <span>${p.plot_number}</span>
+                        </div>`,
+                        iconSize: [92, 26],
+                        iconAnchor: [46, 13]
+                    });
+
+                    const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(gardenerMap);
+                    plotTagMarker.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                    activePlotLayers.push(plotTagMarker);
                 });
-
-                const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(gardenerMap);
-                plotTagMarker.on('click', () => focusOnSpecificPlot(land.id, p.id));
-                activePlotLayers.push(plotTagMarker);
-            });
+            }
+        } catch (plotErr) {
+            console.warn("Plot polygon calculation error:", plotErr);
         }
 
         sheet.style.transform = '';
         sheet.style.opacity = '';
         sheet.style.transition = '';
-        if (backdrop) backdrop.style.opacity = '';
-
         sheet.classList.remove('hidden');
-        if (backdrop) backdrop.classList.add('show');
+        document.body.classList.add('sheet-open');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     function closeLandCardSheet() {
         const sheet = document.getElementById('mobileLandCardSheet');
-        const backdrop = document.getElementById('mapSheetBackdrop');
+        document.body.classList.remove('sheet-open');
         if (sheet) {
             sheet.classList.add('hidden');
             sheet.style.transform = '';
             sheet.style.opacity = '';
             sheet.style.transition = '';
         }
-        if (backdrop) {
-            backdrop.classList.remove('show');
-            backdrop.style.opacity = '';
-            backdrop.style.transition = '';
-        }
+
 
         if (activePlotLayers) {
             activePlotLayers.forEach(l => gardenerMap.removeLayer(l));
@@ -926,18 +1027,42 @@ unset($land);
 
     let mobileGardenerSearchQuery = '';
 
-    function handleMobileGardenerMapSearch(query) {
+    function handleGardenerMapSearch(query) {
         mobileGardenerSearchQuery = (query || '').trim().toLowerCase();
-        const clearBtn = document.getElementById('mobileMapSearchClear');
-        if (clearBtn) {
-            clearBtn.style.display = mobileGardenerSearchQuery ? 'inline-block' : 'none';
+
+        // Sync Desktop Input
+        const desktopInput = document.getElementById('desktopMapSearchInput');
+        if (desktopInput && desktopInput.value !== (query || '')) {
+            desktopInput.value = query || '';
         }
-        renderGardenerSearchSuggestions(mobileGardenerSearchQuery);
+        const desktopClear = document.getElementById('desktopMapSearchClear');
+        if (desktopClear) {
+            if (mobileGardenerSearchQuery) desktopClear.classList.remove('d-none');
+            else desktopClear.classList.add('d-none');
+        }
+
+        // Sync Mobile Input
+        const mobileInput = document.getElementById('mobileMapSearchInput');
+        if (mobileInput && mobileInput.value !== (query || '')) {
+            mobileInput.value = query || '';
+        }
+        const mobileClear = document.getElementById('mobileMapSearchClear');
+        if (mobileClear) {
+            mobileClear.style.display = mobileGardenerSearchQuery ? 'inline-block' : 'none';
+        }
+
+        renderGardenerSearchSuggestions(mobileGardenerSearchQuery, 'mobileGardenerSearchSuggestions');
+        renderGardenerSearchSuggestions(mobileGardenerSearchQuery, 'desktopGardenerSearchSuggestions');
         applyCombinedGardenerMapFilters();
     }
 
-    function renderGardenerSearchSuggestions(query) {
-        const box = document.getElementById('mobileGardenerSearchSuggestions');
+    // Alias for backward compatibility
+    function handleMobileGardenerMapSearch(query) {
+        handleGardenerMapSearch(query);
+    }
+
+    function renderGardenerSearchSuggestions(query, targetId) {
+        const box = document.getElementById(targetId);
         if (!box) return;
 
         if (!query || query.length < 1) {
@@ -956,9 +1081,9 @@ unset($land);
             const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
 
             return title.includes(query) ||
-                   location.includes(query) ||
-                   owner.includes(query) ||
-                   allCrops.includes(query);
+                location.includes(query) ||
+                owner.includes(query) ||
+                allCrops.includes(query);
         }).slice(0, 5);
 
         if (matches.length === 0) {
@@ -995,15 +1120,13 @@ unset($land);
 
     function selectGardenerSearchSuggestion(landId) {
         const land = landsData.find(l => l.id == landId);
-        const box = document.getElementById('mobileGardenerSearchSuggestions');
-        if (box) box.style.display = 'none';
+        const mobileBox = document.getElementById('mobileGardenerSearchSuggestions');
+        if (mobileBox) mobileBox.style.display = 'none';
+        const desktopBox = document.getElementById('desktopGardenerSearchSuggestions');
+        if (desktopBox) desktopBox.style.display = 'none';
 
         if (land) {
-            const input = document.getElementById('mobileMapSearchInput');
-            if (input) input.value = land.title;
-            mobileGardenerSearchQuery = land.title.toLowerCase();
-            const clearBtn = document.getElementById('mobileMapSearchClear');
-            if (clearBtn) clearBtn.style.display = 'inline-block';
+            handleGardenerMapSearch(land.title);
 
             // Filter map to show this and open its card sheet
             applyCombinedGardenerMapFilters();
@@ -1011,23 +1134,36 @@ unset($land);
         }
     }
 
-    function clearMobileGardenerMapSearch() {
-        const input = document.getElementById('mobileMapSearchInput');
-        if (input) input.value = '';
-        const box = document.getElementById('mobileGardenerSearchSuggestions');
-        if (box) {
-            box.innerHTML = '';
-            box.style.display = 'none';
+    function clearGardenerMapSearch() {
+        handleGardenerMapSearch('');
+        const mobileBox = document.getElementById('mobileGardenerSearchSuggestions');
+        if (mobileBox) {
+            mobileBox.innerHTML = '';
+            mobileBox.style.display = 'none';
         }
-        handleMobileGardenerMapSearch('');
+        const desktopBox = document.getElementById('desktopGardenerSearchSuggestions');
+        if (desktopBox) {
+            desktopBox.innerHTML = '';
+            desktopBox.style.display = 'none';
+        }
     }
 
-    // Close suggestion box when clicking outside
-    document.addEventListener('click', function(e) {
-        const box = document.getElementById('mobileGardenerSearchSuggestions');
+    // Alias for backward compatibility
+    function clearMobileGardenerMapSearch() {
+        clearGardenerMapSearch();
+    }
+
+    // Close suggestion boxes when clicking outside
+    document.addEventListener('click', function (e) {
+        const mobileBox = document.getElementById('mobileGardenerSearchSuggestions');
         const header = document.querySelector('.floating-map-header');
-        if (box && header && !header.contains(e.target)) {
-            box.style.display = 'none';
+        if (mobileBox && header && !header.contains(e.target)) {
+            mobileBox.style.display = 'none';
+        }
+        const desktopBox = document.getElementById('desktopGardenerSearchSuggestions');
+        const desktopSearchContainer = document.getElementById('desktopMapSearchInput')?.closest('.position-relative');
+        if (desktopBox && desktopSearchContainer && !desktopSearchContainer.contains(e.target)) {
+            desktopBox.style.display = 'none';
         }
     });
 
@@ -1044,7 +1180,7 @@ unset($land);
                 const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
                 const landPlots = plotsData.filter(p => p.land_id == land.id);
                 const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
-                
+
                 const allCrops = [...rawCrops, ...plotCrops].map(c => c.toLowerCase());
                 return allCrops.some(c => c.includes(selectedCropFilterVal.toLowerCase()) || selectedCropFilterVal.toLowerCase().includes(c));
             });
@@ -1061,9 +1197,9 @@ unset($land);
                 const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
 
                 return title.includes(mobileGardenerSearchQuery) ||
-                       location.includes(mobileGardenerSearchQuery) ||
-                       owner.includes(mobileGardenerSearchQuery) ||
-                       allCrops.includes(mobileGardenerSearchQuery);
+                    location.includes(mobileGardenerSearchQuery) ||
+                    owner.includes(mobileGardenerSearchQuery) ||
+                    allCrops.includes(mobileGardenerSearchQuery);
             });
         }
 
@@ -1114,10 +1250,10 @@ unset($land);
                     landsData: landsData,
                     plotsData: plotsData,
                     basePath: basePath,
-                    onLandClick: function(land) {
+                    onLandClick: function (land) {
                         openLandCardSheet(land);
                     },
-                    onExit3D: function() {
+                    onExit3D: function () {
                         toggle3DMapMode(false);
                     }
                 });

@@ -1,6 +1,6 @@
 <?php
 $base_path = '../';
-$page_title = "Gardens Map";
+$page_title = "Gardens";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
@@ -11,42 +11,23 @@ $_SESSION['active_role'] = 'landowner';
 if (!isset($_SESSION['user_name']))
     $_SESSION['user_name'] = 'John Landowner';
 
-if (!isset($_SESSION['mock_lands'])) {
-    $_SESSION['mock_lands'] = [
-        ['id' => 1, 'title' => 'Sunnyvale Gardening Lot', 'landowner' => 'John Landowner', 'address' => '124 Green Ave, Sunnyvale', 'latitude' => 14.5995, 'longitude' => 120.9842, 'area' => 250.00, 'status' => 'approved', 'reason' => '', 'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.', 'crops' => ['Root Vegetables', 'Tuber Crops']],
-        ['id' => 2, 'title' => 'Downtown Rooftop Garden', 'landowner' => 'John Landowner', 'address' => '45 Main St, Business District', 'latitude' => 14.6010, 'longitude' => 120.9890, 'area' => 85.50, 'status' => 'approved', 'reason' => '', 'description' => 'An elevated deck prepared with planters and drip irrigation, ideal for leafy greens and culinary herbs.', 'crops' => ['Leafy Greens', 'Herbs']],
-        ['id' => 3, 'title' => 'Riverdale Acres', 'landowner' => 'Robert Johnson', 'address' => 'Riverside Dr, Block B', 'latitude' => 14.5950, 'longitude' => 120.9780, 'area' => 500.00, 'status' => 'approved', 'reason' => '', 'description' => 'Large idle pasture near the riverbed. High soil quality, direct sunlight access. Excellent for fruits, tomatoes and legumes.', 'crops' => ['Fruits', 'Legumes', 'Leafy Greens']],
-        ['id' => 4, 'title' => 'Eastside Clay Meadows', 'landowner' => 'Sarah Connor', 'address' => '789 East Blvd, Clay District', 'latitude' => 14.6120, 'longitude' => 121.0020, 'area' => 180.00, 'status' => 'approved', 'reason' => '', 'description' => 'Rich heavy clay loam soil retaining moisture well. Best suited for cabbage, broccoli, and tuber crops.', 'crops' => ['Cruciferous', 'Tuber Crops']],
-    ];
-} else {
-    foreach ($_SESSION['mock_lands'] as &$ml) {
-        $ml['status'] = 'approved';
-    }
-    unset($ml);
-}
-if (!isset($_SESSION['mock_plots'])) {
-    $_SESSION['mock_plots'] = [
-        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg'],
-        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Romaine', 'crop_icon' => 'romaine/romaine.svg'],
-        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available', 'crop' => 'Carrot', 'crop_icon' => 'carrot/carrot.svg'],
-        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available', 'crop' => 'Basil', 'crop_icon' => 'basil/basil.svg'],
-        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available', 'crop' => 'Strawberry', 'crop_icon' => 'strawberry/strawberry.svg'],
-        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available', 'crop' => 'Broccoli', 'crop_icon' => 'broccoli/broccoli.svg'],
-        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available', 'crop' => 'Corn', 'crop_icon' => 'corn/corn.svg'],
-    ];
-}
+require_once '../includes/db.php';
+require_once '../includes/lands_helper.php';
 
-$lands_data = $_SESSION['mock_lands'];
-$plots_data = $_SESSION['mock_plots'];
+$lands_data = get_all_lands($pdo);
+$plots_data = get_all_plots($pdo);
+
 foreach ($lands_data as &$land) {
     $lp = array_filter($plots_data, fn($p) => $p['land_id'] == $land['id']);
     $land['total_plots'] = count($lp);
     $land['occupied_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'occupied'));
+    $land['available_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'available'));
 }
 unset($land);
 
 $approved_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'approved'));
 $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pending'));
+$my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') === 'John Landowner'));
 ?>
 
 <style>
@@ -149,7 +130,8 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                         <li>
                             <div class="px-3 py-2 border-bottom mb-1">
                                 <div class="fw-bold text-dark text-sm">
-                                    <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Landowner'); ?></div>
+                                    <?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Landowner'); ?>
+                                </div>
                                 <span class="badge bg-success-subtle text-success text-xs">Landowner</span>
                             </div>
                         </li>
@@ -177,15 +159,48 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 
             <!-- Filter chips -->
             <div class="mobile-map-chips-bar d-flex align-items-center gap-2" id="mapChipsBar">
-                <button type="button" class="map-chip active" onclick="filterMapLands('all',this)">
-                    All (<?php echo count($lands_data); ?>)
-                </button>
-                <button type="button" class="map-chip" onclick="filterMapLands('my',this)">
-                    <i class="bi bi-person-fill me-1"></i>Mine
-                </button>
-                <button type="button" class="map-chip" onclick="filterMapLands('approved',this)">
-                    <i class="bi bi-check-circle-fill me-1" style="color:#22c55e;"></i>Approved
-                </button>
+                <!-- Status/Ownership Filter Dropdown ("All") -->
+                <div class="dropdown d-inline-block">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5 active" type="button"
+                        id="allFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'
+                        aria-expanded="false">
+                        <span id="selectedAllFilterLabel">All (<?php echo count($lands_data); ?>)</span>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="allFilterDropdown"
+                        style="min-width: 180px; font-size: 0.82rem; z-index: 1060;">
+                        <li>
+                            <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between active"
+                                href="#"
+                                onclick="selectAllFilter('all', 'All (<?php echo count($lands_data); ?>)', this); return false;">
+                                <span class="d-flex align-items-center gap-2"><i
+                                        class="bi bi-grid-fill text-muted"></i>All Lands</span>
+                                <span
+                                    class="badge bg-secondary-subtle text-secondary rounded-pill"><?php echo count($lands_data); ?></span>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider my-1">
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between"
+                                href="#" onclick="selectAllFilter('my', 'Mine', this); return false;">
+                                <span class="d-flex align-items-center gap-2"><i
+                                        class="bi bi-person-fill text-primary"></i>Mine</span>
+                                <span
+                                    class="badge bg-primary-subtle text-primary rounded-pill"><?php echo $my_count; ?></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between"
+                                href="#" onclick="selectAllFilter('approved', 'Approved', this); return false;">
+                                <span class="d-flex align-items-center gap-2"><i
+                                        class="bi bi-check-circle-fill text-success"></i>Approved</span>
+                                <span
+                                    class="badge bg-success-subtle text-success rounded-pill"><?php echo $approved_count; ?></span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
                 <!-- Crop Filter Dropdown -->
                 <div class="dropdown d-inline-block">
@@ -275,7 +290,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 <button type="button" class="map-chip view-toggle-chip ms-auto d-flex align-items-center gap-1.5"
                     id="toggle3DViewBtn" onclick="toggle3DMapMode()">
                     <i class="bi bi-box-fill"></i>
-                    <span id="toggle3DViewLabel">3D View</span>
+                    <span id="toggle3DViewLabel">3D</span>
                 </button>
             </div>
 
@@ -292,15 +307,6 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                 </button>
             </div>
 
-            <!-- Floating Register FAB — mobile only -->
-            <a href="register.php" class="map-register-fab d-md-none" id="registerFab">
-                <i data-lucide="plus" style="width:18px;height:18px;"></i>
-                <span>Register Land</span>
-            </a>
-
-            <!-- Backdrop (mobile, dims map behind sheet) -->
-            <div class="map-sheet-backdrop" id="mapSheetBackdrop" onclick="closeLandCardSheet()"></div>
-
             <!-- Bottom Sheet -->
             <div id="mobileLandCardSheet" class="mobile-land-sheet hidden">
                 <!-- Color status strip -->
@@ -314,17 +320,32 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
 
                 <!-- Header row -->
                 <div class="d-flex align-items-start justify-content-between mb-2 px-1">
-                    <div>
+                    <div class="flex-grow-1 min-w-0">
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <span id="sheetStatusBadge" class="badge rounded-pill px-2 py-1"
+                            <span id="sheetStatusBadge" class="badge rounded-pill px-2 py-0.5"
                                 style="font-size:0.68rem;display:none;"></span>
-                            <span id="sheetOwnerBadge" class="badge rounded-pill border text-secondary px-2 py-1"
+                            <span id="sheetOwnerBadge" class="badge rounded-pill border text-secondary px-2 py-0.5"
                                 style="font-size:0.68rem;background:#f8f9fa;">Owner</span>
                         </div>
-                        <h3 id="sheetLandTitle" class="fw-bold text-dark mb-0" style="font-size:1rem;line-height:1.2;">
-                            Land Title</h3>
-                        <p id="sheetLandAddress" class="text-secondary mb-0 d-flex align-items-center gap-1 mt-1"
-                            style="font-size:0.75rem;">
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                            <h3 id="sheetLandTitle" class="fw-bold text-dark mb-0"
+                                style="font-size:1.05rem;line-height:1.2;">
+                                Land Title</h3>
+                            <span
+                                class="badge rounded-pill bg-light border text-dark px-2 py-0.5 d-inline-flex align-items-center gap-1 shadow-xs"
+                                style="font-size:0.72rem;font-weight:600;" title="Total Land Area">
+                                <i class="bi bi-rulers text-secondary" style="font-size:0.75rem;"></i>
+                                <span id="sheetLandArea">— m²</span>
+                            </span>
+                            <span
+                                class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-0.5 d-inline-flex align-items-center gap-1 shadow-xs"
+                                style="font-size:0.72rem;font-weight:600;" title="Partition Plots">
+                                <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:0.75rem;"></i>
+                                <span id="sheetPlotsCount">— / —</span>
+                                <span style="font-weight:500;">plots</span>
+                            </span>
+                        </div>
+                        <p id="sheetLandAddress" class="text-secondary mb-0" style="font-size:0.75rem;">
                             <i data-lucide="map-pin" style="width:12px;height:12px;"
                                 class="text-success flex-shrink-0"></i>
                             Address here
@@ -346,18 +367,6 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     </div>
                 </div>
 
-                <!-- Stat tiles -->
-                <div class="d-flex gap-2 mb-2 mt-1">
-                    <div class="sheet-stat-tile">
-                        <span class="stat-label">Area</span>
-                        <span id="sheetLandArea" class="stat-value">— m²</span>
-                    </div>
-                    <div class="sheet-stat-tile">
-                        <span class="stat-label">Plots</span>
-                        <span id="sheetPlotsCount" class="stat-value" style="color:#198754;">— / —</span>
-                    </div>
-                </div>
-
                 <!-- Permitted Crops Section with Icons -->
                 <div class="mb-2">
                     <div class="d-flex align-items-center justify-content-between mb-1">
@@ -373,16 +382,17 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     style="font-size:0.78rem;line-height:1.5;max-height:48px;overflow:hidden;"></p>
 
                 <!-- Partition Plots Grid -->
-                <div class="mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="mb-2.5">
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
                         <span class="text-secondary fw-semibold"
-                            style="font-size:0.7rem;letter-spacing:0.5px;text-transform:uppercase;">Partition Plots
-                            Grid</span>
+                            style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Partition
+                            Plots</span>
                         <span id="sheetPlotsSummary"
                             class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5"
                             style="font-size:0.65rem;"></span>
                     </div>
-                    <div id="sheetPlotsGrid" class="row g-2" style="max-height: 140px; overflow-y: auto;"></div>
+                    <div id="sheetPlotsGrid" class="d-flex align-items-center gap-1.5 overflow-x-auto pb-1 flex-nowrap"
+                        style="scrollbar-width: thin;"></div>
                 </div>
 
 
@@ -448,6 +458,16 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         'strawberry': 'strawberry/strawberry.svg',
         'broccoli': 'broccoli/broccoli.svg'
     };
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     function getCropIconPath(cropName) {
         if (!cropName) return 'generic-plant/generic-plant.svg';
@@ -532,11 +552,14 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        const sheetEl = document.getElementById('mobileLandCardSheet');
+        if (sheetEl && sheetEl.parentElement !== document.body) {
+            document.body.appendChild(sheetEl);
+        }
         initLandownerMap();
         if (typeof initSheetSlider === 'function') {
             initSheetSlider({
                 sheet: 'mobileLandCardSheet',
-                backdrop: 'mapSheetBackdrop',
                 handle: '#sheetDragHandleContainer',
                 onClose: closeLandCardSheet
             });
@@ -598,33 +621,27 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             const approved = land.status === 'approved';
             const pinColor = approved ? '#198754' : '#e8a000';
 
-            // 1. Garden Square Perimeter
-            const totalArea = parseFloat(land.area) || 100;
-            const sideMeters = Math.sqrt(totalArea);
-            const halfSide = sideMeters / 2;
-            const deltaLat = halfSide / 111320;
-            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+            // Main Garden Pin with Plant Icon Badge support
+            let firstCrop = null;
+            if (Array.isArray(land.crops) && land.crops.length > 0) {
+                firstCrop = land.crops[0];
+            } else if (typeof land.crops === 'string' && land.crops.trim()) {
+                try {
+                    const parsed = JSON.parse(land.crops);
+                    if (Array.isArray(parsed) && parsed.length > 0) firstCrop = parsed[0];
+                    else firstCrop = land.crops.split(',')[0].trim();
+                } catch (e) {
+                    firstCrop = land.crops.split(',')[0].trim();
+                }
+            } else if (Array.isArray(land.allowed_seeds) && land.allowed_seeds.length > 0) {
+                firstCrop = land.allowed_seeds[0];
+            } else if (typeof land.allowed_seeds === 'string' && land.allowed_seeds.trim()) {
+                firstCrop = land.allowed_seeds.split(',')[0].trim();
+            }
 
-            const boundsSquare = [
-                [lat + deltaLat, lng - deltaLng],
-                [lat + deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng - deltaLng]
-            ];
-
-            const gardenSquare = L.polygon(boundsSquare, {
-                color: pinColor,
-                weight: 2,
-                fillColor: pinColor,
-                fillOpacity: 0.12,
-                dashArray: '5, 5'
-            }).addTo(landownerMap);
-            mapMarkers.push(gardenSquare);
-
-            // 2. Main Garden Pin with Plant Icon Badge support
             const activeCropIcon = selectedCropFilterVal !== 'all'
                 ? getCropIconPath(selectedCropFilterVal)
-                : (land.crops && land.crops[0] ? getCropIconPath(land.crops[0]) : null);
+                : (firstCrop ? getCropIconPath(firstCrop) : null);
 
             const cropPinContent = activeCropIcon
                 ? `<img src="${basePath}assets/crop-icons/${activeCropIcon}" style="width:24px;height:24px;object-fit:contain;background:#fff;border-radius:50%;padding:2px;box-shadow: 0 2px 6px rgba(0,0,0,0.3);" alt="Crop Icon">`
@@ -642,56 +659,6 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             const marker = L.marker([lat, lng], { icon }).addTo(landownerMap);
             marker.on('click', () => openLandCardSheet(land));
             mapMarkers.push(marker);
-
-            // 3. Partition Plots Square Grid on Dashboard Map
-            const landPlots = plotsData.filter(p => p.land_id == land.id);
-            if (landPlots.length > 0) {
-                const N = landPlots.length;
-                const cols = Math.ceil(Math.sqrt(N));
-                const rows = Math.ceil(N / cols);
-                const plotW = (deltaLng * 2) / cols;
-                const plotH = (deltaLat * 2) / rows;
-
-                landPlots.forEach((p, idx) => {
-                    const c = idx % cols;
-                    const r = Math.floor(idx / cols);
-
-                    const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
-                    const pMaxLat = (lat + deltaLat) - (r * plotH);
-                    const pMinLng = (lng - deltaLng) + (c * plotW);
-                    const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
-
-                    const plotSquare = [
-                        [pMaxLat, pMinLng],
-                        [pMaxLat, pMaxLng],
-                        [pMinLat, pMaxLng],
-                        [pMinLat, pMinLng]
-                    ];
-
-                    const isAvail = p.status === 'available';
-                    const isOccupied = p.status === 'occupied';
-                    const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
-                    const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
-
-                    const plotPoly = L.polygon(plotSquare, {
-                        color: plotColor,
-                        weight: 1.5,
-                        fillColor: plotFill,
-                        fillOpacity: 0.28
-                    }).addTo(landownerMap);
-
-                    plotPoly.bindTooltip(
-                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
-                            <strong>${p.plot_number}</strong> (${p.area} m²)<br>
-                            <span class="text-secondary">${land.title}</span><br>
-                            <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;margin-top:2px;">${p.status}</span>
-                        </div>`,
-                        { permanent: false, direction: 'center' }
-                    );
-                    plotPoly.on('click', () => openLandCardSheet(land));
-                    mapMarkers.push(plotPoly);
-                });
-            }
         });
 
         if (bounds.length) {
@@ -706,8 +673,6 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         if (sheet3DText) sheet3DText.textContent = 'Generate 3D Map for Garden';
 
         const sheet = document.getElementById('mobileLandCardSheet');
-        const backdrop = document.getElementById('mapSheetBackdrop');
-        const fab = document.getElementById('registerFab');
         if (!sheet) return;
 
         // Ultra high detail zoom level 20 animation
@@ -752,14 +717,38 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
             }
         }
         document.getElementById('sheetOwnerBadge').textContent = land.landowner || 'Landowner';
-        document.getElementById('sheetLandTitle').textContent = land.title;
-        document.getElementById('sheetLandAddress').innerHTML =
-            `<i data-lucide="map-pin" style="width:12px;height:12px;" class="text-success flex-shrink-0"></i> ${land.address}`;
-        document.getElementById('sheetLandArea').textContent = `${parseFloat(land.area).toFixed(0)} m²`;
+        document.getElementById('sheetLandTitle').textContent = land.title || 'Untitled Garden';
+        const addressEl = document.getElementById('sheetLandAddress');
+        if (addressEl) {
+            addressEl.innerHTML = `<i data-lucide="map-pin" style="width:12px;height:12px;" class="text-success flex-shrink-0"></i> ${escapeHtml(land.address || 'Address not specified')}`;
+            addressEl.title = land.address || '';
+        }
+        const landArea = parseFloat(land.area) || 0;
+        document.getElementById('sheetLandArea').textContent = `${landArea > 0 ? landArea.toFixed(0) : '0'} m²`;
         document.getElementById('sheetPlotsCount').textContent = `${land.occupied_plots ?? 0} / ${land.total_plots ?? 0}`;
 
-        // Render Permitted Crops as SVG icons inside sheet
-        const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+        // Render Permitted Crops as SVG icons inside sheet (support Array, JSON string, or comma-separated string)
+        let rawCrops = [];
+        if (Array.isArray(land.crops)) {
+            rawCrops = land.crops;
+        } else if (typeof land.crops === 'string' && land.crops.trim()) {
+            try {
+                const parsed = JSON.parse(land.crops);
+                rawCrops = Array.isArray(parsed) ? parsed : [land.crops];
+            } catch (e) {
+                rawCrops = land.crops.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        } else if (Array.isArray(land.allowed_seeds)) {
+            rawCrops = land.allowed_seeds;
+        } else if (typeof land.allowed_seeds === 'string' && land.allowed_seeds.trim()) {
+            try {
+                const parsed = JSON.parse(land.allowed_seeds);
+                rawCrops = Array.isArray(parsed) ? parsed : [land.allowed_seeds];
+            } catch (e) {
+                rawCrops = land.allowed_seeds.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        }
+
         const cropsContainer = document.getElementById('sheetPermittedCropsContainer');
         if (cropsContainer) {
             if (!rawCrops || rawCrops.length === 0) {
@@ -809,32 +798,12 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
                     }
 
                     return `
-                        <div class="col-6 col-sm-4" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;" title="${badgeText}">
-                            <div class="p-2 rounded-3 border ${bgClass} d-flex flex-column justify-content-between h-100 shadow-xs hover-elevate transition-all">
-                                <div class="fw-bold d-flex align-items-center justify-content-between">
-                                    <span class="d-flex align-items-center gap-1">
-                                        <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:12px;"></i>
-                                        <span style="font-size:0.75rem;">${p.plot_number}</span>
-                                    </span>
-                                    <div class="d-flex align-items-center gap-1">
-                                        <button type="button" class="btn-plot-3d-quick" onclick="event.stopPropagation(); generate3DForSelectedPlot(${land.id}, ${p.id});" title="Generate 3D Map for ${p.plot_number}">
-                                            <i class="bi bi-box-fill"></i> 3D
-                                        </button>
-                                        ${lockIcon}
-                                    </div>
-                                </div>
-                                <div class="mt-1 mb-1 d-flex align-items-center gap-1 flex-wrap bg-white px-1.5 py-1 rounded border border-drive-border">
-                                    <span class="text-muted uppercase" style="font-size:8px;font-weight:700;">Permitted:</span>
-                                    <div class="d-flex align-items-center gap-1">
-                                        ${cropsBadgesHtml}
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center text-muted" style="font-size:0.68rem;">
-                                    <span>${parseFloat(p.area).toFixed(0)} m²</span>
-                                    <a href="lands.php?id=${land.id}" onclick="event.stopPropagation();" class="text-success text-decoration-none font-semibold hover:underline" style="font-size:0.65rem;" title="Edit Permitted Crops">
-                                        <i class="bi bi-pencil"></i> Crops
-                                    </a>
-                                </div>
+                        <div class="flex-shrink-0" onclick="focusOnSpecificPlot(${land.id}, ${p.id})" style="cursor:pointer;" title="${badgeText} - ${parseFloat(p.area || 0).toFixed(0)} m²">
+                            <div class="px-2.5 py-1 rounded-pill border ${bgClass} d-flex align-items-center gap-1.5 shadow-xs hover-elevate transition-all" style="font-size:0.72rem; white-space:nowrap; height: 28px;">
+                                <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:11px;"></i>
+                                <span class="fw-bold text-dark">${p.plot_number}</span>
+                                <span class="text-secondary" style="font-size:0.68rem;">${parseFloat(p.area || 0).toFixed(0)}m²</span>
+                                ${cropsBadgesHtml}
                             </div>
                         </div>
                     `;
@@ -848,137 +817,198 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         }
         activePlotLayers = [];
 
-        if (landPlots.length > 0 && !isNaN(lat) && !isNaN(lng) && landownerMap) {
-            const totalArea = parseFloat(land.area) || 100;
-            const sideMeters = Math.sqrt(totalArea);
-            const halfSide = sideMeters / 2;
-            const deltaLat = halfSide / 111320;
-            const deltaLng = halfSide / (111320 * Math.cos(lat * Math.PI / 180));
+        try {
+            if (landPlots.length > 0 && !isNaN(lat) && !isNaN(lng) && landownerMap) {
+                const totalArea = parseFloat(land.area) || 100;
+                const sideMeters = Math.sqrt(totalArea);
+                const halfSide = sideMeters / 2;
+                const cosLat = (!isNaN(lat) && Math.abs(Math.cos(lat * Math.PI / 180)) > 0.0001) ? Math.abs(Math.cos(lat * Math.PI / 180)) : 1;
+                const deltaLat = halfSide / 111320;
+                const deltaLng = halfSide / (111320 * cosLat);
 
-            // Outer boundary square polygon
-            const boundsSquare = [
-                [lat + deltaLat, lng - deltaLng],
-                [lat + deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng + deltaLng],
-                [lat - deltaLat, lng - deltaLng]
-            ];
+                let polyPts = null;
+                if (land.polygon) {
+                    try {
+                        const parsed = typeof land.polygon === 'string' ? JSON.parse(land.polygon) : land.polygon;
+                        if (Array.isArray(parsed) && parsed.length >= 3) {
+                            polyPts = parsed.map(pt => ({
+                                lat: Array.isArray(pt) ? pt[0] : pt.lat,
+                                lng: Array.isArray(pt) ? pt[1] : pt.lng
+                            }));
+                        }
+                    } catch (e) {
+                        polyPts = null;
+                    }
+                }
 
-            const outerSquare = L.polygon(boundsSquare, {
-                color: '#198754',
-                weight: 3,
-                fillColor: '#198754',
-                fillOpacity: 0.08,
-                dashArray: '6, 6'
-            }).addTo(landownerMap);
-            activePlotLayers.push(outerSquare);
+                // Outer boundary polygon (custom polygon or default square)
+                const boundsSquare = polyPts
+                    ? polyPts.map(p => [p.lat, p.lng])
+                    : [
+                        [lat + deltaLat, lng - deltaLng],
+                        [lat + deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng - deltaLng]
+                    ];
 
-            // Sub-partition square plot grid polygons
-            const N = landPlots.length;
-            const cols = Math.ceil(Math.sqrt(N));
-            const rows = Math.ceil(N / cols);
-            const plotW = (deltaLng * 2) / cols;
-            const plotH = (deltaLat * 2) / rows;
-
-            landPlots.forEach((p, idx) => {
-                const c = idx % cols;
-                const r = Math.floor(idx / cols);
-
-                const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
-                const pMaxLat = (lat + deltaLat) - (r * plotH);
-                const pMinLng = (lng - deltaLng) + (c * plotW);
-                const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
-
-                const plotSquare = [
-                    [pMaxLat, pMinLng],
-                    [pMaxLat, pMaxLng],
-                    [pMinLat, pMaxLng],
-                    [pMinLat, pMinLng]
-                ];
-
-                const isAvail = p.status === 'available';
-                const isOccupied = p.status === 'occupied';
-                const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
-                const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
-
-                const plotPoly = L.polygon(plotSquare, {
-                    color: plotColor,
-                    weight: 2,
-                    fillColor: plotFill,
-                    fillOpacity: 0.38
+                const outerSquare = L.polygon(boundsSquare, {
+                    color: '#198754',
+                    weight: 3,
+                    fillColor: '#198754',
+                    fillOpacity: 0.08,
+                    dashArray: '6, 6'
                 }).addTo(landownerMap);
+                activePlotLayers.push(outerSquare);
 
-                const cropBadge = p.crop_icon
-                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
-                    : '';
+                // Sub-partition plot grid polygons
+                const N = landPlots.length;
+                let subPlotsSquares = [];
 
-                const lockBadgeText = isOccupied ? '🔒 Leased (Locked)' : (isAvail ? '🟢 Available' : '⚙️ Maintenance');
+                if (polyPts && polyPts.length === 4) {
+                    const widthDist = (Math.hypot(polyPts[1].lat - polyPts[0].lat, polyPts[1].lng - polyPts[0].lng) +
+                        Math.hypot(polyPts[2].lat - polyPts[3].lat, polyPts[2].lng - polyPts[3].lng)) / 2;
+                    const heightDist = (Math.hypot(polyPts[3].lat - polyPts[0].lat, polyPts[3].lng - polyPts[0].lng) +
+                        Math.hypot(polyPts[2].lat - polyPts[1].lat, polyPts[2].lng - polyPts[1].lng)) / 2;
+                    const isTaller = heightDist > widthDist * 1.15;
 
-                plotPoly.bindTooltip(
-                    `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
-                        <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
-                        ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
-                        <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${lockBadgeText}</span>
-                    </div>`,
-                    { permanent: false, direction: 'center' }
-                );
-                plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
-                activePlotLayers.push(plotPoly);
+                    let cols, rows;
+                    if (N === 1) { cols = 1; rows = 1; }
+                    else if (N === 2) { cols = isTaller ? 1 : 2; rows = isTaller ? 2 : 1; }
+                    else if (N === 3) { cols = isTaller ? 1 : 3; rows = isTaller ? 3 : 1; }
+                    else if (N === 4) { cols = 2; rows = 2; }
+                    else if (N === 6) { cols = isTaller ? 2 : 3; rows = isTaller ? 3 : 2; }
+                    else if (N === 8) { cols = isTaller ? 2 : 4; rows = isTaller ? 4 : 2; }
+                    else {
+                        cols = Math.ceil(Math.sqrt(N));
+                        rows = Math.ceil(N / cols);
+                    }
 
-                // Center Plot Tag Marker with Plant Icon & Lock Badge
-                const pCenterLat = (pMinLat + pMaxLat) / 2;
-                const pCenterLng = (pMinLng + pMaxLng) / 2;
+                    const interp = (u, v) => {
+                        const plat = (1 - v) * ((1 - u) * polyPts[0].lat + u * polyPts[1].lat) +
+                            v * ((1 - u) * polyPts[3].lat + u * polyPts[2].lat);
+                        const plng = (1 - v) * ((1 - u) * polyPts[0].lng + u * polyPts[1].lng) +
+                            v * ((1 - u) * polyPts[3].lng + u * polyPts[2].lng);
+                        return [plat, plng];
+                    };
 
-                const cropImgTag = p.crop_icon
-                    ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
-                    : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            if (subPlotsSquares.length >= N) break;
+                            const u0 = c / cols, u1 = (c + 1) / cols;
+                            const v0 = r / rows, v1 = (r + 1) / rows;
+                            subPlotsSquares.push([
+                                interp(u0, v0),
+                                interp(u1, v0),
+                                interp(u1, v1),
+                                interp(u0, v1)
+                            ]);
+                        }
+                    }
+                } else {
+                    const cols = Math.ceil(Math.sqrt(N));
+                    const rows = Math.ceil(N / cols);
+                    const plotW = (deltaLng * 2) / cols;
+                    const plotH = (deltaLat * 2) / rows;
 
-                const lockIconTag = isOccupied ? `<i class="bi bi-lock-fill" style="font-size:9px;color:#ffc107;"></i>` : '';
+                    for (let idx = 0; idx < N; idx++) {
+                        const c = idx % cols;
+                        const r = Math.floor(idx / cols);
+                        const pMinLat = (lat + deltaLat) - ((r + 1) * plotH);
+                        const pMaxLat = (lat + deltaLat) - (r * plotH);
+                        const pMinLng = (lng - deltaLng) + (c * plotW);
+                        const pMaxLng = (lng - deltaLng) + ((c + 1) * plotW);
+                        subPlotsSquares.push([
+                            [pMaxLat, pMinLng],
+                            [pMaxLat, pMaxLng],
+                            [pMinLat, pMaxLng],
+                            [pMinLat, pMinLng]
+                        ]);
+                    }
+                }
 
-                const plotTagIcon = L.divIcon({
-                    className: '',
-                    html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
-                        style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
-                        ${cropImgTag}
-                        <span>${p.plot_number}</span>
-                        ${lockIconTag}
-                    </div>`,
-                    iconSize: [92, 26],
-                    iconAnchor: [46, 13]
+                landPlots.forEach((p, idx) => {
+                    const plotSquare = subPlotsSquares[idx] || [
+                        [lat + deltaLat, lng - deltaLng],
+                        [lat + deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng + deltaLng],
+                        [lat - deltaLat, lng - deltaLng]
+                    ];
+
+                    const isAvail = p.status === 'available';
+                    const isOccupied = p.status === 'occupied';
+                    const plotColor = isAvail ? '#198754' : (isOccupied ? '#0d6efd' : '#6c757d');
+                    const plotFill = isAvail ? '#25c974' : (isOccupied ? '#3d8bfd' : '#adb5bd');
+
+                    const plotPoly = L.polygon(plotSquare, {
+                        color: plotColor,
+                        weight: 2,
+                        fillColor: plotFill,
+                        fillOpacity: 0.38
+                    }).addTo(landownerMap);
+
+                    const cropBadge = p.crop_icon
+                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:14px;height:14px;vertical-align:middle;margin-right:3px;">`
+                        : '';
+
+                    const lockBadgeText = isOccupied ? '🔒 Leased (Locked)' : (isAvail ? '🟢 Available' : '⚙️ Maintenance');
+
+                    plotPoly.bindTooltip(
+                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;">
+                            <strong>${cropBadge}${p.plot_number}</strong> (${p.area} m²)<br>
+                            ${p.crop ? `<span class="text-success fw-bold">${p.crop}</span><br>` : ''}
+                            <span class="badge ${isAvail ? 'bg-success' : 'bg-primary'}" style="font-size:9px;">${lockBadgeText}</span>
+                        </div>`,
+                        { permanent: false, direction: 'center' }
+                    );
+                    plotPoly.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                    activePlotLayers.push(plotPoly);
+
+                    // Center Plot Tag Marker with Plant Icon & Lock Badge
+                    const pCenterLat = plotSquare.reduce((s, pt) => s + pt[0], 0) / plotSquare.length;
+                    const pCenterLng = plotSquare.reduce((s, pt) => s + pt[1], 0) / plotSquare.length;
+
+                    const cropImgTag = p.crop_icon
+                        ? `<img src="${basePath}assets/crop-icons/${p.crop_icon}" style="width:16px;height:16px;object-fit:contain;background:#fff;border-radius:50%;padding:1px;" alt="${p.crop}">`
+                        : `<i class="bi bi-sprout-fill" style="color:#fff;font-size:11px;"></i>`;
+
+                    const plotTagIcon = L.divIcon({
+                        className: '',
+                        html: `<div class="shadow-sm px-2 py-1 rounded-pill fw-bold text-white text-center d-flex align-items-center gap-1.5" 
+                            style="background:${plotColor};font-size:9.5px;border:1.5px solid #fff;white-space:nowrap;backdrop-filter:blur(4px);cursor:pointer;">
+                            ${cropImgTag}
+                            <span>${p.plot_number}</span>
+                        </div>`,
+                        iconSize: [92, 26],
+                        iconAnchor: [46, 13]
+                    });
+
+                    const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(landownerMap);
+                    plotTagMarker.on('click', () => focusOnSpecificPlot(land.id, p.id));
+                    activePlotLayers.push(plotTagMarker);
                 });
-
-                const plotTagMarker = L.marker([pCenterLat, pCenterLng], { icon: plotTagIcon }).addTo(landownerMap);
-                plotTagMarker.on('click', () => focusOnSpecificPlot(land.id, p.id));
-                activePlotLayers.push(plotTagMarker);
-            });
+            }
+        } catch (plotErr) {
+            console.warn("Plot polygon calculation error:", plotErr);
         }
 
         sheet.style.transform = '';
         sheet.style.opacity = '';
         sheet.style.transition = '';
-        if (backdrop) backdrop.style.opacity = '';
 
         sheet.classList.remove('hidden');
-        if (backdrop) backdrop.classList.add('show');
-        if (fab) fab.style.display = 'none';
+        document.body.classList.add('sheet-open');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     function closeLandCardSheet() {
         const sheet = document.getElementById('mobileLandCardSheet');
-        const backdrop = document.getElementById('mapSheetBackdrop');
-        const fab = document.getElementById('registerFab');
+        document.body.classList.remove('sheet-open');
         if (sheet) {
             sheet.classList.add('hidden');
             sheet.style.transform = '';
             sheet.style.opacity = '';
             sheet.style.transition = '';
         }
-        if (backdrop) {
-            backdrop.classList.remove('show');
-            backdrop.style.opacity = '';
-            backdrop.style.transition = '';
-        }
-        if (fab) fab.style.display = '';
 
         if (activePlotLayers) {
             activePlotLayers.forEach(l => landownerMap.removeLayer(l));
@@ -1005,12 +1035,26 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         closeLandCardSheet();
     }
 
-    function filterMapLands(type, btn) {
-        document.querySelectorAll('#mapChipsBar > .map-chip').forEach(c => c.classList.remove('active'));
-        if (btn) btn.classList.add('active');
+    function selectAllFilter(type, label, el) {
         currentLandFilterType = type;
+        const labelEl = document.getElementById('selectedAllFilterLabel');
+        if (labelEl) labelEl.textContent = label;
+
+        const parentMenu = el ? el.closest('.dropdown-menu') : null;
+        if (parentMenu) {
+            parentMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        const dropdownBtn = document.getElementById('allFilterDropdown');
+        if (dropdownBtn) dropdownBtn.classList.add('active');
+
         applyCombinedMapFilters();
         closeLandCardSheet();
+    }
+
+    function filterMapLands(type, btn) {
+        selectAllFilter(type, type === 'my' ? 'Mine' : (type === 'approved' ? 'Approved' : 'All'), btn);
     }
 
     let mobileSearchQuery = '';
@@ -1188,7 +1232,7 @@ $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pen
         if (is3DMode) {
             container3D.classList.add('active');
             toggleBtn.classList.add('active-3d');
-            toggleLabel.textContent = '2D View';
+            toggleLabel.textContent = '2D';
             toggleBtn.querySelector('i').className = 'bi bi-map-fill';
 
             let targetLand = landsData.find(l => l.id == currentLandId) || landsData[0];

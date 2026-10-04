@@ -4,12 +4,15 @@ $page_title = "Register Land";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
+require_once '../includes/db.php';
+require_once '../includes/lands_helper.php';
 
-// Prepare mock register handler
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 $success_message = "";
+$error_message = "";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register') {
     $title = htmlspecialchars(trim($_POST['title']));
     $address = htmlspecialchars(trim($_POST['address']));
@@ -22,16 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $polygon = isset($_POST['lot_polygon']) ? htmlspecialchars(trim($_POST['lot_polygon'])) : '';
 
     $seeds = isset($_POST['allowed_seeds']) ? array_map('htmlspecialchars', $_POST['allowed_seeds']) : [];
+    if (empty($seeds)) {
+        $seeds = ['Vegetables', 'Herbs'];
+    }
 
-    // LRA Title Verification inputs
-    $title_type = htmlspecialchars(trim($_POST['title_type'] ?? 'OCT'));
-    $title_number = htmlspecialchars(trim($_POST['title_number'] ?? ''));
-    $rod_name = htmlspecialchars(trim($_POST['rod_name'] ?? ''));
-    $epeb_type = htmlspecialchars(trim($_POST['epeb_type'] ?? 'CCV'));
-    $epeb_no = htmlspecialchars(trim($_POST['epeb_no'] ?? ''));
-
-    // Handle OCT (Original Certificate of Title) Document Upload
-    $title_doc_path = 'assets/images/sample_title_cert.svg';
+    // Handle Document Upload
+    $title_doc_path = '';
     $oct_file = $_FILES['oct_document'] ?? $_FILES['title_document'] ?? null;
     if ($oct_file && $oct_file['error'] === UPLOAD_ERR_OK) {
         $ext = strtolower(pathinfo($oct_file['name'], PATHINFO_EXTENSION));
@@ -48,79 +47,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
 
-    // Handle LRA Official Receipt Upload
-    $receipt_doc_path = 'assets/images/sample_lra_receipt.svg';
-    if (isset($_FILES['lra_receipt']) && $_FILES['lra_receipt']['error'] === UPLOAD_ERR_OK) {
-        $ext = strtolower(pathinfo($_FILES['lra_receipt']['name'], PATHINFO_EXTENSION));
-        if (in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'svg'])) {
-            $fileName = 'receipt_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
-            $uploadTarget = __DIR__ . '/../uploads/receipts/' . $fileName;
-            if (move_uploaded_file($_FILES['lra_receipt']['tmp_name'], $uploadTarget)) {
-                $receipt_doc_path = 'uploads/receipts/' . $fileName;
-            }
+    $owner_id = $_SESSION['user_id'] ?? 2;
+    $landowner_name = $_SESSION['user_name'] ?? 'John Landowner';
+    $seeds_json = json_encode(array_values($seeds));
+
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO `lands` 
+            (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon)
+            VALUES 
+            (?, ?, '', '', '', '', '', ?, ?, '', 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $owner_id,
+            $title,
+            $title_doc_path,
+            $title_doc_path,
+            $address,
+            $lat,
+            $lng,
+            $area,
+            $desc,
+            $seeds_json,
+            $plot_count,
+            $landowner_name,
+            $has_3d,
+            $polygon
+        ]);
+        $new_id = (int) $pdo->lastInsertId();
+
+        // Auto-create partition plots in MySQL plots table
+        $plot_area = round($area / $plot_count, 1);
+        $stmtPlot = $pdo->prepare("
+            INSERT INTO `plots` (land_id, plot_number, area_sqm, status, crop, crop_icon, allowed_seeds, farmer_name)
+            VALUES (?, ?, ?, 'available', ?, ?, ?, '')
+        ");
+
+        for ($i = 1; $i <= $plot_count; $i++) {
+            $crop = !empty($seeds) ? $seeds[($i - 1) % count($seeds)] : 'Vegetables';
+            $stmtPlot->execute([
+                $new_id,
+                'Plot A-' . $i,
+                $plot_area,
+                $crop,
+                'tomato/tomato.svg',
+                $seeds_json
+            ]);
         }
-    }
 
-    // Store in mock session lands
-    if (!isset($_SESSION['mock_lands'])) {
-        $_SESSION['mock_lands'] = [];
+        $success_message = "Land request registered successfully! It is now pending administrative approval and visible across all devices.";
+    } catch (\Exception $e) {
+        $error_message = "Failed to register land: " . $e->getMessage();
     }
-    $new_id = count($_SESSION['mock_lands']) + 1;
-    $_SESSION['mock_lands'][] = [
-        'id' => $new_id,
-        'title' => $title,
-        'title_type' => $title_type,
-        'title_number' => $title_number,
-        'rod_name' => $rod_name,
-        'epeb_type' => $epeb_type,
-        'epeb_no' => $epeb_no,
-        'title_document_path' => $title_doc_path,
-        'oct_document_path' => $title_doc_path,
-        'lra_receipt_path' => $receipt_doc_path,
-        'is_lra_verified' => 0,
-        'landowner' => $_SESSION['user_name'] ?? 'John Landowner',
-        'address' => $address,
-        'latitude' => $lat,
-        'longitude' => $lng,
-        'area' => $area,
-        'status' => 'pending',
-        'reason' => '',
-        'description' => $desc,
-        'allowed_seeds' => $seeds,
-        'total_plots' => $plot_count,
-        'occupied_plots' => 0,
-        'has_3d_view' => $has_3d,
-        'polygon' => $polygon
-    ];
-
-    // Auto-create partition plots in mock session plots
-    if (!isset($_SESSION['mock_plots'])) {
-        $_SESSION['mock_plots'] = [];
-    }
-    $plot_area = round($area / $plot_count, 1);
-    for ($i = 1; $i <= $plot_count; $i++) {
-        $plot_id = count($_SESSION['mock_plots']) + 1;
-        $crop = !empty($seeds) ? $seeds[($i - 1) % count($seeds)] : 'Vegetables';
-        $_SESSION['mock_plots'][] = [
-            'id' => $plot_id,
-            'land_id' => $new_id,
-            'plot_number' => 'Plot A-' . $i,
-            'area' => $plot_area,
-            'status' => 'available',
-            'crop' => $crop,
-            'crops' => $seeds,
-            'farmer_name' => '',
-            'lease_end' => ''
-        ];
-    }
-
-    $success_message = "Land registered successfully with {$plot_count} partition plot(s) and 3D digital twin preview! It is now pending Administrator review.";
 }
 ?>
 
 <main class="workspace-surface">
+    <!-- Desktop Toolbar (Title and actions, borderless) -->
+    <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Register Land</h1>
+        </div>
+    </div>
+
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll">
+    <div class="workspace-scroll px-4 pt-2 pb-4">
         <?php if (!empty($success_message)): ?>
             <div class="alert alert-success d-flex align-items-center gap-2 border-0  mb-4" role="alert"
                 style="border-radius: 12px; background-color: #d1e7dd; color: #0f5132;">
@@ -128,35 +119,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div><?php echo $success_message; ?></div>
             </div>
         <?php endif; ?>
+        <?php if (!empty($error_message)): ?>
+            <div class="alert alert-danger d-flex align-items-center gap-2 border-0 mb-4" role="alert"
+                style="border-radius: 12px; background-color: #f8d7da; color: #842029;">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <div><?php echo $error_message; ?></div>
+            </div>
+        <?php endif; ?>
 
         <!-- Top: Interactive Map & 3D Digital Twin Card (Positioned Above the Form) -->
         <div class="card border rounded-4 overflow-hidden mb-4 shadow-sm"
             style="border-color: var(--drive-border) !important;">
             <!-- Step-by-Step Guided Process Indicator Bar -->
-            <div class="border-bottom bg-light bg-opacity-75 px-3 px-md-4 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2" id="registrationStepBar">
+            <div class="border-bottom bg-light bg-opacity-75 px-3 px-md-4 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2"
+                id="registrationStepBar">
                 <div class="d-flex align-items-center gap-1 gap-sm-2 flex-wrap text-xs">
                     <!-- Step 1 Item -->
-                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white border border-success shadow-2xs transition-all" id="step1Item" style="cursor: pointer;" onclick="goToStep(1)" title="Step 1: Pinpoint your land location">
-                        <span class="rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold" style="width: 20px; height: 20px; font-size: 0.7rem;" id="step1Badge">1</span>
+                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-white border border-success shadow-2xs transition-all"
+                        id="step1Item" style="cursor: pointer;" onclick="goToStep(1)"
+                        title="Step 1: Pinpoint your land location">
+                        <span
+                            class="rounded-circle d-flex align-items-center justify-content-center text-white bg-success fw-bold"
+                            style="width: 20px; height: 20px; font-size: 0.7rem;" id="step1Badge">1</span>
                         <span id="step1Title" class="fw-bold text-dark">Pinpoint Location</span>
                     </div>
                     <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.65rem;"></i>
                     <!-- Step 2 Item -->
-                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all" id="step2Item" style="cursor: pointer;" onclick="goToStep(2)" title="Step 2: Draw your plot boundary">
-                        <span class="rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold" style="width: 20px; height: 20px; font-size: 0.7rem;" id="step2Badge">2</span>
+                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all"
+                        id="step2Item" style="cursor: pointer;" onclick="goToStep(2)"
+                        title="Step 2: Draw your plot boundary">
+                        <span
+                            class="rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold"
+                            style="width: 20px; height: 20px; font-size: 0.7rem;" id="step2Badge">2</span>
                         <span id="step2Title">Draw Plot</span>
                     </div>
                     <i class="bi bi-chevron-right text-muted opacity-50" style="font-size: 0.65rem;"></i>
                     <!-- Step 3 Item -->
-                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all" id="step3Item" style="cursor: pointer;" onclick="goToStep(3)" title="Step 3: Partition plots and submit details">
-                        <span class="rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold" style="width: 20px; height: 20px; font-size: 0.7rem;" id="step3Badge">3</span>
+                    <div class="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill bg-transparent text-muted transition-all"
+                        id="step3Item" style="cursor: pointer;" onclick="goToStep(3)"
+                        title="Step 3: Partition plots and submit details">
+                        <span
+                            class="rounded-circle d-flex align-items-center justify-content-center border bg-white text-secondary fw-bold"
+                            style="width: 20px; height: 20px; font-size: 0.7rem;" id="step3Badge">3</span>
                         <span id="step3Title">Partitions & Info</span>
                     </div>
                 </div>
 
                 <!-- Active Step Guidance Pill -->
                 <div class="d-flex align-items-center">
-                    <span class="badge bg-white border text-dark fw-normal rounded-pill px-2.5 py-1.5 shadow-2xs d-flex align-items-center gap-1.5" id="stepGuideText" style="font-size: 0.72rem;">
+                    <span
+                        class="badge bg-white border text-dark fw-normal rounded-pill px-2.5 py-1.5 shadow-2xs d-flex align-items-center gap-1.5"
+                        id="stepGuideText" style="font-size: 0.72rem;">
                         <i class="bi bi-geo-alt-fill text-danger"></i>
                         <span><strong>Step 1:</strong> Search location or click anywhere on the map to pinpoint.</span>
                     </span>
@@ -167,21 +180,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <!-- Top Black Gradient Scrim / Dim Overlay (behind searchbar and controls) -->
                 <div class="map-top-gradient-scrim" id="mapTopGradientScrim"></div>
 
-                <!-- Floating Location Search Bar (Reduced Compact UI) -->
-                <div class="map-picker-search-box"
-                    style="top: 10px; left: 10px; width: 220px; max-width: calc(100% - 230px);">
-                    <div class="map-picker-input-group"
-                        style="padding: 1px 4px 1px 10px; height: 32px; border-radius: 50rem; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
-                        <i class="bi bi-search text-muted" style="font-size:0.75rem;"></i>
-                        <input type="text" id="mapSearchInput" placeholder="Search location..." autocomplete="off"
-                            style="font-size: 0.76rem; padding: 2px 6px;">
+                <!-- Floating Location Search Bar (Compact UI) -->
+                <div class="map-picker-search-box">
+                    <div class="map-picker-input-group">
+                        <i class="bi bi-search text-muted flex-shrink-0" style="font-size:0.75rem;"></i>
+                        <input type="text" id="mapSearchInput" placeholder="Search location..." autocomplete="off">
                         <button type="button" class="map-picker-btn-icon d-none" id="mapSearchClearBtn"
-                            title="Clear search" onclick="clearMapSearch()" style="padding: 2px 4px;">
+                            title="Clear search" onclick="clearMapSearch()">
                             <i class="bi bi-x-circle-fill" style="font-size:0.75rem;"></i>
                         </button>
                         <button type="button" class="map-picker-btn-icon text-success" id="mapSearchGpsBtn"
-                            title="Use my current GPS location" onclick="useCurrentLocation()"
-                            style="padding: 2px 4px;">
+                            title="Use my current GPS location" onclick="useCurrentLocation()">
                             <i class="bi bi-crosshair" style="font-size:0.85rem;"></i>
                         </button>
                     </div>
@@ -192,45 +201,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <!-- Floating Map Action Buttons Overlay (Drawing Tools, Area Badge, 2D/3D Mode) -->
                 <div class="map-floating-toolbar d-flex align-items-center gap-1.5 flex-wrap"
                     style="position: absolute; top: 10px; right: 10px; z-index: 1000; justify-content: flex-end;">
-                    <!-- Plot Drawing Tools (Revealed after location pinpointed) -->
-                    <div class="btn-group btn-group-sm p-0.5 bg-white bg-opacity-95 border rounded-pill shadow-sm" role="group"
-                        id="plotDrawToolbar" style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-semibold text-dark active"
+                    <!-- Plot Controls -->
+                    <div class="btn-group btn-group-sm p-0.5 bg-white bg-opacity-95 border rounded-pill shadow-sm"
+                        role="group" id="plotDrawToolbar"
+                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <button type="button" class="btn btn-xs rounded-pill px-2 py-0.5 fw-semibold text-dark active"
                             id="drawModePanBtn" onclick="setPlotDrawMode('pan')" title="Pin Point Location">
                             <i class="bi bi-geo-alt-fill me-1 text-danger"></i>Pin Point
                         </button>
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-semibold text-secondary d-none"
-                            id="drawModePolygonBtn" onclick="setPlotDrawMode('polygon')"
-                            title="Click on the map to draw custom plot boundary corners">
-                            <i class="bi bi-pentagon-fill me-1 text-success"></i>Draw Plot
-                        </button>
-                        <button type="button" class="btn btn-xs rounded-pill px-3 py-1 fw-semibold text-secondary d-none"
-                            id="drawModeBoxBtn" onclick="setPlotDrawMode('box')"
-                            title="Click two points to draw a box/rectangle plot">
-                            <i class="bi bi-bounding-box-circles me-1 text-success"></i>Draw Box
-                        </button>
                     </div>
 
-                    <button type="button" class="btn btn-xs btn-outline-danger bg-white bg-opacity-95 rounded-pill px-2.5 py-1 text-xs d-none shadow-sm"
-                        id="btnClearDrawnPlot" onclick="clearDrawnPlot()" title="Clear drawn plot boundary"
-                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
-                        <i class="bi bi-trash3 me-1"></i>Clear Boundary
+                    <button type="button"
+                        class="btn btn-xs bg-white bg-opacity-95 border rounded-pill px-2 py-0.5 text-xs fw-semibold text-dark shadow-sm d-none"
+                        id="btnRotateLeft" onclick="rotatePlot(-15)" title="Rotate plot 15° Counter-Clockwise"
+                        style="backdrop-filter: blur(10px);">
+                        <i class="bi bi-arrow-counterclockwise text-success me-0.5"></i>-15°
+                    </button>
+                    <button type="button"
+                        class="btn btn-xs bg-white bg-opacity-95 border rounded-pill px-2 py-0.5 text-xs fw-semibold text-dark shadow-sm d-none"
+                        id="btnRotateRight" onclick="rotatePlot(15)" title="Rotate plot 15° Clockwise"
+                        style="backdrop-filter: blur(10px);">
+                        <i class="bi bi-arrow-clockwise text-success me-0.5"></i>+15°
                     </button>
 
-                    <button type="button" class="btn btn-xs btn-outline-success bg-white bg-opacity-95 rounded-pill px-2.5 py-1 text-xs d-none fw-semibold shadow-sm"
-                        id="btnEditPlotArea" onclick="openLandAreaModal()" title="Click to change target land area in square meters"
+                    <button type="button"
+                        class="btn btn-xs btn-outline-danger bg-white bg-opacity-95 rounded-pill px-2 py-0.5 text-xs d-none shadow-sm"
+                        id="btnClearDrawnPlot" onclick="clearDrawnPlot()" title="Clear drawn plot boundary"
+                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+                        <i class="bi bi-trash3 me-1"></i>Clear
+                    </button>
+
+                    <button type="button"
+                        class="btn btn-xs btn-outline-success bg-white bg-opacity-95 rounded-pill px-2 py-0.5 text-xs d-none fw-semibold shadow-sm"
+                        id="btnEditPlotArea" onclick="openLandAreaModal()"
+                        title="Click to change target land area in square meters"
                         style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
                         <i class="bi bi-rulers me-1"></i><span id="targetAreaBadge">250 m²</span>
                     </button>
 
                     <!-- 2D / 3D Switcher -->
-                    <div class="btn-group btn-group-sm p-0.5 bg-white bg-opacity-95 border rounded-pill shadow-sm" role="group"
+                    <div class="btn-group btn-group-sm p-0.5 bg-white bg-opacity-95 border rounded-pill shadow-sm"
+                        role="group"
                         style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
-                        <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 fw-bold text-success active"
+                        <button type="button" class="btn btn-xs rounded-pill px-2 py-0.5 fw-bold text-success active"
                             id="viewMode2DBtn" onclick="switchPickerMode('2d')">
                             <i class="bi bi-map me-1"></i>2D
                         </button>
-                        <button type="button" class="btn btn-xs rounded-pill px-2.5 py-1 text-muted" id="viewMode3DBtn"
+                        <button type="button" class="btn btn-xs rounded-pill px-2 py-0.5 text-muted" id="viewMode3DBtn"
                             onclick="switchPickerMode('3d')">
                             <i class="bi bi-box-fill me-1 text-primary"></i>3D
                         </button>
@@ -255,9 +272,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                 </div>
 
-                <!-- Floating Partition Plots Control Overlay (Pops up after plot boundary is drawn) -->
+                <!-- Floating Partition Plots Control Overlay (Pops up after plot boundary is drawn - Bottom Left) -->
                 <div class="position-absolute shadow-sm d-none" id="plotControlOverlay"
-                    style="top: 50px; right: 10px; z-index: 1000; width: auto; min-width: 190px; max-width: 220px;">
+                    style="bottom: 48px; left: 10px; z-index: 1000; width: auto; min-width: 190px; max-width: 220px;">
                     <div class="card border rounded-3 bg-white bg-opacity-95 p-2 shadow-sm"
                         style="backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-color: rgba(22, 163, 74, 0.25) !important;">
                         <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
@@ -302,8 +319,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             style="font-size: 0.66rem;">
                             <span class="text-muted" id="drawnBoundarySummary">Standard Grid</span>
                             <button type="button" class="btn btn-link text-success p-0 text-decoration-none fw-semibold"
-                                style="font-size: 0.68rem;" onclick="setPlotDrawMode('polygon')">
-                                <i class="bi bi-pencil me-0.5"></i>Custom
+                                style="font-size: 0.68rem;" onclick="openLandAreaModal()" title="Resize plot area">
+                                <i class="bi bi-rulers me-0.5"></i>Change Area
                             </button>
                         </div>
                     </div>
@@ -359,7 +376,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label for="title" class="form-label text-secondary fw-semibold text-xs mb-1">PROPERTY
                             NAME</label>
                         <input type="text" class="form-control drive-form-control w-100" id="title" name="title"
-                            required placeholder="Sunnyvale Empty Lot">
+                            required placeholder="">
                     </div>
 
                     <!-- Address -->
@@ -375,9 +392,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
                         <div class="input-group">
                             <input type="text" class="form-control drive-form-control" id="address" name="address"
-                                required placeholder="124 Green Ave, Sunnyvale"
+                                required placeholder=""
                                 onkeydown="if(event.key==='Enter'){event.preventDefault();searchAddressFromInput();}">
-                            <button class="btn btn-outline-success px-3" type="button"
+                            <button class="btn btn-sm btn-outline-success px-2.5" type="button"
                                 onclick="searchAddressFromInput()" title="Locate this address on map">
                                 <i class="bi bi-search"></i>
                             </button>
@@ -418,8 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label for="description"
                             class="form-label text-secondary fw-semibold text-xs mb-1">DESCRIPTION</label>
                         <textarea class="form-control drive-form-control w-100" id="description" name="description"
-                            rows="4"
-                            placeholder="Soil quality, water sources, sun exposure, or guidelines..."></textarea>
+                            rows="4" placeholder=""></textarea>
                     </div>
 
                     <!-- Allowed Seed Types / Permitted Crops (col-md-6) -->
@@ -427,9 +443,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="d-flex align-items-center justify-content-between mb-1">
                             <label class="form-label text-secondary m-0 fw-semibold text-xs">PERMITTED CROPS</label>
                             <button type="button"
-                                class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1 d-flex align-items-center gap-1.5 text-xs"
+                                class="btn btn-sm btn-drive-secondary rounded-pill px-2.5 py-1 d-flex align-items-center gap-1.5 text-xs"
                                 data-bs-toggle="modal" data-bs-target="#permittedCropsModal">
-                                <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                                <i data-lucide="search" style="width: 13px; height: 13px;"></i>
                                 <span>Select Crops</span>
                             </button>
                         </div>
@@ -462,7 +478,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 JPEG, or PNG (Max 10MB)</span>
                             <input type="file" id="oct_document" name="oct_document" accept=".pdf,.jpg,.jpeg,.png"
                                 class="d-none" onchange="updateUploadLabel(this)">
-                            <button type="button" class="btn btn-sm btn-drive-secondary px-3"
+                            <button type="button" class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1 text-xs"
                                 onclick="document.getElementById('oct_document').click()">
                                 <i class="bi bi-upload me-1"></i>Select OCT File
                             </button>
@@ -473,8 +489,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                     <!-- Form Action Buttons -->
                     <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
-                        <a href="lands.php" class="btn btn-drive-secondary px-4">Cancel</a>
-                        <button type="submit" class="btn btn-drive-primary px-4 fw-semibold">Submit Property</button>
+                        <a href="lands.php"
+                            class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1.5 text-xs">Cancel</a>
+                        <button type="submit"
+                            class="btn btn-sm btn-drive-primary rounded-pill px-3.5 py-1.5 text-xs fw-semibold">Submit
+                            Property</button>
                     </div>
                 </div>
             </form>
@@ -531,10 +550,10 @@ $seedTypes = [
                             placeholder="Search crop types (e.g., Tomato, Lettuce, Carrot)..."
                             onkeyup="filterCropChips()">
                     </div>
-                    <div class="d-flex gap-2 flex-shrink-0">
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 text-xs"
+                    <div class="d-flex gap-1.5 flex-shrink-0">
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs"
                             onclick="selectAllCrops(true)">Select All</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 text-xs"
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs"
                             onclick="selectAllCrops(false)">Clear All</button>
                     </div>
                 </div>
@@ -567,10 +586,10 @@ $seedTypes = [
                 </div>
             </div>
 
-            <div class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
+            <div class="modal-footer border-top bg-white px-3 py-2.5 d-flex justify-content-between align-items-center">
                 <span class="text-secondary text-xs fw-semibold"><span id="selectedCountText">0</span> crops
                     selected</span>
-                <button type="button" class="btn btn-drive-primary rounded-pill px-4"
+                <button type="button" class="btn btn-sm btn-drive-primary rounded-pill px-3.5 py-1.5 text-xs"
                     data-bs-dismiss="modal">Done</button>
             </div>
         </div>
@@ -578,12 +597,14 @@ $seedTypes = [
 </div>
 
 <!-- Modal to Ask for Square Meters Before Drawing -->
-<div class="modal fade" id="landAreaModal" tabindex="-1" aria-labelledby="landAreaModalLabel" aria-hidden="true">
+<div class="modal fade" id="landAreaModal" tabindex="-1" aria-labelledby="landAreaModalLabel" aria-hidden="true"
+    style="z-index: 1060;">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
         <div class="modal-content border-0 rounded-4 shadow-xl overflow-hidden">
             <div class="modal-header border-0 bg-success text-white py-3 px-4">
                 <div class="d-flex align-items-center gap-2.5">
-                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center flex-shrink-0"
+                        style="width: 34px; height: 34px;">
                         <i class="bi bi-rulers fs-6"></i>
                     </div>
                     <div>
@@ -591,17 +612,25 @@ $seedTypes = [
                         <span class="text-white-50" style="font-size: 0.72rem;">Calibrate plot boundary size</span>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
+                    onclick="closeLandAreaModal()"></button>
             </div>
             <div class="modal-body p-4 bg-white">
                 <p class="text-secondary text-xs mb-3">
-                    Enter the total area of your land in square meters. Your plot drawing on the map will automatically be constrained to this exact size.
+                    Enter the total area of your land in square meters. Your plot drawing on the map will automatically
+                    be constrained to this exact size.
                 </p>
 
                 <div class="mb-3">
-                    <label for="modalAreaInput" class="form-label text-dark fw-bold text-xs mb-1">TOTAL SQUARE METERS (m²)</label>
+                    <label for="modalAreaInput" class="form-label text-dark fw-bold text-xs mb-1">TOTAL SQUARE METERS
+                        (m²)</label>
                     <div class="input-group">
-                        <input type="number" step="1" min="10" max="100000" class="form-control drive-form-control form-control-lg fw-bold text-success fs-4" id="modalAreaInput" value="250" placeholder="e.g. 250" required>
+                        <input type="number" step="1" min="10" max="100000"
+                            class="form-control drive-form-control form-control-lg fw-bold text-success fs-4"
+                            id="modalAreaInput" value="250" placeholder="e.g. 250"
+                            oninput="updateModalButtonLabel(this.value)"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();confirmLandAreaAndDraw();}"
+                            required>
                         <span class="input-group-text bg-light border text-muted fw-bold">m²</span>
                     </div>
                 </div>
@@ -610,23 +639,33 @@ $seedTypes = [
                 <div class="mb-3">
                     <span class="text-muted text-xs d-block mb-1.5 fw-semibold">Quick Presets:</span>
                     <div class="d-flex flex-wrap gap-1.5" id="presetAreaGroup">
-                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="100" onclick="setPresetArea(100)">100 m²</button>
-                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="150" onclick="setPresetArea(150)">150 m²</button>
-                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="200" onclick="setPresetArea(200)">200 m²</button>
-                        <button type="button" class="btn btn-xs preset-area-btn btn-success text-white active rounded-pill px-2.5 py-1" data-val="250" onclick="setPresetArea(250)">250 m²</button>
-                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="500" onclick="setPresetArea(500)">500 m²</button>
-                        <button type="button" class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2.5 py-1" data-val="1000" onclick="setPresetArea(1000)">1,000 m²</button>
+                        <button type="button"
+                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
+                            data-val="100" onclick="setPresetArea(100)">100 m²</button>
+                        <button type="button"
+                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
+                            data-val="150" onclick="setPresetArea(150)">150 m²</button>
+                        <button type="button"
+                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
+                            data-val="200" onclick="setPresetArea(200)">200 m²</button>
+                        <button type="button"
+                            class="btn btn-xs preset-area-btn btn-success text-white active rounded-pill px-2 py-0.5"
+                            data-val="250" onclick="setPresetArea(250)">250 m²</button>
+                        <button type="button"
+                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
+                            data-val="500" onclick="setPresetArea(500)">500 m²</button>
+                        <button type="button"
+                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
+                            data-val="1000" onclick="setPresetArea(1000)">1,000 m²</button>
                     </div>
                 </div>
 
                 <div class="d-grid gap-2 pt-2 border-top">
-                    <button type="button" class="btn btn-success rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2" onclick="confirmLandAreaAndDraw()">
-                        <i class="bi bi-pencil-square"></i>
-                        <span>Confirm & Draw Boundary</span>
-                    </button>
-                    <button type="button" class="btn btn-outline-success rounded-pill py-2 fw-semibold text-xs d-flex align-items-center justify-content-center gap-1.5" onclick="autoPlaceExactBoundary()">
+                    <button type="button"
+                        class="btn btn-sm btn-success rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm text-xs"
+                        onclick="confirmLandAreaAndDraw()">
                         <i class="bi bi-bounding-box"></i>
-                        <span>Auto-Place Exact Plot on Pin</span>
+                        <span>Set Area & Place Plot (<span id="modalBtnAreaText">250 m²</span>)</span>
                     </button>
                 </div>
             </div>
@@ -762,18 +801,17 @@ $seedTypes = [
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
+                        // Do not hijack or move the map if user has already placed a pin or drawn a plot
+                        if (marker || drawnPolygonLayer || (drawnPoints && drawnPoints.length > 0)) return;
                         const lat = pos.coords.latitude;
                         const lng = pos.coords.longitude;
                         map.setView([lat, lng], 17);
                     },
                     (err) => {
-                        console.warn('Geolocation failed or denied, centering default:', err);
-                        map.setView([defaultLat, defaultLng], 14);
+                        console.warn('Geolocation failed or denied, keeping default view:', err);
                     },
                     { enableHighAccuracy: true, timeout: 8000 }
                 );
-            } else {
-                map.setView([defaultLat, defaultLng], 14);
             }
         }
 
@@ -812,6 +850,8 @@ $seedTypes = [
         let drawingStartMarker = null;
         let boxAnchor = null;
         let boxPreviewLayer = null;
+        let rotationHandleMarker = null;
+        let rotationStemLine = null;
 
         // Custom green pin icon
         const customPinIcon = L.divIcon({
@@ -828,21 +868,73 @@ $seedTypes = [
         let landAreaModalInstance = null;
 
         function getLandAreaModal() {
-            if (!landAreaModalInstance) {
-                const el = document.getElementById('landAreaModal');
-                if (el && typeof bootstrap !== 'undefined') {
+            const el = document.getElementById('landAreaModal');
+            if (!el) return null;
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                if (!landAreaModalInstance) {
                     landAreaModalInstance = bootstrap.Modal.getOrCreateInstance(el);
                 }
+                return landAreaModalInstance;
             }
-            return landAreaModalInstance;
+            // Universal fallback if bootstrap JS is delayed or unavailable
+            return {
+                show: function () {
+                    el.classList.add('show');
+                    el.style.display = 'block';
+                    el.removeAttribute('aria-hidden');
+                    el.setAttribute('aria-modal', 'true');
+                    document.body.classList.add('modal-open');
+                    let backdrop = document.getElementById('landAreaCustomBackdrop');
+                    if (!backdrop) {
+                        backdrop = document.createElement('div');
+                        backdrop.id = 'landAreaCustomBackdrop';
+                        backdrop.className = 'modal-backdrop fade show';
+                        backdrop.style.zIndex = '1055';
+                        backdrop.onclick = closeLandAreaModal;
+                        document.body.appendChild(backdrop);
+                    }
+                },
+                hide: function () {
+                    el.classList.remove('show');
+                    el.style.display = 'none';
+                    el.setAttribute('aria-hidden', 'true');
+                    el.removeAttribute('aria-modal');
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.getElementById('landAreaCustomBackdrop');
+                    if (backdrop) backdrop.remove();
+                    const bsBackdrops = document.querySelectorAll('.modal-backdrop');
+                    bsBackdrops.forEach(b => b.remove());
+                }
+            };
+        }
+
+        window.closeLandAreaModal = function () {
+            const modal = getLandAreaModal();
+            if (modal) modal.hide();
+        };
+
+        function updatePresetButtons(val) {
+            const num = parseFloat(val);
+            document.querySelectorAll('#presetAreaGroup .preset-area-btn').forEach(btn => {
+                const btnVal = parseFloat(btn.getAttribute('data-val'));
+                if (btnVal === num) {
+                    btn.classList.add('btn-success', 'text-white', 'active');
+                    btn.classList.remove('btn-outline-secondary');
+                } else {
+                    btn.classList.remove('btn-success', 'text-white', 'active');
+                    btn.classList.add('btn-outline-secondary');
+                }
+            });
         }
 
         window.openLandAreaModal = function (preferredMode = null) {
+            const currentVal = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
             const input = document.getElementById('modalAreaInput');
             if (input) {
-                input.value = targetSquareMeters || 250;
+                input.value = currentVal;
             }
-            updatePresetButtons(targetSquareMeters || 250);
+            updatePresetButtons(currentVal);
+            updateModalButtonLabel(currentVal);
 
             const modal = getLandAreaModal();
             if (modal) {
@@ -859,21 +951,16 @@ $seedTypes = [
                 input.value = val;
             }
             updatePresetButtons(val);
+            updateModalButtonLabel(val);
         };
 
-        function updatePresetButtons(val) {
-            const buttons = document.querySelectorAll('.preset-area-btn');
-            buttons.forEach(btn => {
-                const bVal = parseFloat(btn.getAttribute('data-val'));
-                if (bVal === parseFloat(val)) {
-                    btn.classList.add('active', 'btn-success', 'text-white');
-                    btn.classList.remove('btn-outline-secondary');
-                } else {
-                    btn.classList.remove('active', 'btn-success', 'text-white');
-                    btn.classList.add('btn-outline-secondary');
-                }
-            });
-        }
+        window.updateModalButtonLabel = function (val) {
+            const btnText = document.getElementById('modalBtnAreaText');
+            if (btnText) {
+                const num = parseFloat(val);
+                btnText.textContent = (!isNaN(num) && num > 0) ? `${num.toLocaleString()} m²` : '—';
+            }
+        };
 
         window.confirmLandAreaAndDraw = function () {
             const input = document.getElementById('modalAreaInput');
@@ -893,14 +980,24 @@ $seedTypes = [
             if (editBtn) editBtn.classList.remove('d-none');
 
             const modal = getLandAreaModal();
-            const preferredMode = modal?._preferredMode || 'polygon';
             if (modal) modal.hide();
 
-            // If a polygon already exists, recalibrate its size to match new targetSquareMeters
+            // Automatically put the drawing immediately with fixed square meters!
+            placeFixedPlotOnMap(targetSquareMeters);
+        };
+
+        window.placeFixedPlotOnMap = function (areaMeters) {
+            let center = marker ? marker.getLatLng() : map.getCenter();
+            if (!marker) {
+                setLocation(center.lat, center.lng);
+                center = marker.getLatLng();
+            }
+
+            // If a polygon already exists, preserve its current orientation/shape and scale to exact new square meters
             if (drawnPolygonLayer && drawnPoints && drawnPoints.length >= 3) {
                 const curArea = calculatePolygonArea(drawnPoints);
                 if (curArea > 0) {
-                    const scaleFactor = Math.sqrt(targetSquareMeters / curArea);
+                    const scaleFactor = Math.sqrt(areaMeters / curArea);
                     const centroid = calculateCentroid(drawnPoints);
                     drawnPoints = drawnPoints.map(p => {
                         return L.latLng(
@@ -910,48 +1007,15 @@ $seedTypes = [
                     });
                     drawnPolygonLayer.setLatLngs(drawnPoints);
                     createVertexMarkers();
+                    createRotationHandle();
                     updateDrawnPolygonStats(false);
                     renderSubdivisions();
                     return;
                 }
             }
 
-            // Start drawing
-            setPlotDrawMode(preferredMode === 'box' ? 'box' : 'polygon');
-            const helper = document.getElementById('mapDrawingHelper');
-            const helperText = document.getElementById('mapDrawingHelperText');
-            if (helper && helperText) {
-                helperText.innerHTML = `<i class="bi bi-rulers text-success me-1"></i><strong>Target: ${targetSquareMeters.toLocaleString()} m²</strong> &mdash; Click on map to place corner 1`;
-                helper.classList.remove('d-none');
-            }
-        };
-
-        window.autoPlaceExactBoundary = function () {
-            const input = document.getElementById('modalAreaInput');
-            let val = parseFloat(input?.value);
-            if (isNaN(val) || val <= 0) {
-                alert('Please enter a valid positive land area in square meters (e.g. 250).');
-                return;
-            }
-            targetSquareMeters = Math.round(val * 10) / 10;
-
-            const areaInput = document.getElementById('area');
-            if (areaInput) areaInput.value = targetSquareMeters;
-
-            const badge = document.getElementById('targetAreaBadge');
-            if (badge) badge.textContent = `${targetSquareMeters.toLocaleString()} m²`;
-            const editBtn = document.getElementById('btnEditPlotArea');
-            if (editBtn) editBtn.classList.remove('d-none');
-
-            const modal = getLandAreaModal();
-            if (modal) modal.hide();
-
-            let center = marker ? marker.getLatLng() : map.getCenter();
-            if (!marker) {
-                setLocation(center.lat, center.lng);
-            }
-
-            const sideMeters = Math.sqrt(targetSquareMeters);
+            // Generate initial square plot matching exact square meters centered at pin
+            const sideMeters = Math.sqrt(areaMeters);
             const halfSide = sideMeters / 2;
             const deltaLat = halfSide / 111320;
             const deltaLng = halfSide / (111320 * Math.cos(center.lat * Math.PI / 180));
@@ -964,6 +1028,32 @@ $seedTypes = [
             ];
 
             finishCurrentPolygon();
+        };
+
+        window.rotatePlot = function (degrees) {
+            if (!drawnPoints || drawnPoints.length < 3) return;
+            const rad = degrees * Math.PI / 180;
+            const centroid = calculateCentroid(drawnPoints);
+            const cosLat = Math.cos(centroid.lat * Math.PI / 180);
+
+            const cosA = Math.cos(rad);
+            const sinA = Math.sin(rad);
+
+            drawnPoints = drawnPoints.map(p => {
+                const x = (p.lng - centroid.lng) * cosLat;
+                const y = p.lat - centroid.lat;
+                const rx = x * cosA - y * sinA;
+                const ry = x * sinA + y * cosA;
+                return L.latLng(centroid.lat + ry, centroid.lng + rx / cosLat);
+            });
+
+            if (drawnPolygonLayer) {
+                drawnPolygonLayer.setLatLngs(drawnPoints);
+            }
+            createVertexMarkers();
+            createRotationHandle();
+            updateDrawnPolygonStats(false);
+            renderSubdivisions();
         };
 
         // ─── Step-by-Step Registration Process Controller ───
@@ -1048,7 +1138,7 @@ $seedTypes = [
                 if (step === 1) {
                     guideText.innerHTML = '<i class="bi bi-geo-alt-fill text-danger"></i><span><strong>Step 1:</strong> Search location or click anywhere on the map to pinpoint.</span>';
                 } else if (step === 2) {
-                    guideText.innerHTML = '<i class="bi bi-pentagon-fill text-success"></i><span><strong>Step 2:</strong> Click corners on map to draw plot boundary (min 3 pts). Click "Finish" when done.</span>';
+                    guideText.innerHTML = '<i class="bi bi-rulers text-success"></i><span><strong>Step 2:</strong> Set square meters & adjust plot boundary (rotate or drag corners).</span>';
                 } else if (step === 3) {
                     guideText.innerHTML = '<i class="bi bi-grid-3x3-gap-fill text-success"></i><span><strong>Step 3:</strong> Boundary created! Choose partition plots & complete land details below.</span>';
                 }
@@ -1064,11 +1154,7 @@ $seedTypes = [
                     alert('Please pinpoint a location on the map first (Step 1).');
                     return;
                 }
-                if (!drawnPolygonLayer && (!drawnPoints || drawnPoints.length === 0)) {
-                    openLandAreaModal('polygon');
-                    return;
-                }
-                setPlotDrawMode('polygon');
+                openLandAreaModal();
                 setRegistrationStep(2);
             } else if (targetStep === 3) {
                 if (!drawnPolygonLayer || drawnPoints.length < 3) {
@@ -1123,18 +1209,38 @@ $seedTypes = [
             } else {
                 marker = L.marker(latlng, { draggable: true, icon: customPinIcon }).addTo(map);
 
+                let markerDragStart = null;
+                marker.on('dragstart', function (e) {
+                    markerDragStart = e.target.getLatLng();
+                });
+                marker.on('drag', function (e) {
+                    if (drawnPolygonLayer && drawnPoints && drawnPoints.length >= 3 && markerDragStart) {
+                        const curPos = e.target.getLatLng();
+                        const dLat = curPos.lat - markerDragStart.lat;
+                        const dLng = curPos.lng - markerDragStart.lng;
+                        markerDragStart = curPos;
+
+                        drawnPoints = drawnPoints.map(p => L.latLng(p.lat + dLat, p.lng + dLng));
+                        drawnPolygonLayer.setLatLngs(drawnPoints);
+                        vertexMarkers.forEach((vm, idx) => {
+                            if (drawnPoints[idx]) vm.setLatLng(drawnPoints[idx]);
+                        });
+                        if (rotationHandleMarker && rotationStemLine) {
+                            const newTopMidLat = (drawnPoints[0].lat + drawnPoints[1].lat) / 2;
+                            const newTopMidLng = (drawnPoints[0].lng + drawnPoints[1].lng) / 2;
+                            const hPos = rotationHandleMarker.getLatLng();
+                            rotationHandleMarker.setLatLng([hPos.lat + dLat, hPos.lng + dLng]);
+                            rotationStemLine.setLatLngs([[newTopMidLat, newTopMidLng], [hPos.lat + dLat, hPos.lng + dLng]]);
+                        }
+                        renderSubdivisions();
+                    }
+                });
                 marker.on('dragend', function (e) {
                     const pos = e.target.getLatLng();
                     setLocation(pos.lat, pos.lng);
                     reverseGeocode(pos.lat, pos.lng);
                 });
             }
-
-            // Reveal Draw Plot and Draw Box buttons now that location is pinpointed
-            const polyBtn = document.getElementById('drawModePolygonBtn');
-            const boxBtn = document.getElementById('drawModeBoxBtn');
-            if (polyBtn) polyBtn.classList.remove('d-none');
-            if (boxBtn) boxBtn.classList.remove('d-none');
 
             // If plot is not drawn yet, automatically zoom and prompt for square meters before drawing!
             if (!drawnPolygonLayer) {
@@ -1144,21 +1250,30 @@ $seedTypes = [
                 const targetZoom = 18;
                 map.flyTo(latlng, targetZoom, { animate: true, duration: 0.85 });
 
-                // Open modal to ask for square meters before drawing begins
-                let prompted = false;
-                const promptAreaModal = () => {
-                    if (prompted) return;
-                    prompted = true;
+                // Open modal promptly so user gets immediate response
+                setTimeout(() => {
                     openLandAreaModal('polygon');
-                };
-
-                map.once('moveend', promptAreaModal);
-                setTimeout(promptAreaModal, 950);
+                }, 150);
             } else {
+                // If plot already exists, translate the fixed plot to the new pin location
+                if (drawnPoints && drawnPoints.length >= 3) {
+                    const curCentroid = calculateCentroid(drawnPoints);
+                    const dLat = parseFloat(lat) - curCentroid.lat;
+                    const dLng = parseFloat(lng) - curCentroid.lng;
+
+                    if (Math.abs(dLat) > 1e-7 || Math.abs(dLng) > 1e-7) {
+                        drawnPoints = drawnPoints.map(p => L.latLng(p.lat + dLat, p.lng + dLng));
+                        drawnPolygonLayer.setLatLngs(drawnPoints);
+                        createVertexMarkers();
+                        createRotationHandle();
+                        updateDrawnPolygonStats(false);
+                        renderSubdivisions();
+                    }
+                }
+
                 if (zoom) {
                     map.flyTo(latlng, zoom, { animate: true, duration: 0.85 });
                 }
-                updateLotBoundary(parseFloat(lat), parseFloat(lng));
             }
 
             // Update status bar
@@ -1179,6 +1294,10 @@ $seedTypes = [
         }
 
         map.on('click', function (e) {
+            // Once plot is placed, do not allow adding points or jumping the location on click
+            if (drawnPolygonLayer) {
+                return;
+            }
             if (currentDrawMode === 'polygon') {
                 handlePolygonClick(e);
                 return;
@@ -1665,7 +1784,55 @@ $seedTypes = [
                 fillOpacity: 0.25
             }).addTo(map);
 
+            // Automatically focus and zoom into the plot drawing cleanly
+            try {
+                map.fitBounds(drawnPolygonLayer.getBounds(), {
+                    padding: [60, 60],
+                    maxZoom: 18,
+                    animate: true
+                });
+            } catch (err) {
+                console.warn('fitBounds error:', err);
+            }
+
+            // Make the entire polygon draggable so clicking and dragging anywhere on the plot moves it
+            let isDraggingPlot = false;
+            let plotDragStart = null;
+            drawnPolygonLayer.on('mousedown', function (e) {
+                isDraggingPlot = true;
+                plotDragStart = e.latlng;
+                map.dragging.disable();
+            });
+            map.on('mousemove', function (e) {
+                if (isDraggingPlot && plotDragStart && drawnPoints && drawnPoints.length >= 3) {
+                    const dLat = e.latlng.lat - plotDragStart.lat;
+                    const dLng = e.latlng.lng - plotDragStart.lng;
+                    plotDragStart = e.latlng;
+
+                    drawnPoints = drawnPoints.map(p => L.latLng(p.lat + dLat, p.lng + dLng));
+                    drawnPolygonLayer.setLatLngs(drawnPoints);
+                    const c = calculateCentroid(drawnPoints);
+                    if (marker) marker.setLatLng([c.lat, c.lng]);
+                    vertexMarkers.forEach((vm, idx) => {
+                        if (drawnPoints[idx]) vm.setLatLng(drawnPoints[idx]);
+                    });
+                    renderSubdivisions();
+                }
+            });
+            map.on('mouseup', function () {
+                if (isDraggingPlot) {
+                    isDraggingPlot = false;
+                    plotDragStart = null;
+                    map.dragging.enable();
+                    createVertexMarkers();
+                    createRotationHandle();
+                    updateDrawnPolygonStats(true);
+                    renderSubdivisions();
+                }
+            });
+
             createVertexMarkers();
+            createRotationHandle();
             updateDrawnPolygonStats(true);
             renderSubdivisions();
 
@@ -1673,29 +1840,29 @@ $seedTypes = [
             if (clearBtn) clearBtn.classList.remove('d-none');
             const formClearBtn = document.getElementById('btnFormClearDrawn');
             if (formClearBtn) formClearBtn.classList.remove('d-none');
+            const rotLeft = document.getElementById('btnRotateLeft');
+            const rotRight = document.getElementById('btnRotateRight');
+            if (rotLeft) rotLeft.classList.remove('d-none');
+            if (rotRight) rotRight.classList.remove('d-none');
 
-            // Pop up the Partition Plots Overlay now that plot boundary is drawn
+            // Pop up the Partition Plots Overlay now that plot boundary is placed
             const plotOverlay = document.getElementById('plotControlOverlay');
             if (plotOverlay) {
                 plotOverlay.classList.remove('d-none');
             }
 
-            // Hide the drawing helper
+            // Display helpful guidance pill
             const helper = document.getElementById('mapDrawingHelper');
-            if (helper) helper.classList.add('d-none');
+            const helperText = document.getElementById('mapDrawingHelperText');
+            if (helper && helperText) {
+                helperText.innerHTML = `<i class="bi bi-arrows-move text-success me-1"></i><strong>${targetSquareMeters} m² Fixed</strong> &mdash; Drag plot or corners to position &bull; Drag top handle or use ↺ ↻ to rotate`;
+                helper.classList.remove('d-none');
+            }
 
             // Switch to pan mode cleanly without clearing drawn points
             currentDrawMode = 'pan';
             map.getContainer().style.cursor = '';
             const panBtn = document.getElementById('drawModePanBtn');
-            const polyBtn = document.getElementById('drawModePolygonBtn');
-            const boxBtn = document.getElementById('drawModeBoxBtn');
-            [polyBtn, boxBtn].forEach(b => {
-                if (b) {
-                    b.classList.remove('active', 'btn-success', 'text-white');
-                    b.classList.add('text-secondary');
-                }
-            });
             if (panBtn) {
                 panBtn.classList.add('active', 'text-dark');
                 panBtn.classList.remove('text-secondary');
@@ -1710,26 +1877,137 @@ $seedTypes = [
 
             const vertexIcon = L.divIcon({
                 className: 'polygon-vertex-handle',
-                html: `<div style="width:14px;height:14px;background:#16a34a;border:2.5px solid #ffffff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35);cursor:move;" title="Drag to adjust corner"></div>`,
-                iconSize: [14, 14],
-                iconAnchor: [7, 7]
+                html: `<div style="width:16px;height:16px;background:#16a34a;border:2.5px solid #ffffff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35);cursor:move;" title="Drag corner to reshape (area remains fixed)"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
             });
 
             drawnPoints.forEach((pt, idx) => {
                 const vm = L.marker(pt, { icon: vertexIcon, draggable: true }).addTo(map);
                 vm.on('drag', function (ev) {
                     drawnPoints[idx] = ev.target.getLatLng();
-                    drawnPolygonLayer.setLatLngs(drawnPoints);
+                    // Maintain strictly fixed square meters while reshaping
+                    const curArea = calculatePolygonArea(drawnPoints);
+                    if (curArea > 0 && targetSquareMeters > 0) {
+                        const scale = Math.sqrt(targetSquareMeters / curArea);
+                        const c = calculateCentroid(drawnPoints);
+                        drawnPoints = drawnPoints.map(p => {
+                            return L.latLng(
+                                c.lat + (p.lat - c.lat) * scale,
+                                c.lng + (p.lng - c.lng) * scale
+                            );
+                        });
+                    }
+                    if (drawnPolygonLayer) drawnPolygonLayer.setLatLngs(drawnPoints);
+                    vertexMarkers.forEach((m, i) => {
+                        if (i !== idx && drawnPoints[i]) m.setLatLng(drawnPoints[i]);
+                    });
+                    if (rotationStemLine && rotationHandleMarker) {
+                        const newTopMidLat = (drawnPoints[0].lat + drawnPoints[1].lat) / 2;
+                        const newTopMidLng = (drawnPoints[0].lng + drawnPoints[1].lng) / 2;
+                        rotationStemLine.setLatLngs([[newTopMidLat, newTopMidLng], rotationHandleMarker.getLatLng()]);
+                    }
                     updateDrawnPolygonStats(false);
                     renderSubdivisions();
                 });
-                vm.on('dragend', function (ev) {
-                    drawnPoints[idx] = ev.target.getLatLng();
-                    drawnPolygonLayer.setLatLngs(drawnPoints);
+                vm.on('dragend', function () {
+                    createVertexMarkers();
+                    createRotationHandle();
                     updateDrawnPolygonStats(true);
                     renderSubdivisions();
                 });
                 vertexMarkers.push(vm);
+            });
+        }
+
+        function createRotationHandle() {
+            if (rotationHandleMarker) { map.removeLayer(rotationHandleMarker); rotationHandleMarker = null; }
+            if (rotationStemLine) { map.removeLayer(rotationStemLine); rotationStemLine = null; }
+            if (!drawnPoints || drawnPoints.length < 3) return;
+
+            const centroid = calculateCentroid(drawnPoints);
+            const topMidLat = (drawnPoints[0].lat + drawnPoints[1].lat) / 2;
+            const topMidLng = (drawnPoints[0].lng + drawnPoints[1].lng) / 2;
+
+            const cosLat = Math.cos(centroid.lat * Math.PI / 180);
+            const dLat = topMidLat - centroid.lat;
+            const dLng = (topMidLng - centroid.lng) * cosLat;
+            const dist = Math.hypot(dLat, dLng);
+
+            const extMeters = 16;
+            const extDegLat = extMeters / 111320;
+            const factor = dist > 0 ? (1 + extDegLat / dist) : 1.35;
+
+            const handleLat = centroid.lat + dLat * factor;
+            const handleLng = centroid.lng + (dLng * factor) / cosLat;
+
+            // Draw stem line
+            rotationStemLine = L.polyline([[topMidLat, topMidLng], [handleLat, handleLng]], {
+                color: '#16a34a',
+                weight: 2,
+                dashArray: '3, 4',
+                interactive: false
+            }).addTo(map);
+
+            const rotIcon = L.divIcon({
+                className: 'plot-rotation-handle',
+                html: `<div style="width:28px;height:28px;background:#ffffff;border:2.5px solid #16a34a;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,0.3);cursor:grab;color:#16a34a;font-size:14px;" title="Drag to rotate plot">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            rotationHandleMarker = L.marker([handleLat, handleLng], {
+                icon: rotIcon,
+                draggable: true
+            }).addTo(map);
+
+            let initialAngle = Math.atan2(handleLat - centroid.lat, (handleLng - centroid.lng) * cosLat);
+
+            rotationHandleMarker.on('dragstart', function () {
+                const c = calculateCentroid(drawnPoints);
+                const pos = rotationHandleMarker.getLatLng();
+                initialAngle = Math.atan2(pos.lat - c.lat, (pos.lng - c.lng) * Math.cos(c.lat * Math.PI / 180));
+            });
+
+            rotationHandleMarker.on('drag', function (ev) {
+                const c = calculateCentroid(drawnPoints);
+                const pos = ev.target.getLatLng();
+                const curCosLat = Math.cos(c.lat * Math.PI / 180);
+                const currentAngle = Math.atan2(pos.lat - c.lat, (pos.lng - c.lng) * curCosLat);
+                const deltaAngle = currentAngle - initialAngle;
+                initialAngle = currentAngle;
+
+                const cosA = Math.cos(deltaAngle);
+                const sinA = Math.sin(deltaAngle);
+
+                drawnPoints = drawnPoints.map(p => {
+                    const x = (p.lng - c.lng) * curCosLat;
+                    const y = p.lat - c.lat;
+                    const rx = x * cosA - y * sinA;
+                    const ry = x * sinA + y * cosA;
+                    return L.latLng(c.lat + ry, c.lng + rx / curCosLat);
+                });
+
+                if (drawnPolygonLayer) drawnPolygonLayer.setLatLngs(drawnPoints);
+                vertexMarkers.forEach((vm, idx) => {
+                    if (drawnPoints[idx]) vm.setLatLng(drawnPoints[idx]);
+                });
+
+                const newTopMidLat = (drawnPoints[0].lat + drawnPoints[1].lat) / 2;
+                const newTopMidLng = (drawnPoints[0].lng + drawnPoints[1].lng) / 2;
+                if (rotationStemLine) {
+                    rotationStemLine.setLatLngs([[newTopMidLat, newTopMidLng], pos]);
+                }
+                renderSubdivisions();
+            });
+
+            rotationHandleMarker.on('dragend', function () {
+                createVertexMarkers();
+                createRotationHandle();
+                updateDrawnPolygonStats(false);
+                renderSubdivisions();
             });
         }
 
@@ -1765,13 +2043,13 @@ $seedTypes = [
         function updateDrawnPolygonStats(updateAddress = false) {
             const area = calculatePolygonArea(drawnPoints);
             const roundedArea = Math.round(area * 10) / 10;
+            const finalArea = targetSquareMeters > 0 ? targetSquareMeters : roundedArea;
 
             const areaInput = document.getElementById('area');
-            if (areaInput) areaInput.value = roundedArea;
+            if (areaInput) areaInput.value = finalArea;
 
-            targetSquareMeters = roundedArea;
             const badge = document.getElementById('targetAreaBadge');
-            if (badge) badge.textContent = `${roundedArea.toLocaleString()} m²`;
+            if (badge) badge.textContent = `${finalArea.toLocaleString()} m²`;
             const editBtn = document.getElementById('btnEditPlotArea');
             if (editBtn) editBtn.classList.remove('d-none');
 
@@ -1782,7 +2060,7 @@ $seedTypes = [
 
             const summaryEl = document.getElementById('drawnBoundarySummary');
             if (summaryEl) {
-                summaryEl.textContent = `Custom Plot (${drawnPoints.length} corners, ${roundedArea.toLocaleString()} m²)`;
+                summaryEl.textContent = `Custom Plot (${drawnPoints.length} corners, ${finalArea.toLocaleString()} m²)`;
             }
 
             const centroid = calculateCentroid(drawnPoints);
@@ -1816,83 +2094,239 @@ $seedTypes = [
             updatePlotCalculation(false);
         }
 
+        function clipPolygonSutherlandHodgman(subjectPolygon, clipPolygon) {
+            let outputList = subjectPolygon;
+            const clipLen = clipPolygon.length;
+            for (let c = 0; c < clipLen; c++) {
+                const a = clipPolygon[c];
+                const b = clipPolygon[(c + 1) % clipLen];
+                const inputList = outputList;
+                outputList = [];
+                if (inputList.length === 0) break;
+
+                let s = inputList[inputList.length - 1];
+                for (let i = 0; i < inputList.length; i++) {
+                    const p = inputList[i];
+                    // Inside test: point on left side of directed edge a -> b
+                    const pInside = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) >= -1e-9;
+                    const sInside = (b[0] - a[0]) * (s[1] - a[1]) - (b[1] - a[1]) * (s[0] - a[0]) >= -1e-9;
+
+                    if (pInside) {
+                        if (!sInside) {
+                            outputList.push(intersectLineSegments(s, p, a, b));
+                        }
+                        outputList.push(p);
+                    } else if (sInside) {
+                        outputList.push(intersectLineSegments(s, p, a, b));
+                    }
+                    s = p;
+                }
+            }
+            return outputList;
+        }
+
+        function intersectLineSegments(p1, p2, p3, p4) {
+            const denom = (p4[1] - p3[1]) * (p2[0] - p1[0]) - (p4[0] - p3[0]) * (p2[1] - p1[1]);
+            if (Math.abs(denom) < 1e-12) return p1;
+            const ua = ((p4[0] - p3[0]) * (p1[1] - p3[1]) - (p4[1] - p3[1]) * (p1[0] - p3[0])) / denom;
+            return [p1[0] + ua * (p2[0] - p1[0]), p1[1] + ua * (p2[1] - p1[1])];
+        }
+
         function renderSubdivisions() {
             subdivisionLayers.forEach(l => map.removeLayer(l));
             subdivisionLayers = [];
 
-            if (!drawnPolygonLayer || drawnPoints.length < 3) {
+            if (!drawnPolygonLayer || !drawnPoints || drawnPoints.length < 3) {
                 return;
             }
-
-            const bounds = drawnPolygonLayer.getBounds();
-            if (!bounds) return;
 
             const count = parseInt(document.getElementById('plot_count').value) || 4;
             const totalArea = parseFloat(document.getElementById('area').value) || 200;
             const singlePlotArea = totalArea > 0 ? (totalArea / count).toFixed(1) : Math.round(totalArea / count);
-
-            const cols = Math.ceil(Math.sqrt(count));
-            const rows = Math.ceil(count / cols);
-            const latStep = (bounds.getNorth() - bounds.getSouth()) / rows;
-            const lngStep = (bounds.getEast() - bounds.getWest()) / cols;
-
             const permittedCrops = Array.from(selectedCrops.values()).map(c => c.label);
 
-            let plotIndex = 1;
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (plotIndex > count) break;
+            let subPlotPolygons = [];
 
-                    const pMaxLat = bounds.getNorth() - (r * latStep);
-                    const pMinLat = bounds.getNorth() - ((r + 1) * latStep);
-                    const pMinLng = bounds.getWest() + (c * lngStep);
-                    const pMaxLng = bounds.getWest() + ((c + 1) * lngStep);
-
-                    const plotSquare = [
-                        [pMaxLat, pMinLng],
-                        [pMaxLat, pMaxLng],
-                        [pMinLat, pMaxLng],
-                        [pMinLat, pMinLng]
-                    ];
-
-                    const plotPoly = L.polygon(plotSquare, {
-                        color: '#16a34a',
-                        weight: 1.5,
-                        fillColor: '#22c55e',
-                        fillOpacity: 0.22,
-                        dashArray: '3, 4'
-                    }).addTo(map);
-
-                    const plotName = `Plot A-${plotIndex}`;
-                    const cropName = permittedCrops.length > 0 ? permittedCrops[(plotIndex - 1) % permittedCrops.length] : 'Available for Gardeners';
-
-                    plotPoly.bindTooltip(
-                        `<div style="font-family:'Outfit',sans-serif;font-size:11px;line-height:1.3;padding:1px;">
-                            <strong class="text-success"><i class="bi bi-grid-3x3-gap-fill me-1"></i>${plotName}</strong><br>
-                            <span class="text-dark font-monospace">${singlePlotArea} m²</span><br>
-                            <span class="badge bg-success-subtle text-success mt-1" style="font-size:9px;">${cropName}</span>
-                        </div>`,
-                        { permanent: false, direction: 'center' }
-                    );
-
-                    // Add subtle center badge icon
-                    const centerLat = (pMinLat + pMaxLat) / 2;
-                    const centerLng = (pMinLng + pMaxLng) / 2;
-                    const centerLabel = L.marker([centerLat, centerLng], {
-                        icon: L.divIcon({
-                            className: 'partition-plot-label',
-                            html: `<div style="background:rgba(22,163,74,0.85);color:#fff;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.25);pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);">${plotName}</div>`,
-                            iconSize: [0, 0]
-                        }),
-                        interactive: false
-                    }).addTo(map);
-
-                    subdivisionLayers.push(plotPoly);
-                    subdivisionLayers.push(centerLabel);
-
-                    plotIndex++;
+            // Case A: 4-Point Quadrilateral (Standard or Irregularlot)
+            let quadPts = drawnPoints.slice();
+            if (quadPts.length === 3) {
+                // Split longest edge into two to treat triangle as 4-point shape
+                const d01 = Math.hypot(quadPts[1].lat - quadPts[0].lat, quadPts[1].lng - quadPts[0].lng);
+                const d12 = Math.hypot(quadPts[2].lat - quadPts[1].lat, quadPts[2].lng - quadPts[1].lng);
+                const d20 = Math.hypot(quadPts[0].lat - quadPts[2].lat, quadPts[0].lng - quadPts[2].lng);
+                if (d01 >= d12 && d01 >= d20) {
+                    quadPts = [quadPts[0], { lat: (quadPts[0].lat + quadPts[1].lat) / 2, lng: (quadPts[0].lng + quadPts[1].lng) / 2 }, quadPts[1], quadPts[2]];
+                } else if (d12 >= d01 && d12 >= d20) {
+                    quadPts = [quadPts[0], quadPts[1], { lat: (quadPts[1].lat + quadPts[2].lat) / 2, lng: (quadPts[1].lng + quadPts[2].lng) / 2 }, quadPts[2]];
+                } else {
+                    quadPts = [quadPts[0], quadPts[1], quadPts[2], { lat: (quadPts[2].lat + quadPts[0].lat) / 2, lng: (quadPts[2].lng + quadPts[0].lng) / 2 }];
                 }
             }
+
+            if (quadPts.length === 4) {
+                // Determine orientation & aspect ratio along the polygon's edges
+                const widthDist = (Math.hypot(quadPts[1].lat - quadPts[0].lat, quadPts[1].lng - quadPts[0].lng) +
+                    Math.hypot(quadPts[2].lat - quadPts[3].lat, quadPts[2].lng - quadPts[3].lng)) / 2;
+                const heightDist = (Math.hypot(quadPts[3].lat - quadPts[0].lat, quadPts[3].lng - quadPts[0].lng) +
+                    Math.hypot(quadPts[2].lat - quadPts[1].lat, quadPts[2].lng - quadPts[1].lng)) / 2;
+                const isTaller = heightDist > widthDist * 1.15;
+
+                let cols, rows;
+                if (count === 1) { cols = 1; rows = 1; }
+                else if (count === 2) { cols = isTaller ? 1 : 2; rows = isTaller ? 2 : 1; }
+                else if (count === 3) { cols = isTaller ? 1 : 3; rows = isTaller ? 3 : 1; }
+                else if (count === 4) { cols = 2; rows = 2; }
+                else if (count === 6) { cols = isTaller ? 2 : 3; rows = isTaller ? 3 : 2; }
+                else if (count === 8) { cols = isTaller ? 2 : 4; rows = isTaller ? 4 : 2; }
+                else {
+                    cols = Math.ceil(Math.sqrt(count));
+                    rows = Math.ceil(count / cols);
+                }
+
+                // Bilinear mapping function on the irregular 4-point quadrilateral
+                const interpPoint = (u, v) => {
+                    const lat = (1 - v) * ((1 - u) * quadPts[0].lat + u * quadPts[1].lat) +
+                        v * ((1 - u) * quadPts[3].lat + u * quadPts[2].lat);
+                    const lng = (1 - v) * ((1 - u) * quadPts[0].lng + u * quadPts[1].lng) +
+                        v * ((1 - u) * quadPts[3].lng + u * quadPts[2].lng);
+                    return [lat, lng];
+                };
+
+                let idx = 1;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (idx > count) break;
+                        const u0 = c / cols;
+                        const u1 = (c + 1) / cols;
+                        const v0 = r / rows;
+                        const v1 = (r + 1) / rows;
+
+                        const cellQuad = [
+                            interpPoint(u0, v0),
+                            interpPoint(u1, v0),
+                            interpPoint(u1, v1),
+                            interpPoint(u0, v1)
+                        ];
+                        subPlotPolygons.push({ index: idx, points: cellQuad });
+                        idx++;
+                    }
+                }
+            } else {
+                // Case B: Arbitrary N-sided irregular polygon (N > 4)
+                const c = calculateCentroid(drawnPoints);
+                const cosLat = Math.cos(c.lat * Math.PI / 180);
+
+                // Align grid with first edge of the irregular polygon
+                const ang = Math.atan2(drawnPoints[1].lat - drawnPoints[0].lat, (drawnPoints[1].lng - drawnPoints[0].lng) * cosLat);
+                const cosA = Math.cos(-ang);
+                const sinA = Math.sin(-ang);
+
+                // Project to local coordinates
+                const localPts = drawnPoints.map(p => {
+                    const x = (p.lng - c.lng) * cosLat;
+                    const y = p.lat - c.lat;
+                    return [x * cosA - y * sinA, x * sinA + y * cosA];
+                });
+
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                localPts.forEach(([x, y]) => {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                });
+
+                const w = maxX - minX;
+                const h = maxY - minY;
+                const isTaller = h > w * 1.15;
+
+                let cols, rows;
+                if (count === 1) { cols = 1; rows = 1; }
+                else if (count === 2) { cols = isTaller ? 1 : 2; rows = isTaller ? 2 : 1; }
+                else if (count === 3) { cols = isTaller ? 1 : 3; rows = isTaller ? 3 : 1; }
+                else if (count === 4) { cols = 2; rows = 2; }
+                else if (count === 6) { cols = isTaller ? 2 : 3; rows = isTaller ? 3 : 2; }
+                else if (count === 8) { cols = isTaller ? 2 : 4; rows = isTaller ? 4 : 2; }
+                else {
+                    cols = Math.ceil(Math.sqrt(count));
+                    rows = Math.ceil(count / cols);
+                }
+
+                const dx = w / cols;
+                const dy = h / rows;
+                const invCosA = Math.cos(ang);
+                const invSinA = Math.sin(ang);
+
+                const toWorld = ([x, y]) => {
+                    const rx = x * invCosA - y * invSinA;
+                    const ry = x * invSinA + y * invCosA;
+                    return [c.lat + ry, c.lng + rx / cosLat];
+                };
+
+                let idx = 1;
+                for (let r = 0; r < rows; r++) {
+                    for (let col = 0; col < cols; col++) {
+                        if (idx > count) break;
+                        const cellMinX = minX + col * dx;
+                        const cellMaxX = minX + (col + 1) * dx;
+                        const cellMinY = maxY - (r + 1) * dy;
+                        const cellMaxY = maxY - r * dy;
+
+                        const cellQuadLocal = [
+                            [cellMinX, cellMaxY],
+                            [cellMaxX, cellMaxY],
+                            [cellMaxX, cellMinY],
+                            [cellMinX, cellMinY]
+                        ];
+
+                        const clippedLocal = clipPolygonSutherlandHodgman(localPts, cellQuadLocal);
+                        if (clippedLocal && clippedLocal.length >= 3) {
+                            subPlotPolygons.push({
+                                index: idx,
+                                points: clippedLocal.map(toWorld)
+                            });
+                            idx++;
+                        }
+                    }
+                }
+            }
+
+            subPlotPolygons.forEach(({ index, points }) => {
+                const plotPoly = L.polygon(points, {
+                    color: '#16a34a',
+                    weight: 1.5,
+                    fillColor: '#22c55e',
+                    fillOpacity: 0.22,
+                    dashArray: '3, 4'
+                }).addTo(map);
+
+                const plotName = `Plot A-${index}`;
+                const cropName = permittedCrops.length > 0 ? permittedCrops[(index - 1) % permittedCrops.length] : 'Available for Gardeners';
+
+                plotPoly.bindTooltip(
+                    `<div style="font-family:'Outfit',sans-serif;font-size:11px;line-height:1.3;padding:1px;">
+                        <strong class="text-success"><i class="bi bi-grid-3x3-gap-fill me-1"></i>${plotName}</strong><br>
+                        <span class="text-dark font-monospace">${singlePlotArea} m²</span><br>
+                        <span class="badge bg-success-subtle text-success mt-1" style="font-size:9px;">${cropName}</span>
+                    </div>`,
+                    { permanent: false, direction: 'center' }
+                );
+
+                const centerLat = points.reduce((sum, p) => sum + (Array.isArray(p) ? p[0] : p.lat), 0) / points.length;
+                const centerLng = points.reduce((sum, p) => sum + (Array.isArray(p) ? p[1] : p.lng), 0) / points.length;
+
+                const centerLabel = L.marker([centerLat, centerLng], {
+                    icon: L.divIcon({
+                        className: 'partition-plot-label',
+                        html: `<div style="background:rgba(22,163,74,0.85);color:#fff;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.25);pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);">${plotName}</div>`,
+                        iconSize: [0, 0]
+                    }),
+                    interactive: false
+                }).addTo(map);
+
+                subdivisionLayers.push(plotPoly);
+                subdivisionLayers.push(centerLabel);
+            });
         }
 
         window.clearDrawnPlot = function () {
@@ -1901,6 +2335,14 @@ $seedTypes = [
             if (drawnPolygonLayer) {
                 map.removeLayer(drawnPolygonLayer);
                 drawnPolygonLayer = null;
+            }
+            if (rotationHandleMarker) {
+                map.removeLayer(rotationHandleMarker);
+                rotationHandleMarker = null;
+            }
+            if (rotationStemLine) {
+                map.removeLayer(rotationStemLine);
+                rotationStemLine = null;
             }
             vertexMarkers.forEach(m => map.removeLayer(m));
             vertexMarkers = [];
@@ -1913,13 +2355,19 @@ $seedTypes = [
 
             const summaryEl = document.getElementById('drawnBoundarySummary');
             if (summaryEl) {
-                summaryEl.textContent = 'No custom boundary drawn. Use map tools above to draw.';
+                summaryEl.textContent = 'No custom boundary drawn.';
             }
 
             const clearBtn = document.getElementById('btnClearDrawnPlot');
             if (clearBtn) clearBtn.classList.add('d-none');
             const formClearBtn = document.getElementById('btnFormClearDrawn');
             if (formClearBtn) formClearBtn.classList.add('d-none');
+            const rotLeft = document.getElementById('btnRotateLeft');
+            const rotRight = document.getElementById('btnRotateRight');
+            if (rotLeft) rotLeft.classList.add('d-none');
+            if (rotRight) rotRight.classList.add('d-none');
+            const editBtn = document.getElementById('btnEditPlotArea');
+            if (editBtn) editBtn.classList.add('d-none');
 
             // Hide the Plot Control Overlay when plot is cleared
             const plotOverlay = document.getElementById('plotControlOverlay');
@@ -1927,12 +2375,12 @@ $seedTypes = [
                 plotOverlay.classList.add('d-none');
             }
 
-            setRegistrationStep(2);
-            setPlotDrawMode('polygon');
+            setRegistrationStep(1);
+            setPlotDrawMode('pan');
             const helper = document.getElementById('mapDrawingHelper');
             const helperText = document.getElementById('mapDrawingHelperText');
             if (helper && helperText) {
-                helperText.innerHTML = '<i class="bi bi-pentagon-fill text-success me-1"></i>Plot cleared. Click corners on map to redraw your boundary.';
+                helperText.innerHTML = '<i class="bi bi-geo-alt-fill text-success me-1"></i>Plot cleared. Click anywhere on the map to pinpoint location and set area.';
                 helper.classList.remove('d-none');
             }
         };

@@ -1,25 +1,38 @@
 /* ==========================================================================
-   Google Drive / Material 3 Design System Stylesheet
+   Cats & Soup Game Aesthetic Design System
    For: Idle Land for Community Gardening System
    ========================================================================== */
 
 :root {
-    --drive-canvas: #eef5f0;
-    --drive-surface: #ffffff;
-    --drive-surface-hover: #e3efe7;
-    --drive-surface-active: #cbeed6;
-    --drive-surface-selected: #e8f7ec;
-    --drive-primary: #198754;
-    --drive-primary-hover: #146c43;
-    --drive-primary-text: #0f5132;
-    --drive-text-main: #191c1a;
-    --drive-text-sub: #404943;
-    --drive-text-muted: #707973;
-    --drive-border: #e1e3e1;
+    --drive-canvas: #F8F3EC;
+    --drive-surface: #FFFDF9;
+    --drive-surface-hover: #F4EFE6;
+    --drive-surface-active: #EAE1D2;
+    --drive-surface-selected: #EFE6DA;
+    --drive-primary: #7FA668;
+    --drive-primary-hover: #6F9557;
+    --drive-primary-text: #FFFDF9;
+    --drive-text-main: #3E2B1E;
+    --drive-text-sub: #6B5446;
+    --drive-text-muted: #968172;
+    --drive-border: #785D4D;
+    --drive-border-subtle: #DFCFC2;
     --drive-radius-lg: 24px;
-    --drive-radius-md: 16px;
-    --drive-radius-sm: 8px;
-    --drive-font: 'Google Sans', 'Outfit', 'Inter', 'Roboto', sans-serif;
+    --drive-radius-md: 18px;
+    --drive-radius-sm: 12px;
+    --drive-font: 'Quicksand', 'Nunito', 'Outfit', sans-serif;
+
+    /* Cats & Soup Game Specific Tokens */
+    --cs-cocoa: #785D4D;
+    --cs-cocoa-dark: #4A3528;
+    --cs-parchment: #F8F3EC;
+    --cs-cream: #FFFDF9;
+    --cs-matcha: #BBD6B8;
+    --cs-matcha-dark: #7FA668;
+    --cs-coral: #E2735D;
+    --cs-honey: #F4B342;
+    --cs-slot-bg: #F7EFE6;
+    --cs-dashed: #DFCFC2;
 }
 
 body {
@@ -29,16 +42,6 @@ body {
     overflow-x: hidden;
     height: 100vh;
     width: 100vw;
-}
-
-/* ==========================================================================
-   Global: Remove all drop shadows
-   ========================================================================== */
-*,
-*::before,
-*::after {
-    box-shadow: none !important;
-    text-shadow: none !important;
 }
 
 /* Outer Shell Layout */
@@ -57,45 +60,81 @@ body {
     padding: 0;
 }
 
-/* ─── Ambient Header & Sidebar Focus States (Subtle dim when out of focus) ─── */
+/* ─── Cats & Soup Game Header & Sidebar ─── */
 #mainHeader {
-    height: 3.25rem !important; /* 52px proportionate height */
-    opacity: 0.90;
-    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, border-color 0.25s ease;
-    will-change: opacity;
+    height: 3.25rem !important;
+    background: #FAF5ED !important;
+    border-bottom: 2px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 2px 0 rgba(120, 93, 77, 0.12) !important;
+    color: var(--drive-text-main) !important;
+    transition: background-color 0.2s ease;
 }
 
 #mainSidebar {
-    opacity: 0.90;
-    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, border-color 0.25s ease;
-    will-change: opacity;
+    background: #F5EEE4 !important;
+    border-right: 2px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 2px 0 0 rgba(120, 93, 77, 0.06) !important;
+    color: var(--drive-text-main) !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
 }
 
-#mainHeader:hover,
-#mainHeader:focus-within,
-#mainHeader.focus-active,
-#mainHeader:has(.show),
-#mainHeader:has([aria-expanded="true"]),
-#mainSidebar:hover,
-#mainSidebar:focus-within,
-#mainSidebar.focus-active,
-#mainSidebar:has(.show),
-#mainSidebar:has([aria-expanded="true"]) {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.97) !important;
-}
-
-/* ─── Profile & Role Switcher Dropdown Styling ─── */
-.dropdown-menu .dropdown-item.active,
-.dropdown-menu .dropdown-item:active {
-    background-color: #e8f7ec !important;
-    color: #0f5132 !important;
+#mainSidebar .sidebar-nav-link {
+    border-radius: 99px !important;
+    border: 2px solid transparent !important;
+    color: #5C4537 !important;
     font-weight: 600 !important;
+    transition: all 0.15s ease !important;
+}
+
+#mainSidebar .sidebar-nav-link:hover {
+    background: #FAF5ED !important;
+    border-color: #DFCFC2 !important;
+    color: #3E2B1E !important;
+}
+
+#mainSidebar .sidebar-nav-link.bg-drive-surface-active,
+#mainSidebar .sidebar-nav-link.active {
+    background: #FFFDF9 !important;
+    border: 2px solid #785D4D !important;
+    box-shadow: 0 2px 0 #785D4D !important;
+    color: #4E7339 !important;
+    font-weight: 700 !important;
+}
+
+/* ─── Cats & Soup Dropdown Styling ─── */
+.dropdown-menu {
+    background: #FFFDF9 !important;
+    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 6px 0 rgba(120, 93, 77, 0.22) !important;
+    padding: 6px !important;
+}
+
+.dropdown-menu .dropdown-item {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    color: #4A3528 !important;
+    padding: 8px 14px !important;
+    transition: background 0.15s ease !important;
 }
 
 .dropdown-menu .dropdown-item:hover:not(.active) {
-    background-color: #f1f8f3 !important;
-    color: #191c1a !important;
+    background-color: #F4EFE6 !important;
+    color: #3E2B1E !important;
+}
+
+.dropdown-menu .dropdown-item.active,
+.dropdown-menu .dropdown-item:active {
+    background-color: #BBD6B8 !important;
+    color: #2F4D22 !important;
+    font-weight: 700 !important;
+    border: 1.5px solid #785D4D !important;
+}
+
+.dropdown-divider {
+    border-top: 2px dashed #DFCFC2 !important;
+    opacity: 1 !important;
+    margin: 6px 0 !important;
 }
 
 /* ─── Full-Screen Dashboard Map Layout (Blended Transparency) ─── */
@@ -127,7 +166,8 @@ body.has-fullscreen-map #mainSidebar,
 body:has(.landowner-map-page) #mainSidebar,
 body:has(.gardener-map-page) #mainSidebar {
     position: fixed !important;
-    top: 3.25rem !important; /* 52px below header */
+    top: 3.25rem !important;
+    /* 52px below header */
     bottom: 0 !important;
     left: 0 !important;
     height: calc(100vh - 3.25rem) !important;
@@ -240,7 +280,8 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 
 /* ─── Collapsible Main Sidebar System ─── */
 #mainSidebar {
-    width: 13rem !important; /* 208px compact modern sidebar */
+    width: 13rem !important;
+    /* 208px compact modern sidebar */
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease, transform 0.3s ease, opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -248,7 +289,8 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 #mainSidebar .sidebar-nav-link,
 #mainSidebar nav a {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 0.8125rem !important; /* 13px - matches navbar & chips */
+    font-size: 0.8125rem !important;
+    /* 13px - matches navbar & chips */
     height: 38px !important;
     gap: 0.75rem !important;
     padding-left: 0.85rem !important;
@@ -266,7 +308,8 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 
 #mainSidebar #sidebarCollapseBtn {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    font-size: 0.8125rem !important; /* Matches nav links exactly */
+    font-size: 0.8125rem !important;
+    /* Matches nav links exactly */
     height: 38px !important;
     gap: 0.75rem !important;
     padding-left: 0.85rem !important;
@@ -311,26 +354,12 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
     transform: rotate(180deg);
 }
 
-/* Mobile Offcanvas Drawer */
+/* Mobile: Disable Sidebar, Collapsible Toggle, and Backdrop */
 @media (max-width: 767.98px) {
-    #mainSidebar {
-        position: fixed !important;
-        top: 3.25rem;
-        bottom: 0;
-        left: 0;
-        z-index: 1045 !important;
-        display: flex !important;
-        transform: translateX(-100%);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    #mainSidebar.mobile-open {
-        transform: translateX(0) !important;
-        opacity: 1 !important;
-    }
-
-    #sidebarBackdrop.show {
-        display: block !important;
+    #mainSidebar,
+    #sidebarBackdrop,
+    #sidebarToggleBtn {
+        display: none !important;
     }
 }
 
@@ -486,8 +515,10 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1.5rem;
-    border-b: 1px solid var(--drive-border);
+    padding: 1.25rem 1.5rem 0.5rem;
+    border: none !important;
+    border-bottom: none !important;
+    background: transparent;
 }
 
 /* Card & Border Green Scheme Override */
@@ -557,59 +588,222 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 .workspace-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 1.5rem;
+    padding: 0.5rem 1.5rem 1.5rem;
 }
 
 /* Google-inspired Forms & Modals */
-.drive-form-control {
-    border: 1px solid var(--drive-border);
-    border-radius: var(--drive-radius-sm);
-    padding: 0.6rem 0.8rem;
-    font-size: 0.875rem;
-    color: var(--drive-text-main);
-    background-color: var(--drive-surface);
-    transition: border-color 0.2s, box-shadow 0.2s;
+.drive-form-control,
+.form-control,
+.form-select {
+    border: 2px solid var(--drive-border-subtle, #DFCFC2) !important;
+    border-radius: 14px !important;
+    padding: 0.6rem 0.9rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: var(--drive-text-main, #3E2B1E) !important;
+    background-color: #FBF8F3 !important;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
-.drive-form-control:focus {
-    border-color: var(--drive-primary);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+.drive-form-control:focus,
+.form-control:focus,
+.form-select:focus {
+    background-color: #FFFDF9 !important;
+    border-color: var(--drive-primary, #7FA668) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3.5px rgba(127, 166, 104, 0.22) !important;
+    color: var(--drive-text-main, #3E2B1E) !important;
 }
 
-.drive-modal-content {
-    border-radius: var(--drive-radius-lg) !important;
-    border: none !important;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15) !important;
-    background-color: var(--drive-surface) !important;
+.drive-modal-content,
+.modal-content {
+    border-radius: 26px !important;
+    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 8px 0 rgba(120, 93, 77, 0.22) !important;
+    background-color: #FFFDF9 !important;
+    color: var(--drive-text-main, #3E2B1E) !important;
+    overflow: hidden !important;
 }
 
-.btn-drive-primary {
-    background-color: var(--drive-primary) !important;
-    color: #ffffff !important;
-    border-radius: 50rem !important;
-    padding: 0.5rem 1.5rem !important;
-    font-weight: 500 !important;
-    border: none !important;
-    transition: background-color 0.2s !important;
+/* ─── Cats & Soup General Cards ─── */
+.card {
+    background-color: #FFFDF9 !important;
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    border-radius: 22px !important;
+    box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D) !important;
+    overflow: hidden;
 }
 
-.btn-drive-primary:hover {
-    background-color: var(--drive-primary-hover) !important;
+.card-header {
+    background-color: #F7EFE6 !important;
+    border-bottom: 2px dashed #DFCFC2 !important;
+    color: #4A3528 !important;
+    font-weight: 700 !important;
 }
 
-.btn-drive-secondary {
-    background-color: transparent !important;
-    color: var(--drive-primary) !important;
-    border-radius: 50rem !important;
-    padding: 0.5rem 1.5rem !important;
-    font-weight: 500 !important;
-    border: 1px solid var(--drive-border) !important;
-    transition: background-color 0.2s !important;
+.card-footer {
+    background-color: #FAF5ED !important;
+    border-top: 2px dashed #DFCFC2 !important;
 }
 
-.btn-drive-secondary:hover {
-    background-color: var(--drive-surface-hover) !important;
+.alert-success {
+    background-color: #D5ECC2 !important;
+    border: 2px solid #7FA668 !important;
+    color: #2B5718 !important;
+    font-weight: 600 !important;
+}
+
+.modal-header {
+    border-bottom: 2px dashed #DFCFC2 !important;
+    padding: 1.25rem 1.5rem 0.9rem !important;
+}
+
+.modal-footer {
+    border-top: 2px dashed #DFCFC2 !important;
+    padding: 0.9rem 1.5rem 1.25rem !important;
+}
+
+/* ─── Cats & Soup Tactile Buttons ─── */
+.btn-drive-primary,
+.btn-primary,
+.btn-success {
+    background: #7FA668 !important;
+    background-color: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border-radius: 99px !important;
+    padding: 0.55rem 1.4rem !important;
+    font-weight: 700 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
+    letter-spacing: 0.2px !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-drive-primary:hover,
+.btn-primary:hover,
+.btn-success:hover {
+    background: #6E9557 !important;
+    background-color: #6E9557 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 0 #523E31 !important;
+    color: #FFFDF9 !important;
+}
+
+.btn-drive-primary:active,
+.btn-primary:active,
+.btn-success:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+
+.btn-drive-secondary,
+.btn-outline-secondary,
+.btn-light {
+    background: #F7EFE6 !important;
+    background-color: #F7EFE6 !important;
+    color: #4A3528 !important;
+    border-radius: 99px !important;
+    padding: 0.55rem 1.4rem !important;
+    font-weight: 700 !important;
+    border: 2px solid #785D4D !important;
+    box-shadow: 0 3px 0 #785D4D !important;
+    letter-spacing: 0.2px !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-drive-secondary:hover,
+.btn-outline-secondary:hover,
+.btn-light:hover {
+    background: #EDE2D4 !important;
+    background-color: #EDE2D4 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 0 #785D4D !important;
+    color: #3E2B1E !important;
+}
+
+.btn-drive-secondary:active,
+.btn-outline-secondary:active,
+.btn-light:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 0 #785D4D !important;
+}
+
+.btn-danger {
+    background: #E2735D !important;
+    background-color: #E2735D !important;
+    color: #FFFDF9 !important;
+    border-radius: 99px !important;
+    padding: 0.55rem 1.4rem !important;
+    font-weight: 700 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
+    letter-spacing: 0.2px !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-danger:hover {
+    background: #D4614A !important;
+    background-color: #D4614A !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 0 #523E31 !important;
+    color: #FFFDF9 !important;
+}
+
+.btn-danger:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+
+.btn-outline-danger {
+    background: #FFFDF9 !important;
+    background-color: #FFFDF9 !important;
+    color: #C85A48 !important;
+    border-radius: 99px !important;
+    padding: 0.55rem 1.4rem !important;
+    font-weight: 700 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
+    letter-spacing: 0.2px !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-outline-danger:hover {
+    background: #FBD7D1 !important;
+    background-color: #FBD7D1 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 0 #523E31 !important;
+    color: #8C2B1D !important;
+}
+
+.btn-outline-danger:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+
+.btn-drive-primary.btn-sm,
+.btn-drive-secondary.btn-sm,
+.btn-sm.rounded-pill {
+    padding: 0.35rem 0.95rem !important;
+    font-size: 0.8125rem !important;
+    line-height: 1.35 !important;
+}
+
+.btn-xs {
+    padding: 0.2rem 0.55rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
 }
 
 /* Google Login UI Card */
@@ -907,37 +1101,36 @@ a.text-decoration-none:hover {
     left: 14px;
     right: 14px;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    border-radius: 50rem;
+    background: #FFFDF9 !important;
+    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+    border-radius: 99px !important;
     padding: 6px 10px 6px 14px;
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09), 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D), 0 8px 20px rgba(0, 0, 0, 0.08) !important;
 }
 
 .floating-map-search-input {
     border: none;
     background: transparent;
     font-size: 0.88rem;
-    color: #1e293b;
+    font-weight: 600;
+    color: var(--drive-text-main, #3E2B1E);
     outline: none;
     width: 100%;
     padding: 2px 4px;
 }
 
 .floating-map-search-input::placeholder {
-    color: #94a3b8;
+    color: #9E897A;
     font-size: 0.85rem;
 }
 
 .floating-map-search-clear {
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: #9E897A;
     cursor: pointer;
     padding: 2px 6px;
     font-size: 0.85rem;
@@ -949,24 +1142,23 @@ a.text-decoration-none:hover {
     height: 34px;
     min-width: 34px;
     border-radius: 50%;
-    background: #16a34a;
-    color: #ffffff;
-    font-weight: 700;
+    background: #BBD6B8 !important;
+    color: #3E2B1E !important;
+    font-weight: 800;
     font-size: 0.82rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #ffffff;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
     text-decoration: none;
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .floating-profile-btn:hover,
 .floating-profile-btn:focus {
-    color: #ffffff;
-    opacity: 0.92;
-    transform: scale(1.04);
+    color: #3E2B1E !important;
+    transform: scale(1.05);
 }
 
 /* ─── Realtime Search Suggestions Dropdown ─── */
@@ -975,11 +1167,10 @@ a.text-decoration-none:hover {
     top: calc(100% + 8px);
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    background: #FFFDF9 !important;
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
     border-radius: 20px;
+    box-shadow: 0 6px 0 rgba(120, 93, 77, 0.2) !important;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.06);
     overflow: hidden;
     z-index: 1060;
@@ -1098,49 +1289,51 @@ a.text-decoration-none:hover {
 }
 
 .map-chip {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    color: #1e293b;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 50rem;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
-    flex-shrink: 0;
-    letter-spacing: 0.1px;
-    display: inline-flex;
-    align-items: center;
+    background: #FFFDF9 !important;
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    color: #4A3528 !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    padding: 6px 14px !important;
+    border-radius: 99px !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease !important;
+    box-shadow: 0 3px 0 #785D4D !important;
+    flex-shrink: 0 !important;
+    letter-spacing: 0.2px !important;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
 .map-chip:hover {
-    background: #ffffff;
-    border-color: var(--drive-primary);
-    color: var(--drive-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+    background: #F7EFE6 !important;
+    color: #3E2B1E !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 0 #785D4D !important;
+}
+
+.map-chip:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 0 #785D4D !important;
 }
 
 .map-chip.active {
-    background: var(--drive-primary) !important;
-    color: #ffffff !important;
-    border-color: var(--drive-primary) !important;
-    /* box-shadow: 0 4px 14px rgba(25, 135, 84, 0.45) !important; */
+    background: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border-color: #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
 }
 
 .map-chip.active i {
-    color: #ffffff !important;
+    color: #FFFDF9 !important;
 }
 
 .map-chip.dropdown-toggle.show,
 .map-chip.dropdown-toggle[aria-expanded="true"] {
-    background: #ffffff;
-    border-color: var(--drive-primary);
-    color: var(--drive-primary);
+    background: #F7EFE6 !important;
+    border-color: #785D4D !important;
+    color: #3E2B1E !important;
 }
 
 /* ─── Map Action Fab Stack ─── */
@@ -1263,40 +1456,101 @@ a.text-decoration-none:hover {
     }
 }
 
-/* ─── Bottom Sheet Card ─── */
+/* ─── Bottom Sheet Card (Cats & Soup Aesthetic) ─── */
 .mobile-land-sheet {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1002;
-    background: #ffffff;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1060 !important;
+    background: #FFFDF9 !important;
+    border-top: 3px solid var(--cs-cocoa, #785D4D) !important;
     border-radius: 28px 28px 0 0;
-    padding: 0 16px 20px;
+    padding: 0 18px 22px;
     overflow: hidden;
-    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.14), 0 -2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -6px 0 rgba(120, 93, 77, 0.18), 0 -12px 30px rgba(0, 0, 0, 0.1) !important;
     transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.25s ease;
     will-change: transform;
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 /* On desktop keep it as a floating side card in bottom-left corner */
 @media (min-width: 769px) {
     .mobile-land-sheet {
-        bottom: 24px;
-        left: 24px;
-        right: auto;
-        width: 440px;
+        bottom: 24px !important;
+        left: 24px !important;
+        right: auto !important;
+        width: 440px !important;
         max-width: calc(100vw - 48px);
-        border-radius: 24px;
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16), 0 2px 10px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+        border-radius: 24px !important;
+        box-shadow: 0 6px 0 var(--cs-cocoa, #785D4D), 0 16px 36px rgba(0, 0, 0, 0.12) !important;
     }
 }
 
 .mobile-land-sheet.hidden {
-    transform: translateY(110%);
-    opacity: 0;
-    pointer-events: none;
+    transform: translateY(115%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* Floating Bottom Navigation Dock (Cats & Soup Aesthetic) */
+.mobile-bottom-nav-dock {
+    z-index: 50 !important;
+    background: #FFFDF9 !important;
+    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 4px 0 #785D4D, 0 10px 24px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 99px !important;
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.mobile-bottom-nav-dock a.bg-drive-surface-active {
+    background: #BBD6B8 !important;
+    color: #2F4D22 !important;
+    border: 1.5px solid #785D4D !important;
+    box-shadow: 0 1.5px 0 #785D4D !important;
+    font-weight: 700 !important;
+}
+
+.mobile-bottom-nav-dock button.bg-drive-primary,
+.mobile-bottom-nav-dock a.bg-drive-primary {
+    background: #7FA668 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 2.5px 0 #523E31 !important;
+}
+
+/* When mobile sheet is open, sheet is on top and navigation dock sits beneath/hides */
+body.sheet-open .mobile-bottom-nav-dock,
+body:has(#mobileLandCardSheet:not(.hidden)) .mobile-bottom-nav-dock {
+    z-index: 40 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 25px) !important;
+}
+
+/* Land Card Sheet Address Clamping (max 2 lines) */
+#sheetLandAddress {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: break-word;
+    line-height: 1.35;
+    max-height: 2.7em;
+}
+
+#sheetLandAddress [data-lucide],
+#sheetLandAddress svg,
+#sheetLandAddress i {
+    display: inline-block !important;
+    vertical-align: -1px;
+    margin-right: 3px;
+    flex-shrink: 0;
 }
 
 /* Drag Handle & Slide-Down Trigger */
@@ -1868,34 +2122,39 @@ header,
     position: absolute;
     top: 10px;
     left: 10px;
-    width: 220px;
-    max-width: calc(100% - 230px);
+    width: 240px;
+    max-width: calc(100% - 200px);
     z-index: 1000;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
     .map-picker-search-box {
-        width: calc(100% - 20px);
-        max-width: none;
+        width: calc(100% - 20px) !important;
+        max-width: calc(100% - 20px) !important;
+        left: 10px !important;
+        top: 10px !important;
     }
 }
 
 .map-picker-input-group {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.14);
     border-radius: 50rem;
-    padding: 3px 6px 3px 14px;
+    padding: 2px 8px 2px 10px;
+    height: 32px;
     display: flex;
     align-items: center;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     transition: all 0.2s ease;
+    overflow: hidden;
+    width: 100%;
 }
 
 .map-picker-input-group:focus-within {
     border-color: var(--drive-primary);
-    box-shadow: 0 8px 24px rgba(25, 135, 84, 0.22);
+    box-shadow: 0 6px 18px rgba(25, 135, 84, 0.2);
     background: #ffffff;
 }
 
@@ -1904,21 +2163,24 @@ header,
     outline: none !important;
     box-shadow: none !important;
     background: transparent !important;
-    font-size: 0.82rem;
-    padding: 6px 8px;
+    font-size: 0.76rem;
+    padding: 2px 6px;
     color: var(--drive-text-main);
-    flex-grow: 1;
+    flex: 1 1 0%;
+    min-width: 0 !important;
+    width: 100%;
 }
 
 .map-picker-btn-icon {
     background: none;
     border: none;
     color: var(--drive-text-sub);
-    padding: 6px 8px;
+    padding: 2px 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     transition: color 0.15s ease;
 }
 
@@ -2046,4 +2308,650 @@ header,
         top: 48px;
         right: 10px;
     }
+}
+
+/* ==========================================================================
+   Register Land Page — Mobile Responsive Fixes
+   ========================================================================== */
+
+/* Reduce map height on mobile for better UX */
+@media (max-width: 767.98px) {
+    .register-picker-map {
+        height: 280px !important;
+        min-height: 280px !important;
+    }
+
+    .map-picker-wrapper {
+        min-height: 280px !important;
+    }
+
+    /* On mobile the search box takes the full top area and toolbar drops below */
+    .map-picker-search-box {
+        width: calc(100% - 20px) !important;
+        max-width: none !important;
+        left: 10px !important;
+        right: 10px !important;
+        top: 10px !important;
+    }
+
+    /* Move the floating toolbar below the search bar on mobile */
+    .map-floating-toolbar {
+        top: 52px !important;
+        right: 10px !important;
+        left: 10px;
+        justify-content: flex-end !important;
+        max-width: calc(100% - 20px);
+    }
+
+    /* Smaller toolbar buttons on mobile */
+    .map-floating-toolbar .btn-group,
+    .map-floating-toolbar .btn {
+        font-size: 0.7rem !important;
+    }
+
+    /* Step bar — hide scrollbar */
+    #registrationStepBar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #registrationStepBar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Form action buttons — stack on mobile */
+    .col-12.d-flex.justify-content-end.gap-2.pt-3 {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .col-12.d-flex.justify-content-end.gap-2.pt-3 .btn {
+        width: 100%;
+        text-align: center;
+        padding-top: 0.45rem !important;
+        padding-bottom: 0.45rem !important;
+        font-size: 0.8125rem !important;
+    }
+
+    /* Plot control overlay adjustments on mobile - positioned at bottom left */
+    #plotControlOverlay {
+        bottom: 48px !important;
+        left: 10px !important;
+        top: auto !important;
+        right: auto !important;
+        min-width: 160px !important;
+        max-width: 190px !important;
+    }
+}
+
+/* ==========================================================================
+   Game-Like Task Quest Cards
+   ========================================================================== */
+
+/* ── Section labels ─────────────────────────────────────────────────────── */
+.task-section-label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--drive-text-sub);
+    margin-bottom: 1rem;
+}
+.task-section-label--done {
+    color: #22c55e;
+}
+.task-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--drive-primary);
+    color: #fff;
+    border-radius: 99px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+}
+.task-count-badge--done {
+    background: #22c55e;
+}
+
+/* ── Quest grid ─────────────────────────────────────────────────────────── */
+.task-quest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+.task-quest-grid--done {
+    opacity: 0.72;
+}
+
+/* ── Card shell (Cats & Soup Aesthetic) ─── */
+.task-quest-card {
+    position: relative;
+    background: #FFFDF9 !important;
+    border-radius: 22px !important;
+    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D) !important;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+}
+.task-quest-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--cs-cocoa, #785D4D) !important;
+}
+.task-quest-card:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
+}
+.task-quest-card--done {
+    filter: saturate(0.65);
+    opacity: 0.8;
+}
+
+/* ── Completed ribbon ───────────────────────────────────────────────────── */
+.task-completed-ribbon {
+    position: absolute;
+    top: 12px;
+    right: -24px;
+    background: #7FA668;
+    border: 1.5px solid #523E31;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 3px 28px 3px 10px;
+    transform: rotate(35deg);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* ── Card header band ───────────────────────────────────────────────────── */
+.task-card-header-band {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.1rem 1.1rem 0;
+}
+
+/* ── Icon bubble (Pastel Squircle Container with Cocoa Border) ────────── */
+.task-icon-bubble {
+    flex-shrink: 0;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: #BBD6B8 !important;
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
+    overflow: hidden;
+}
+.task-icon-bubble .task-icon-img {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+.task-quest-card:hover .task-icon-img {
+    transform: scale(1.08);
+}
+
+/* ── Title block ────────────────────────────────────────────────────────── */
+.task-card-title-block {
+    flex: 1;
+    min-width: 0;
+}
+.task-type-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--drive-text-sub, #6B5446);
+    margin-bottom: 2px;
+}
+.task-card-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--drive-text-main, #3E2B1E);
+    margin: 0;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Badges & Cats & Soup Gear Slots ───────────────────────────── */
+.cats-heart-meter {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+.cats-slot-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #F7EFE6 !important;
+    border: 1.5px solid #C4B5A5 !important;
+    box-shadow: 0 1.5px 0 #C4B5A5 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.cats-slot-circle:hover {
+    transform: scale(1.1);
+    border-color: #785D4D !important;
+}
+
+.task-card-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+}
+.task-xp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #FEE7AA !important;
+    color: #4A3528 !important;
+    border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 1.5px 0 var(--cs-cocoa, #785D4D) !important;
+    font-size: 0.65rem;
+    font-weight: 800;
+    border-radius: 99px;
+    padding: 3px 8px;
+    letter-spacing: 0.3px;
+}
+.task-xp-badge [data-lucide] {
+    color: #E28C00 !important;
+    stroke: #E28C00 !important;
+}
+.task-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border-radius: 99px;
+    padding: 3px 8px;
+    border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
+}
+
+/* ── Perforated Dashed Divider (Cats & Soup Signature) ─────────────────── */
+.task-card-divider {
+    border-top: 2px dashed #DFCFC2 !important;
+    height: 0 !important;
+    background: transparent !important;
+    margin: 0.85rem 1.1rem 0.75rem !important;
+}
+
+/* ── Description ────────────────────────────────────────────────────────── */
+.task-card-desc {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--drive-text-sub, #6B5446);
+    margin: 0 1.1rem 0.75rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Meta chips ─────────────────────────────────────────────────────────── */
+.task-meta-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 1.1rem 0.75rem;
+}
+.task-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F7EFE6 !important;
+    border: 1.5px solid #DFCFC2 !important;
+    border-radius: 99px;
+    padding: 3px 9px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--drive-text-sub, #6B5446);
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.task-meta-chip [data-lucide] {
+    flex-shrink: 0;
+}
+.task-meta-chip--empty {
+    color: var(--drive-text-muted);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+/* ── Card footer ────────────────────────────────────────────────────────── */
+.task-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.1rem 0.95rem;
+    border-top: 2px dashed #DFCFC2 !important;
+    margin-top: 0.25rem;
+    background: #FAF7F2;
+}
+.task-difficulty-block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.task-difficulty-stars {
+    display: flex;
+    gap: 2px;
+}
+.task-difficulty-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+.task-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #7FA668 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
+    border-radius: 99px !important;
+    color: #FFFDF9 !important;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 6px 14px;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+}
+.task-action-btn:hover {
+    background: #6E9557 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 #523E31 !important;
+}
+.task-action-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+.task-action-btn [data-lucide] {
+    color: #fff !important;
+    stroke: #fff !important;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.task-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 4rem 2rem;
+    color: var(--drive-text-muted);
+    text-align: center;
+}
+.task-empty-state [data-lucide] {
+    color: var(--drive-primary) !important;
+    stroke: var(--drive-primary) !important;
+    opacity: 0.6;
+}
+.task-empty-state h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--drive-text-main);
+    margin: 0;
+}
+.task-empty-state p {
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* ── Mobile tweaks ──────────────────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .task-quest-grid {
+        grid-template-columns: 1fr;
+    }
+    .task-card-header-band {
+        flex-wrap: wrap;
+    }
+    .task-card-badges {
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 0.25rem;
+    }
+    .task-card-title {
+        white-space: normal;
+    }
+}
+
+/* ==========================================================================
+   Landowner Plot Requests - Cats & Soup Game Table & Mobile Card System
+   ========================================================================== */
+.request-filter-btn {
+    border: 2px solid transparent !important;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 99px !important;
+    color: var(--drive-text-sub);
+    background: transparent;
+    transition: all 0.15s ease;
+}
+.request-filter-btn:hover {
+    color: var(--drive-text-main);
+    background: #F4EFE6;
+}
+.request-filter-btn.active {
+    background: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 2.5px 0 #523E31 !important;
+}
+.request-filter-btn.active .badge {
+    background: rgba(255, 255, 255, 0.3) !important;
+    color: #ffffff !important;
+}
+
+.request-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.84rem;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    background: #BBD6B8 !important;
+    color: #3E2B1E !important;
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
+}
+
+.request-table-container {
+    background: #FFFDF9 !important;
+    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D) !important;
+    overflow: hidden;
+}
+
+.request-table-header {
+    background: #F7EFE6 !important;
+    border-bottom: 2px dashed #DFCFC2 !important;
+    color: #5C4033 !important;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.request-table-row {
+    min-height: 64px;
+    border-bottom: 1.5px dashed #DFCFC2 !important;
+    transition: background-color 0.15s ease;
+}
+.request-table-row:hover {
+    background-color: #FAF5ED !important;
+}
+
+.request-mobile-card {
+    background: #FFFDF9 !important;
+    border: 2px dashed #DFCFC2 !important;
+    border-radius: 20px !important;
+    padding: 1.1rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 3px 0 rgba(120, 93, 77, 0.15) !important;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.request-mobile-card:active {
+    transform: scale(0.99);
+}
+
+.request-badge-pending {
+    background-color: #FEE7AA !important;
+    color: #684813 !important;
+    border: 1.5px solid #D69E2E !important;
+    border-radius: 99px !important;
+    font-weight: 700 !important;
+}
+.request-badge-approved {
+    background-color: #D5ECC2 !important;
+    color: #2B5718 !important;
+    border: 1.5px solid #7FA668 !important;
+    border-radius: 99px !important;
+    font-weight: 700 !important;
+}
+.request-badge-rejected {
+    background-color: #FBD7D1 !important;
+    color: #8C2B1D !important;
+    border: 1.5px solid #E2735D !important;
+    border-radius: 99px !important;
+    font-weight: 700 !important;
+}
+
+.quick-reason-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 99px;
+    border: 1.5px solid #DFCFC2;
+    background: #F7EFE6;
+    color: var(--drive-text-sub);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.quick-reason-chip:hover {
+    border-color: #785D4D;
+    color: #3E2B1E;
+    background: #EFE5D8;
+}
+
+/* Tactile Request Table Action Buttons */
+.request-action-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.88rem !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+}
+.request-action-btn:hover {
+    transform: translateY(-1px) !important;
+}
+.request-action-btn:active {
+    transform: translateY(1.5px) !important;
+}
+
+.request-btn-view {
+    background: #F7EFE6 !important;
+    background-color: #F7EFE6 !important;
+    color: #5C4033 !important;
+    border: 2px solid #785D4D !important;
+    box-shadow: 0 2.5px 0 #785D4D !important;
+}
+.request-btn-view:hover {
+    background: #EDE2D4 !important;
+    background-color: #EDE2D4 !important;
+    box-shadow: 0 3.5px 0 #785D4D !important;
+    color: #3E2B1E !important;
+}
+.request-btn-view:active {
+    box-shadow: 0 1px 0 #785D4D !important;
+}
+
+.request-btn-reject {
+    background: #E2735D !important;
+    background-color: #E2735D !important;
+    color: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 2.5px 0 #523E31 !important;
+}
+.request-btn-reject:hover {
+    background: #D4614A !important;
+    background-color: #D4614A !important;
+    box-shadow: 0 3.5px 0 #523E31 !important;
+    color: #FFFDF9 !important;
+}
+.request-btn-reject:active {
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+
+.request-btn-approve {
+    background: #7FA668 !important;
+    background-color: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 2.5px 0 #523E31 !important;
+}
+.request-btn-approve:hover {
+    background: #6E9557 !important;
+    background-color: #6E9557 !important;
+    box-shadow: 0 3.5px 0 #523E31 !important;
+    color: #FFFDF9 !important;
+}
+.request-btn-approve:active {
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }

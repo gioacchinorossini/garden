@@ -7,8 +7,8 @@ include '../includes/sidebar.php';
 ?>
 
 <main class="workspace-surface">
-    <!-- Toolbar/Title Bar -->
-    <div class="toolbar border-bottom">
+    <!-- Toolbar/Title Bar (Hidden on mobile) -->
+    <div class="toolbar border-bottom d-none d-md-flex">
         <div>
             <h1 class="fs-5 fw-semibold m-0 text-dark">Request Log</h1>
         </div>

@@ -49,25 +49,39 @@ if (isset($_GET['switch_role'])) {
 }
 ?>
 <header id="mainHeader" class="flex items-center justify-between px-3 md:px-4 bg-white border-b border-drive-border relative z-[1050] transition-opacity duration-300 ease-in-out" style="height: 3.25rem;">
-    <!-- Left: Branding & Sidebar Toggle -->
-    <div class="flex items-center gap-2">
+    <!-- Left: Branding, Sidebar Toggle & Mobile Page Title -->
+    <div class="flex items-center gap-2 min-w-0">
         <button type="button" id="sidebarToggleBtn"
-            class="p-1.5 rounded-full text-drive-text-sub hover:bg-drive-surface-hover hover:text-drive-primary transition-all flex items-center justify-center cursor-pointer border-0 bg-transparent"
+            class="p-1.5 rounded-full text-drive-text-sub hover:bg-drive-surface-hover hover:text-drive-primary transition-all hidden md:flex items-center justify-center cursor-pointer border-0 bg-transparent flex-shrink-0"
             title="Toggle Sidebar" aria-label="Toggle Sidebar">
             <i class="bi bi-list text-xl leading-none"></i>
         </button>
-        <a href="<?php echo $bp; ?>index.php" class="flex items-center gap-2 text-decoration-none">
+        <a href="<?php echo $bp; ?>index.php" class="flex items-center gap-2 text-decoration-none flex-shrink-0">
             <img src="<?php echo $bp; ?>logo.jpeg" alt="IdleLand Logo" class="h-7 w-7 object-contain rounded-full shadow-xs">
-            <span class="text-lg font-semibold text-drive-text-main font-['Outfit'] tracking-tight">
+            <span class="text-lg font-semibold text-drive-text-main font-['Outfit'] tracking-tight hidden md:inline">
                 <span class="text-drive-primary">Idle</span>Land
             </span>
         </a>
+
+        <?php if (isset($page_title) && !empty($page_title)): ?>
+            <!-- Mobile Page Title in Header -->
+            <div class="flex items-center gap-1.5 min-w-0 md:hidden">
+                <span class="text-drive-border text-xs font-light">|</span>
+                <span class="text-sm font-semibold text-drive-text-main font-['Outfit'] truncate">
+                    <?php echo htmlspecialchars($page_title); ?>
+                </span>
+            </div>
+        <?php else: ?>
+            <span class="text-base font-semibold text-drive-text-main font-['Outfit'] tracking-tight md:hidden">
+                <span class="text-drive-primary">Idle</span>Land
+            </span>
+        <?php endif; ?>
     </div>
 
     <!-- Right: Notifications & Profile -->
     <div class="flex items-center gap-1.5 md:gap-2">
-        <!-- Notifications Button & Dropdown -->
-        <div class="dropdown">
+        <!-- Notifications Button & Dropdown (Desktop only - mobile has it in footer dock) -->
+        <div class="dropdown hidden md:block">
             <button
                 class="relative p-0 border-0 bg-transparent rounded-full flex items-center justify-center text-drive-text-sub hover:bg-drive-surface-hover hover:text-drive-primary transition-all focus:outline-none"
                 style="width: 32px; height: 32px;"
@@ -139,7 +153,7 @@ if (isset($_GET['switch_role'])) {
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs text-drive-text-main font-semibold mb-0.5 truncate group-hover:text-drive-primary">
-                                Land Title Verified
+                                Land Registration Approved
                             </p>
                             <p class="text-[11px] text-drive-text-muted mb-1 line-clamp-2 leading-tight">
                                 Riverdale Acres registration approved and listed on public map.

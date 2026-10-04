@@ -95,99 +95,19 @@ include '../includes/sidebar.php';
                     </div>
                 </div>
 
-                <!-- LRA Authenticity & LOTS Due Diligence Section -->
-                <div class="border rounded-3 p-3.5 mb-3 bg-white" style="border-color: rgba(37, 99, 235, 0.3) !important;">
-                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3 flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle">
-                                <i class="bi bi-shield-check fs-6"></i>
-                            </span>
-                            <div>
-                                <h6 class="fw-bold text-dark m-0" style="font-size: 0.88rem;">Land Title & LRA LOTS Verification</h6>
-                                <small class="text-muted" style="font-size: 0.72rem;">Land Registration Authority Transaction Due Diligence</small>
+                <!-- Property Document (if attached) -->
+                <div class="border rounded-3 p-3 mb-3 bg-white" id="modal_document_container" style="border-color: var(--drive-border-subtle) !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <i class="bi bi-file-earmark-text text-primary fs-4 flex-shrink-0"></i>
+                            <div class="overflow-hidden">
+                                <div class="fw-semibold text-dark text-xs text-truncate">Property / OCT Document</div>
+                                <small class="text-muted text-xs" id="modal_title_doc_status">Document attached</small>
                             </div>
                         </div>
-                        <div id="modal_lra_badge_container"></div>
-                    </div>
-
-                    <!-- LRA Data Grid -->
-                    <div class="row g-2.5 mb-3" style="font-size: 0.8rem;">
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded-2 bg-light border">
-                                <span class="text-muted text-xs d-block">Title Type & Number:</span>
-                                <div class="fw-bold text-dark mt-0.5" id="modal_title_full">None declared</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded-2 bg-light border">
-                                <span class="text-muted text-xs d-block">Registry of Deeds (RD):</span>
-                                <div class="fw-bold text-dark mt-0.5" id="modal_rod_name">Not specified</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded-2 bg-light border">
-                                <span class="text-muted text-xs d-block">EPEB Transaction Type:</span>
-                                <div class="fw-bold text-dark mt-0.5" id="modal_epeb_type">CCV (Certified True Copy)</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded-2 bg-light border d-flex align-items-center justify-content-between">
-                                <div>
-                                    <span class="text-muted text-xs d-block">LRA EPEB Number:</span>
-                                    <div class="fw-bold font-monospace text-primary fs-6" id="modal_epeb_no">None</div>
-                                </div>
-                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1 text-xs" onclick="copyEpebNumber()" id="copyEpebBtn" title="Copy EPEB number">
-                                    <i class="bi bi-clipboard me-1"></i>Copy
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Direct LRA Verification Assistant -->
-                    <div class="p-2.5 rounded-3 bg-primary-subtle border border-primary-subtle d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="bi bi-info-circle-fill text-primary"></i>
-                            <span style="font-size: 0.76rem;" class="text-primary-emphasis">
-                                Cross-check this transaction on the official government portal using the RD and EPEB number above:
-                            </span>
-                        </div>
-                        <a href="https://lots.lra.gov.ph/TransactionStatus/Search.aspx" target="_blank"
-                            class="btn btn-sm btn-primary rounded-pill px-3 text-xs fw-semibold d-flex align-items-center gap-1.5 shadow-xs">
-                            <i class="bi bi-box-arrow-up-right"></i>
-                            <span>Open LRA LOTS Portal</span>
+                        <a id="modal_title_doc_link" href="#" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold flex-shrink-0">
+                            <i class="bi bi-eye me-1"></i>View Document
                         </a>
-                    </div>
-
-                    <!-- Proof Documents Thumbnails -->
-                    <div class="row g-2">
-                        <div class="col-sm-6">
-                            <div class="border rounded-3 p-2.5 bg-light d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-4 flex-shrink-0"></i>
-                                    <div class="overflow-hidden">
-                                        <div class="fw-semibold text-dark text-xs text-truncate">Certified True Copy (Title)</div>
-                                        <small class="text-muted text-xs" id="modal_title_doc_status">Document attached</small>
-                                    </div>
-                                </div>
-                                <a id="modal_title_doc_link" href="#" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold flex-shrink-0">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="border rounded-3 p-2.5 bg-light d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                    <i class="bi bi-receipt-cutoff text-success fs-4 flex-shrink-0"></i>
-                                    <div class="overflow-hidden">
-                                        <div class="fw-semibold text-dark text-xs text-truncate">LRA Official Receipt</div>
-                                        <small class="text-muted text-xs" id="modal_receipt_doc_status">Receipt attached</small>
-                                    </div>
-                                </div>
-                                <a id="modal_receipt_doc_link" href="#" target="_blank" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 text-xs fw-semibold flex-shrink-0">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </div>
-                        </div>
                     </div>
                 </div>
 

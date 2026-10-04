@@ -9,58 +9,11 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Ensure mock lands exists in session
-if (!isset($_SESSION['mock_lands'])) {
-    $_SESSION['mock_lands'] = [
-        [
-            'id' => 1,
-            'title' => 'Sunnyvale Gardening Lot',
-            'landowner' => 'John Landowner',
-            'address' => '124 Green Ave, Sunnyvale',
-            'latitude' => 14.5995,
-            'longitude' => 120.9842,
-            'area' => 250.00,
-            'status' => 'pending',
-            'reason' => '',
-            'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables.'
-        ],
-        [
-            'id' => 2,
-            'title' => 'Downtown Rooftop Garden',
-            'landowner' => 'John Landowner',
-            'address' => '45 Main St, Business District',
-            'latitude' => 14.6010,
-            'longitude' => 120.9890,
-            'area' => 85.50,
-            'status' => 'approved',
-            'reason' => '',
-            'description' => 'An elevated deck prepared with planters and drip irrigation, ideal for leafy greens and herbs.'
-        ],
-        [
-            'id' => 3,
-            'title' => 'Riverdale Acres',
-            'landowner' => 'Robert Johnson',
-            'address' => 'Riverside Dr, Block B',
-            'latitude' => 14.5950,
-            'longitude' => 120.9780,
-            'area' => 500.00,
-            'status' => 'approved',
-            'reason' => '',
-            'description' => 'Large idle pasture near the riverbed. High soil quality, direct sunlight access.'
-        ]
-    ];
-}
+require_once '../includes/db.php';
+require_once '../includes/lands_helper.php';
 
-// Ensure mock plots exists in session
-if (!isset($_SESSION['mock_plots'])) {
-    $_SESSION['mock_plots'] = [
-        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied'],
-        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied'],
-        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available'],
-        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available'],
-        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available']
-    ];
-}
+$all_db_lands = get_all_lands($pdo);
+$all_db_plots = get_all_plots($pdo);
 
 // Handle request submission
 $success_msg = "";
@@ -70,41 +23,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $purpose = htmlspecialchars(trim($_POST['purpose']));
     $duration = htmlspecialchars(trim($_POST['duration']));
 
-    // Find land title
-    $land_title = "";
-    foreach ($_SESSION['mock_lands'] as $land) {
+    $land_title = "Unknown Land";
+    foreach ($all_db_lands as $land) {
         if ($land['id'] === $land_id) {
             $land_title = $land['title'];
             break;
         }
     }
 
-    // Find plot number
     $plot_num = "Any Plot";
-    foreach ($_SESSION['mock_plots'] as $plot) {
+    foreach ($all_db_plots as $plot) {
         if ($plot['id'] === $plot_id) {
             $plot_num = $plot['plot_number'];
             break;
         }
     }
 
-    if (!isset($_SESSION['mock_requests'])) {
-        $_SESSION['mock_requests'] = [];
-    }
+    $gardener_id = $_SESSION['user_id'] ?? 3;
+    $gardener_name = $_SESSION['user_name'] ?? 'Mary Gardener';
 
-    $_SESSION['mock_requests'][] = [
-        'id' => count($_SESSION['mock_requests']) + 1,
-        'gardener' => $_SESSION['user_name'] ?? 'Mary Gardener',
-        'email' => 'gardener@garden.com',
-        'phone' => '09333456789',
-        'land_title' => $land_title,
-        'plot_num' => $plot_num,
-        'purpose' => $purpose,
-        'duration' => $duration,
-        'status' => 'pending',
-        'notes' => ''
-    ];
-    $success_msg = "Plot application submitted successfully! Tracking is available under 'My Requests'.";
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO `requests` 
+            (gardener_id, gardener_name, land_id, plot_id, land_title, plot_number, purpose, message, requested_duration, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        ");
+        $stmt->execute([
+            $gardener_id, $gardener_name, $land_id, $plot_id,
+            $land_title, $plot_num, $purpose, $purpose, $duration
+        ]);
+        $success_msg = "Plot application submitted successfully! Tracking is available under 'My Requests'.";
+    } catch (\Exception $e) {
+        $error_msg = "Failed to submit request: " . $e->getMessage();
+    }
 }
 
 function get_land_image_url($id)
@@ -125,11 +76,6 @@ function get_land_image_url($id)
         <div>
             <h1 class="fs-5 fw-semibold m-0 text-dark">Available Lands</h1>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="map.php" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
-                <i class="bi bi-map-fill me-1 text-success"></i> View Map
-            </a>
-        </div>
     </div>
 
     <!-- Workspace Scrollable Area -->
@@ -145,7 +91,7 @@ function get_land_image_url($id)
         <!-- Lands Cards Grid -->
         <div class="row g-4">
             <?php
-            $approved_lands = array_filter($_SESSION['mock_lands'], function ($l) {
+            $approved_lands = array_filter($all_db_lands, function ($l) {
                 return $l['status'] === 'approved';
             });
             ?>
@@ -158,7 +104,7 @@ function get_land_image_url($id)
             <?php else: ?>
                 <?php foreach ($approved_lands as $land): ?>
                     <?php
-                    $land_plots = array_filter($_SESSION['mock_plots'], function ($p) use ($land) {
+                    $land_plots = array_filter($all_db_plots, function ($p) use ($land) {
                         return $p['land_id'] == $land['id'];
                     });
                     $available_count = count(array_filter($land_plots, fn($p) => $p['status'] === 'available'));
@@ -187,19 +133,12 @@ function get_land_image_url($id)
                                     <span>View Photo</span>
                                 </button>
 
-                                <!-- Approved & LRA Verified badges -->
+                                <!-- Status Badge -->
                                 <div class="position-absolute d-flex flex-column align-items-end gap-1" style="top: 12px; right: 12px; z-index: 5;">
                                     <span class="badge"
                                         style="font-size: 10px; padding: 5px 10px; background: rgba(25,135,84,0.15); color: #0f5132; border: 1px solid rgba(25,135,84,0.25); backdrop-filter: blur(4px);">
                                         ✓ Approved
                                     </span>
-                                    <?php if (!empty($land['is_lra_verified']) || (!empty($land['epeb_no']) && ($land['status'] ?? '') === 'approved')): ?>
-                                    <span class="badge"
-                                        style="font-size: 9px; padding: 4px 8px; background: rgba(13,110,253,0.15); color: #084298; border: 1px solid rgba(13,110,253,0.25); backdrop-filter: blur(4px);"
-                                        title="LRA LOTS Verified Title: <?php echo htmlspecialchars($land['title_number'] ?? ''); ?>">
-                                        <i class="bi bi-shield-check me-0.5"></i> LRA Verified
-                                    </span>
-                                    <?php endif; ?>
                                 </div>
                             </div>
 

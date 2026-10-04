@@ -5,116 +5,20 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Ensure mock lands and plots exist
-if (!isset($_SESSION['mock_lands'])) {
-    $_SESSION['mock_lands'] = [
-        [
-            'id' => 1,
-            'title' => 'Sunnyvale Gardening Lot',
-            'title_type' => 'TCT',
-            'title_number' => 'TCT No. 004-2022019482',
-            'rod_name' => 'Quezon City',
-            'epeb_type' => 'CCV',
-            'epeb_no' => '2023004819',
-            'title_document_path' => 'assets/images/sample_title_cert.svg',
-            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
-            'is_lra_verified' => 1,
-            'landowner' => 'John Landowner',
-            'address' => '124 Green Ave, Sunnyvale',
-            'latitude' => 14.5995,
-            'longitude' => 120.9842,
-            'area' => 250.00,
-            'status' => 'approved',
-            'reason' => '',
-            'description' => 'A spacious lot with fertile soil and partial shade, perfect for root vegetables like carrots and potatoes.',
-            'crops' => ['Root Vegetables', 'Tuber Crops']
-        ],
-        [
-            'id' => 2,
-            'title' => 'Downtown Rooftop Garden',
-            'title_type' => 'TCT',
-            'title_number' => 'TCT No. 002-2021008172',
-            'rod_name' => 'City of Manila',
-            'epeb_type' => 'CCV',
-            'epeb_no' => '2022001923',
-            'title_document_path' => 'assets/images/sample_title_cert.svg',
-            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
-            'is_lra_verified' => 1,
-            'landowner' => 'John Landowner',
-            'address' => '45 Main St, Business District',
-            'latitude' => 14.6010,
-            'longitude' => 120.9890,
-            'area' => 85.50,
-            'status' => 'approved',
-            'reason' => '',
-            'description' => 'An elevated deck prepared with planters and drip irrigation, ideal for leafy greens and culinary herbs.',
-            'crops' => ['Leafy Greens', 'Herbs']
-        ],
-        [
-            'id' => 3,
-            'title' => 'Riverdale Acres',
-            'title_type' => 'OCT',
-            'title_number' => 'OCT No. 008-1998004112',
-            'rod_name' => 'Province of Rizal',
-            'epeb_type' => 'CCV',
-            'epeb_no' => '2023008472',
-            'title_document_path' => 'assets/images/sample_title_cert.svg',
-            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
-            'is_lra_verified' => 1,
-            'landowner' => 'Robert Johnson',
-            'address' => 'Riverside Dr, Block B',
-            'latitude' => 14.5950,
-            'longitude' => 120.9780,
-            'area' => 500.00,
-            'status' => 'approved',
-            'reason' => '',
-            'description' => 'Large idle pasture near the riverbed. High soil quality, direct sunlight access. Excellent for fruits, tomatoes and legumes.',
-            'crops' => ['Fruits', 'Legumes', 'Leafy Greens']
-        ],
-        [
-            'id' => 4,
-            'title' => 'Eastside Clay Meadows',
-            'title_type' => 'TCT',
-            'title_number' => 'TCT No. 010-2023001893',
-            'rod_name' => 'Province of Laguna, Calamba Branch',
-            'epeb_type' => 'CCV',
-            'epeb_no' => '2024009182',
-            'title_document_path' => 'assets/images/sample_title_cert.svg',
-            'lra_receipt_path' => 'assets/images/sample_lra_receipt.svg',
-            'is_lra_verified' => 1,
-            'landowner' => 'Sarah Connor',
-            'address' => '789 East Blvd, Clay District',
-            'latitude' => 14.6120,
-            'longitude' => 121.0020,
-            'area' => 180.00,
-            'status' => 'approved',
-            'reason' => '',
-            'description' => 'Rich heavy clay loam soil retaining moisture well. Best suited for cabbage, broccoli, and tuber crops.',
-            'crops' => ['Cruciferous', 'Tuber Crops']
-        ]
-    ];
-}
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/lands_helper.php';
 
-if (!isset($_SESSION['mock_plots'])) {
-    $_SESSION['mock_plots'] = [
-        ['id' => 1, 'land_id' => 2, 'plot_number' => 'Plot A-1', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg', 'crops' => ['Tomato', 'Herbs']],
-        ['id' => 2, 'land_id' => 2, 'plot_number' => 'Plot A-2', 'area' => 20.0, 'status' => 'occupied', 'crop' => 'Lettuce', 'crop_icon' => 'romaine/romaine.svg', 'crops' => ['Lettuce', 'Spinach']],
-        ['id' => 3, 'land_id' => 2, 'plot_number' => 'Plot B-1', 'area' => 22.0, 'status' => 'available', 'crop' => 'Herbs', 'crop_icon' => 'basil/basil.svg', 'crops' => ['Herbs', 'Tomato']],
-        ['id' => 4, 'land_id' => 2, 'plot_number' => 'Plot B-2', 'area' => 23.5, 'status' => 'available', 'crop' => 'Carrot', 'crop_icon' => 'carrot/carrot.svg', 'crops' => ['Carrot', 'Potato']],
-        ['id' => 5, 'land_id' => 3, 'plot_number' => 'Plot R-1', 'area' => 100.0, 'status' => 'available', 'crop' => 'Tomato', 'crop_icon' => 'tomato/tomato.svg', 'crops' => ['Tomato', 'Pepper']],
-        ['id' => 6, 'land_id' => 4, 'plot_number' => 'Plot E-1', 'area' => 90.0, 'status' => 'available', 'crop' => 'Potato', 'crop_icon' => 'russet-potato/russet-potato.svg', 'crops' => ['Potato', 'Carrot']],
-        ['id' => 7, 'land_id' => 4, 'plot_number' => 'Plot E-2', 'area' => 90.0, 'status' => 'available', 'crop' => 'Beans', 'crop_icon' => 'broad-bean/broad-bean.svg', 'crops' => ['Beans', 'Squash']]
-    ];
-}
-
-$method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
+    $lands = get_all_lands($pdo);
+    $plots = get_all_plots($pdo);
+
     echo json_encode([
         'status' => 'success',
         'data' => [
-            'lands' => $_SESSION['mock_lands'],
-            'plots' => $_SESSION['mock_plots']
+            'lands' => $lands,
+            'plots' => $plots
         ]
     ]);
     exit;
@@ -135,14 +39,21 @@ if ($method === 'POST') {
         $longitude = isset($input['longitude']) ? floatval($input['longitude']) : 120.9842;
         $area = isset($input['area']) ? floatval($input['area']) : 0.0;
         $description = isset($input['description']) ? htmlspecialchars(trim($input['description'])) : '';
-        $crops = isset($input['crops']) ? $input['crops'] : ['General Gardening'];
-        $title_type = isset($input['title_type']) ? htmlspecialchars(trim($input['title_type'])) : 'TCT';
+        $crops = isset($input['crops']) ? (array)$input['crops'] : (isset($input['allowed_seeds']) ? (array)$input['allowed_seeds'] : ['Vegetables', 'Herbs']);
+        $title_type = isset($input['title_type']) ? htmlspecialchars(trim($input['title_type'])) : '';
         $title_number = isset($input['title_number']) ? htmlspecialchars(trim($input['title_number'])) : '';
         $rod_name = isset($input['rod_name']) ? htmlspecialchars(trim($input['rod_name'])) : '';
-        $epeb_type = isset($input['epeb_type']) ? htmlspecialchars(trim($input['epeb_type'])) : 'CCV';
-        $epeb_no = isset($input['epeb_no']) ? htmlspecialchars(trim($input['epeb_no'])) : '';
+        $epeb_type = '';
+        $epeb_no = '';
         $title_doc = isset($input['title_document_path']) ? htmlspecialchars(trim($input['title_document_path'])) : '';
-        $receipt_doc = isset($input['lra_receipt_path']) ? htmlspecialchars(trim($input['lra_receipt_path'])) : '';
+        $oct_doc = isset($input['oct_document_path']) ? htmlspecialchars(trim($input['oct_document_path'])) : $title_doc;
+        $receipt_doc = '';
+        $plot_count = max(1, intval($input['plot_count'] ?? 4));
+        $has_3d = isset($input['has_3d_view']) || isset($input['enable_3d_view']) ? 1 : 0;
+        $polygon = isset($input['polygon']) ? $input['polygon'] : (isset($input['lot_polygon']) ? $input['lot_polygon'] : '');
+        if (is_array($polygon)) {
+            $polygon = json_encode($polygon);
+        }
 
         if (empty($title) || empty($address) || !$area) {
             http_response_code(400);
@@ -153,35 +64,82 @@ if ($method === 'POST') {
             exit;
         }
 
-        $newLand = [
-            'id' => count($_SESSION['mock_lands']) + 1,
-            'title' => $title,
-            'title_type' => $title_type,
-            'title_number' => $title_number,
-            'rod_name' => $rod_name,
-            'epeb_type' => $epeb_type,
-            'epeb_no' => $epeb_no,
-            'title_document_path' => $title_doc,
-            'lra_receipt_path' => $receipt_doc,
-            'is_lra_verified' => 0,
-            'landowner' => $_SESSION['user_name'] ?? 'John Landowner',
-            'address' => $address,
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-            'area' => $area,
-            'status' => 'pending',
-            'reason' => '',
-            'description' => $description,
-            'crops' => $crops
-        ];
+        $owner_id = $_SESSION['user_id'] ?? 2;
+        $landowner_name = $_SESSION['user_name'] ?? 'John Landowner';
+        $seeds_json = json_encode(array_values($crops));
 
-        $_SESSION['mock_lands'][] = $newLand;
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO `lands` 
+                (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon)
+                VALUES 
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $owner_id, $title, $title_type, $title_number, $rod_name, $epeb_type, $epeb_no,
+                $title_doc, $oct_doc, $receipt_doc,
+                $address, $latitude, $longitude, $area, $description, $seeds_json, $plot_count, $landowner_name, $has_3d, $polygon
+            ]);
+            $new_id = (int)$pdo->lastInsertId();
 
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Land registered successfully! It is now pending administrative verification.',
-            'data' => $newLand
-        ]);
+            // Auto-create partition plots
+            $plot_area = round($area / $plot_count, 1);
+            $stmtPlot = $pdo->prepare("
+                INSERT INTO `plots` (land_id, plot_number, area_sqm, status, crop, crop_icon, allowed_seeds, farmer_name)
+                VALUES (?, ?, ?, 'available', ?, ?, ?, '')
+            ");
+
+            for ($i = 1; $i <= $plot_count; $i++) {
+                $crop = !empty($crops) ? $crops[($i - 1) % count($crops)] : 'Vegetables';
+                $stmtPlot->execute([
+                    $new_id,
+                    'Plot A-' . $i,
+                    $plot_area,
+                    $crop,
+                    'tomato/tomato.svg',
+                    $seeds_json
+                ]);
+            }
+
+            $newLand = [
+                'id' => $new_id,
+                'title' => $title,
+                'title_type' => $title_type,
+                'title_number' => $title_number,
+                'rod_name' => $rod_name,
+                'epeb_type' => $epeb_type,
+                'epeb_no' => $epeb_no,
+                'title_document_path' => $title_doc,
+                'oct_document_path' => $oct_doc,
+                'lra_receipt_path' => $receipt_doc,
+                'is_lra_verified' => 0,
+                'landowner' => $landowner_name,
+                'address' => $address,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'area' => $area,
+                'status' => 'pending',
+                'reason' => '',
+                'description' => $description,
+                'crops' => $crops,
+                'total_plots' => $plot_count,
+                'occupied_plots' => 0,
+                'has_3d_view' => $has_3d,
+                'polygon' => $polygon
+            ];
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Land registered successfully! It is now pending administrative verification.',
+                'data' => $newLand
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Database error: ' . $e->getMessage()
+            ]);
+        }
         exit;
     }
 
@@ -193,7 +151,7 @@ if ($method === 'POST') {
         $area = isset($input['area']) ? floatval($input['area']) : null;
         $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
         $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
-        $crops = isset($input['crops']) ? $input['crops'] : null;
+        $crops = isset($input['crops']) ? (array)$input['crops'] : null;
 
         if (!$land_id || empty($title) || empty($address)) {
             http_response_code(400);
@@ -204,32 +162,30 @@ if ($method === 'POST') {
             exit;
         }
 
-        $found = false;
-        foreach ($_SESSION['mock_lands'] as &$land) {
-            if ($land['id'] === $land_id) {
-                $land['title'] = $title;
-                $land['address'] = $address;
-                $land['description'] = $description;
-                if ($area !== null && $area > 0) $land['area'] = $area;
-                if ($latitude !== null && $latitude != 0) $land['latitude'] = $latitude;
-                if ($longitude !== null && $longitude != 0) $land['longitude'] = $longitude;
-                if ($crops !== null) $land['crops'] = $crops;
-                $found = true;
-                break;
-            }
-        }
+        try {
+            $seeds_json = $crops !== null ? json_encode(array_values($crops)) : null;
+            $stmt = $pdo->prepare("
+                UPDATE `lands`
+                SET `title` = ?, `address` = ?, `description` = ?,
+                    `area_sqm` = COALESCE(?, `area_sqm`),
+                    `latitude` = COALESCE(?, `latitude`),
+                    `longitude` = COALESCE(?, `longitude`),
+                    `allowed_seeds` = COALESCE(?, `allowed_seeds`)
+                WHERE `id` = ?
+            ");
+            $stmt->execute([
+                $title, $address, $description,
+                $area, $latitude, $longitude, $seeds_json,
+                $land_id
+            ]);
 
-        if ($found) {
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Land details updated successfully!'
             ]);
-        } else {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Land not found.'
-            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         exit;
     }
@@ -248,32 +204,21 @@ if ($method === 'POST') {
             exit;
         }
 
-        $found = false;
-        foreach ($_SESSION['mock_lands'] as &$land) {
-            if ($land['id'] === $id) {
-                $land['status'] = $status;
-                $land['reason'] = ($status === 'rejected') ? $reason : '';
-                if ($status === 'approved') {
-                    $land['is_lra_verified'] = !empty($land['epeb_no']) || !empty($land['title_number']) ? 1 : 0;
-                } else {
-                    $land['is_lra_verified'] = 0;
-                }
-                $found = true;
-                break;
-            }
-        }
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE `lands`
+                SET `status` = ?, `rejection_reason` = ?, `reason` = ?, `is_lra_verified` = 0
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$status, $reason, $reason, $id]);
 
-        if ($found) {
             echo json_encode([
                 'status' => 'success',
-                'message' => 'Land verification status updated!'
+                'message' => 'Land status updated!'
             ]);
-        } else {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Land submission not found.'
-            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         exit;
     }
@@ -295,25 +240,36 @@ if ($method === 'POST') {
         $crops = isset($input['crops']) ? (array)$input['crops'] : [];
         $crop = isset($input['crop']) ? htmlspecialchars(trim($input['crop'])) : (isset($crops[0]) ? htmlspecialchars(trim($crops[0])) : 'Tomato');
         $crop_icon = isset($input['crop_icon']) ? htmlspecialchars(trim($input['crop_icon'])) : 'tomato/tomato.svg';
+        $seeds_json = json_encode(array_values($crops));
 
-        $newPlot = [
-            'id' => count($_SESSION['mock_plots']) + 1,
-            'land_id' => $land_id,
-            'plot_number' => $plot_number,
-            'area' => $area,
-            'status' => 'available',
-            'crop' => $crop,
-            'crop_icon' => $crop_icon,
-            'crops' => $crops
-        ];
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO `plots` (land_id, plot_number, area_sqm, status, crop, crop_icon, allowed_seeds, farmer_name)
+                VALUES (?, ?, ?, 'available', ?, ?, ?, '')
+            ");
+            $stmt->execute([$land_id, $plot_number, $area, $crop, $crop_icon, $seeds_json]);
+            $plot_id = (int)$pdo->lastInsertId();
 
-        $_SESSION['mock_plots'][] = $newPlot;
+            $newPlot = [
+                'id' => $plot_id,
+                'land_id' => $land_id,
+                'plot_number' => $plot_number,
+                'area' => $area,
+                'status' => 'available',
+                'crop' => $crop,
+                'crop_icon' => $crop_icon,
+                'crops' => $crops
+            ];
 
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Plot partition created successfully!',
-            'data' => $newPlot
-        ]);
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Plot partition created successfully!',
+                'data' => $newPlot
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
         exit;
     }
 
@@ -329,25 +285,24 @@ if ($method === 'POST') {
             exit;
         }
 
-        $found = false;
-        foreach ($_SESSION['mock_plots'] as &$plot) {
-            if ($plot['id'] === $plot_id) {
-                $plot['crops'] = $crops;
-                if ($crop) $plot['crop'] = $crop;
-                if ($crop_icon) $plot['crop_icon'] = $crop_icon;
-                $found = true;
-                break;
-            }
-        }
+        try {
+            $seeds_json = json_encode(array_values($crops));
+            $stmt = $pdo->prepare("
+                UPDATE `plots`
+                SET `allowed_seeds` = ?,
+                    `crop` = CASE WHEN ? != '' THEN ? ELSE `crop` END,
+                    `crop_icon` = CASE WHEN ? != '' THEN ? ELSE `crop_icon` END
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$seeds_json, $crop, $crop, $crop_icon, $crop_icon, $plot_id]);
 
-        if ($found) {
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Plot crop permissions updated successfully!'
             ]);
-        } else {
-            http_response_code(404);
-            echo json_encode(['status' => 'error', 'message' => 'Plot partition not found.']);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         exit;
     }
@@ -364,27 +319,35 @@ if ($method === 'POST') {
             exit;
         }
 
-        $found = false;
-        foreach ($_SESSION['mock_plots'] as $k => $plot) {
-            if ($plot['id'] === $plot_id) {
-                unset($_SESSION['mock_plots'][$k]);
-                $found = true;
-                break;
-            }
-        }
+        try {
+            $stmt = $pdo->prepare("DELETE FROM `plots` WHERE `id` = ?");
+            $stmt->execute([$plot_id]);
 
-        if ($found) {
-            $_SESSION['mock_plots'] = array_values($_SESSION['mock_plots']);
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Plot partition deleted successfully!'
             ]);
-        } else {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Plot partition not found.'
-            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'delete_land') {
+        $land_id = isset($input['land_id']) ? intval($input['land_id']) : 0;
+        if (!$land_id) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid land ID.']);
+            exit;
+        }
+        try {
+            $pdo->prepare("DELETE FROM `plots` WHERE `land_id` = ?")->execute([$land_id]);
+            $pdo->prepare("DELETE FROM `lands` WHERE `id` = ?")->execute([$land_id]);
+            echo json_encode(['status' => 'success', 'message' => 'Land deleted successfully!']);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         exit;
     }

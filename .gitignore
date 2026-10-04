@@ -1,0 +1,18 @@
+# Node
+node_modules/
+
+# Capacitor / Android generated files
+android/.gradle/
+android/build/
+android/app/build/
+
+# Flutter generated files
+garden_app/.dart_tool/
+garden_app/build/
+garden_app/.idea/
+garden_app/.metadata
+garden_app/.packages
+
+# Environment / local files
+.env
+.env.local

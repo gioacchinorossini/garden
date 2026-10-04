@@ -9,7 +9,8 @@ $bp = isset($base_path) ? $base_path : '';
 <!-- Mobile Backdrop for offcanvas drawer -->
 <div id="sidebarBackdrop" class="fixed inset-0 bg-black/40 z-[1040] hidden transition-opacity"></div>
 
-<aside id="mainSidebar" class="w-52 flex-shrink-0 px-2.5 py-4 flex flex-col justify-between hidden md:flex h-full bg-white border-r border-drive-border transition-all duration-300 ease-in-out select-none font-['Outfit']">
+<aside id="mainSidebar"
+    class="w-52 flex-shrink-0 px-2.5 py-4 flex flex-col justify-between hidden md:flex h-full bg-white border-r border-drive-border transition-all duration-300 ease-in-out select-none font-['Outfit']">
     <div class="overflow-y-auto overflow-x-hidden">
         <!-- Nav Links Section -->
         <nav class="flex flex-col gap-1">
@@ -38,10 +39,10 @@ $bp = isset($base_path) ? $base_path : '';
 
             <?php elseif ($role == 'landowner'): ?>
                 <!-- LANDOWNER MENU -->
-                <a href="<?php echo $bp; ?>landowner/dashboard.php" title="Gardens Map"
+                <a href="<?php echo $bp; ?>landowner/dashboard.php" title="Gardens"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php' || $current_page == 'map.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="map-pin" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Gardens Map</span>
+                    <span class="sidebar-text truncate">Gardens</span>
                 </a>
                 <a href="<?php echo $bp; ?>landowner/register.php" title="Register Land"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'register.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
@@ -71,25 +72,15 @@ $bp = isset($base_path) ? $base_path : '';
 
             <?php elseif ($role == 'gardener'): ?>
                 <!-- GARDENER MENU -->
-                <a href="<?php echo $bp; ?>gardener/dashboard.php" title="Overview"
+                <a href="<?php echo $bp; ?>gardener/dashboard.php" title="Gardens"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="home" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Overview</span>
-                </a>
-                <a href="<?php echo $bp; ?>gardener/search.php" title="Search Lands"
-                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'search.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="search" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Search Lands</span>
+                    <i data-lucide="trees" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Gardens</span>
                 </a>
                 <a href="<?php echo $bp; ?>gardener/browse.php" title="Browse Lands"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'browse.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="compass" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
                     <span class="sidebar-text truncate">Browse Lands</span>
-                </a>
-                <a href="<?php echo $bp; ?>gardener/map.php" title="Map View"
-                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'map.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="map-pin" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Map View</span>
                 </a>
                 <a href="<?php echo $bp; ?>gardener/requests.php" title="My Requests"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'requests.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
@@ -115,7 +106,8 @@ $bp = isset($base_path) ? $base_path : '';
         <button type="button" id="sidebarCollapseBtn"
             class="flex items-center gap-4 w-full px-4 h-10 rounded-full text-xs font-semibold text-drive-text-muted hover:text-drive-text-main hover:bg-drive-surface-hover transition-all text-decoration-none cursor-pointer border-0 bg-transparent"
             title="Collapse Sidebar">
-            <i class="bi bi-chevron-left sidebar-collapse-icon text-sm transition-transform duration-300 flex-shrink-0"></i>
+            <i
+                class="bi bi-chevron-left sidebar-collapse-icon text-sm transition-transform duration-300 flex-shrink-0"></i>
             <span class="sidebar-text truncate">Collapse</span>
         </button>
     </div>

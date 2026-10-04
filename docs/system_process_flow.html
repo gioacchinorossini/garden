@@ -54,7 +54,7 @@
         <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-3">System Process Flow &amp; Data Movement</h2>
         <p class="text-slate-600 text-sm leading-relaxed mb-4">
           This documentation chapter details how information and transactional requests travel across the 
-          <strong>Idle Land for Community Gardening System</strong>. It maps how users submit data, how the platform verifies land ownership through Land Registration Authority (LRA) records, how community plots are requested and approved, and how harvests are recorded.
+          <strong>Idle Land for Community Gardening System</strong>. It maps how users submit data, how the platform manages land registration and approvals, how community plots are requested and approved, and how harvests are recorded.
         </p>
       </div>
 
@@ -95,7 +95,7 @@
           <div>
             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">User Flow 1</span>
             <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.1: Landowner Process Flow</h3>
-            <p class="text-xs text-slate-500">Registration, LRA Land Certification, Plot Division, Application Review &amp; Event Scheduling</p>
+            <p class="text-xs text-slate-500">Registration, Plot Division, Application Review &amp; Event Scheduling</p>
           </div>
           <div class="flex items-center gap-2 no-print">
             <a href="flowchart_landowner.svg" download="flowchart_landowner.svg" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
@@ -115,8 +115,8 @@
         <!-- Descriptive Steps -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-emerald-800"><i class="fa-solid fa-file-signature mr-1"></i> 1. Land Registration &amp; LRA Audit</h4>
-            <p>Landowners pinpoint coordinates on Leaflet, input parcel area, and attach legal LRA verification documents (TCT/OCT, ROD branch, EPEB transaction no., CTC scans). Submissions start as <code>pending</code> awaiting admin review.</p>
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-emerald-800"><i class="fa-solid fa-file-signature mr-1"></i> 1. Land Registration</h4>
+            <p>Landowners pinpoint coordinates on Leaflet, input parcel area, and attach property documents. Submissions start as <code>pending</code> awaiting admin review.</p>
           </div>
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
             <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-blue-800"><i class="fa-solid fa-envelope-open-text mr-1"></i> 2. Plot Request Review</h4>
@@ -179,7 +179,7 @@
           <div>
             <span class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">Administrative Flow</span>
             <h3 class="text-xl font-bold text-slate-900 mt-1">Figure 3.2.3: Administrator Process Flow</h3>
-            <p class="text-xs text-slate-500">LRA Document Audits, User Account Governance &amp; Cross-Table Capstone Reporting</p>
+            <p class="text-xs text-slate-500">Land Approvals, User Account Governance &amp; Cross-Table Capstone Reporting</p>
           </div>
           <div class="flex items-center gap-2 no-print">
             <a href="flowchart_admin.svg" download="flowchart_admin.svg" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-300 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
@@ -199,8 +199,8 @@
         <!-- Descriptive Steps -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-indigo-800"><i class="fa-solid fa-stamp mr-1"></i> 1. Land Title &amp; LRA Audit</h4>
-            <p>Admin inspects scanned land titles, registry receipts, and cross-references Registry of Deeds and EPEB references. Valid submissions are approved and made active.</p>
+            <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-indigo-800"><i class="fa-solid fa-stamp mr-1"></i> 1. Land Review &amp; Approval</h4>
+            <p>Admin inspects land submissions and attached documents. Valid submissions are approved and made active.</p>
           </div>
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
             <h4 class="font-bold text-slate-800 text-sm mb-1.5 text-purple-800"><i class="fa-solid fa-users-gear mr-1"></i> 2. User Account Moderation</h4>
@@ -325,17 +325,17 @@
               <td class="p-3 font-semibold text-slate-800">Land Registration</td>
               <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner</span></td>
               <td class="p-3"><span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-medium">Admin Queue</span></td>
-              <td class="p-3">Address, Leaflet GPS (lat/long), Area, LRA Title No, EPEB No, Scans</td>
+              <td class="p-3">Address, Leaflet GPS (lat/long), Area, Property Details</td>
               <td class="p-3 font-mono text-[11px] text-blue-600">lands, plots, land_images</td>
               <td class="p-3">Record inserted with <code>status = 'pending'</code></td>
             </tr>
             <tr class="hover:bg-slate-50">
-              <td class="p-3 font-semibold text-slate-800">Title Verification</td>
+              <td class="p-3 font-semibold text-slate-800">Land Review</td>
               <td class="p-3"><span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-medium">Administrator</span></td>
               <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">Landowner / Public</span></td>
-              <td class="p-3">Verification determination (Approved/Rejected) &amp; review notes</td>
+              <td class="p-3">Review determination (Approved/Rejected) &amp; feedback</td>
               <td class="p-3 font-mono text-[11px] text-blue-600">lands</td>
-              <td class="p-3"><code>is_lra_verified = 1</code>; parcel published for discovery</td>
+              <td class="p-3">Status set to <code>approved</code>; parcel published for discovery</td>
             </tr>
             <tr class="hover:bg-slate-50">
               <td class="p-3 font-semibold text-slate-800">Plot Application</td>

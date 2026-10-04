@@ -30,13 +30,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 ?>
 
 <main class="workspace-surface">
-    <!-- Toolbar -->
-    <div class="toolbar border-bottom">
+    <!-- Toolbar (Title and actions, borderless) -->
+    <div class="toolbar justify-content-between align-items-center">
         <div>
             <h1 class="fs-5 fw-semibold m-0 text-dark">Landowner Profile & Eco Impact</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-drive-secondary btn-sm px-3 d-flex align-items-center gap-2"
+            <button class="btn btn-drive-secondary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
                 data-bs-toggle="modal" data-bs-target="#editProfileModal">
                 <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
                 <span>Edit Profile</span>
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="w-24 h-24 rounded-full bg-drive-primary text-white d-flex align-items-center justify-content-center fw-bold fs-2 shadow-sm border-4 border-white">
                             <?php echo strtoupper(substr($_SESSION['user_name'], 0, 1)); ?>
                         </div>
-                        <span class="position-absolute bottom-0 end-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white" title="Verified Landowner">
+                        <span class="position-absolute bottom-0 end-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white" title="Landowner">
                             <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                         </span>
                     </div>
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <div>
                                 <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
                                     <h2 class="fs-4 fw-bold text-dark mb-0"><?php echo htmlspecialchars($_SESSION['user_name']); ?></h2>
-                                    <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Verified Landowner</span>
+                                    <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Landowner</span>
                                 </div>
                                 <p class="text-secondary text-xs mb-0 mt-1 d-flex align-items-center justify-content-center justify-content-md-start gap-1">
                                     <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>

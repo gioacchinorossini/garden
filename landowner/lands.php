@@ -1,14 +1,14 @@
 <?php
 $base_path = '../';
-$page_title = "My Lands & Plots";
+$page_title = "My Lands";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 ?>
 
 <main class="workspace-surface">
-    <!-- Toolbar/Title Bar -->
-    <div class="toolbar border-bottom">
+    <!-- Desktop Toolbar (Title and actions, borderless) -->
+    <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
         <div>
             <h1 class="fs-5 fw-semibold m-0 text-dark">My Lands</h1>
         </div>
@@ -22,7 +22,7 @@ include '../includes/sidebar.php';
     </div>
 
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll p-4">
+    <div class="workspace-scroll px-4 pt-2 pb-4">
         <!-- Lands list full-width responsive grid -->
         <div class="row g-4" id="landsContainer"></div>
     </div>

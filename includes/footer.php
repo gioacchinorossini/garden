@@ -15,8 +15,8 @@ function get_dock_link_class($page_name, $bottom_page)
 }
 ?>
 <!-- Floating Bottom Navigation Dock (Visible on all devices) -->
-<div
-    class="fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-lg border border-drive-border rounded-full shadow-2xl px-4 py-2 z-50 flex items-center gap-1 md:gap-3 transition-all duration-300 max-w-[95vw] md:max-w-none block md:hidden">
+<div id="mobileBottomNavDock"
+    class="mobile-bottom-nav-dock fixed bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-lg border border-drive-border rounded-full shadow-2xl px-4 py-2 z-50 flex items-center gap-1 md:gap-3 transition-all duration-300 max-w-[95vw] md:max-w-none block md:hidden">
     <?php
     $base = isset($base_path) ? $base_path : '';
     if ($bottom_role == 'admin'):
@@ -49,7 +49,7 @@ function get_dock_link_class($page_name, $bottom_page)
         <a href="<?php echo $base; ?>landowner/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
             <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Gardens Map</span>
+            <span class="hidden sm:inline">Gardens</span>
         </a>
         <a href="<?php echo $base; ?>landowner/lands.php"
             class="<?php echo get_dock_link_class('lands.php', $bottom_page); ?>">
@@ -75,17 +75,8 @@ function get_dock_link_class($page_name, $bottom_page)
     <?php elseif ($bottom_role == 'gardener'): ?>
         <a href="<?php echo $base; ?>gardener/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
-            <i data-lucide="home" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Overview</span>
-        </a>
-        <a href="<?php echo $base; ?>gardener/map.php" class="<?php echo get_dock_link_class('map.php', $bottom_page); ?>">
-            <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Map</span>
-        </a>
-        <a href="<?php echo $base; ?>gardener/search.php"
-            class="<?php echo get_dock_link_class('search.php', $bottom_page); ?>">
-            <i data-lucide="search" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Search</span>
+            <i data-lucide="trees" style="width: 20px; height: 20px;"></i>
+            <span class="hidden sm:inline">Gardens</span>
         </a>
         <a href="<?php echo $base; ?>gardener/requests.php"
             class="<?php echo get_dock_link_class('requests.php', $bottom_page); ?>">
@@ -103,6 +94,115 @@ function get_dock_link_class($page_name, $bottom_page)
             <span class="hidden sm:inline">Harvests</span>
         </a>
     <?php endif; ?>
+
+    <!-- Notifications Dropup in Footer (Mobile) -->
+    <div class="dropup flex flex-col items-center">
+        <button type="button"
+            class="flex flex-col items-center text-decoration-none text-[10px] font-medium transition-all px-2.5 py-1 rounded-full gap-0.5 text-drive-text-sub hover:bg-drive-surface-hover hover:text-drive-text-main border-0 bg-transparent relative cursor-pointer"
+            id="mobileFooterNotificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+            title="Notifications">
+            <div class="relative">
+                <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+                <span class="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                </span>
+            </div>
+            <span class="hidden sm:inline">Alerts</span>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end border border-drive-border rounded-2xl p-0 shadow-2xl overflow-hidden mb-3"
+            style="width: 310px; max-width: 90vw; z-index: 1060;" aria-labelledby="mobileFooterNotificationsDropdown">
+            <!-- Dropdown Header -->
+            <div
+                class="flex items-center justify-between px-3.5 py-2.5 border-b border-drive-border bg-drive-canvas/40">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-drive-text-main font-['Outfit']">Notifications</span>
+                    <span class="px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-800">3
+                        new</span>
+                </div>
+                <button type="button"
+                    class="text-[11px] text-drive-text-muted hover:text-drive-primary border-0 bg-transparent p-0 cursor-pointer font-medium"
+                    onclick="event.stopPropagation(); this.closest('.dropdown-menu').querySelectorAll('.notification-unread-dot').forEach(d => d.remove()); this.textContent = 'All read';">
+                    Mark read
+                </button>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="divide-y divide-drive-border/50 max-h-[260px] overflow-y-auto">
+                <!-- Notification 1 -->
+                <a href="<?php echo $base; ?><?php echo $bottom_role === 'gardener' ? 'gardener/requests.php' : 'landowner/requests.php'; ?>"
+                    class="flex items-start gap-2.5 px-3.5 py-2.5 hover:bg-drive-surface-hover text-decoration-none transition-colors group">
+                    <div
+                        class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs">
+                        <i class="bi bi-envelope-paper"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p
+                            class="text-xs text-drive-text-main font-semibold mb-0.5 truncate group-hover:text-drive-primary">
+                            <?php echo $bottom_role === 'gardener' ? 'Plot Request Approved' : 'New Plot Request'; ?>
+                        </p>
+                        <p class="text-[11px] text-drive-text-muted mb-1 line-clamp-2 leading-tight">
+                            <?php echo $bottom_role === 'gardener' ? 'Your request for Plot #2 at Sunnyvale was accepted.' : 'Mary Gardener requested Plot #2 at Sunnyvale Garden.'; ?>
+                        </p>
+                        <span class="text-[10px] text-drive-text-muted font-medium">10 mins ago</span>
+                    </div>
+                    <span
+                        class="notification-unread-dot w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0 mt-1.5"></span>
+                </a>
+
+                <!-- Notification 2 -->
+                <a href="<?php echo $base; ?><?php echo $bottom_role === 'gardener' ? 'gardener/schedules.php' : ($bottom_role === 'landowner' ? 'landowner/schedules.php' : 'admin/dashboard.php'); ?>"
+                    class="flex items-start gap-2.5 px-3.5 py-2.5 hover:bg-drive-surface-hover text-decoration-none transition-colors group">
+                    <div
+                        class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p
+                            class="text-xs text-drive-text-main font-semibold mb-0.5 truncate group-hover:text-drive-primary">
+                            Gardening Schedule Reminder
+                        </p>
+                        <p class="text-[11px] text-drive-text-muted mb-1 line-clamp-2 leading-tight">
+                            Soil preparation and weeding routine set for Saturday 8:00 AM.
+                        </p>
+                        <span class="text-[10px] text-drive-text-muted font-medium">2 hours ago</span>
+                    </div>
+                    <span
+                        class="notification-unread-dot w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0 mt-1.5"></span>
+                </a>
+
+                <!-- Notification 3 -->
+                <a href="<?php echo $base; ?><?php echo $bottom_role === 'landowner' ? 'landowner/lands.php' : ($bottom_role === 'gardener' ? 'gardener/dashboard.php' : 'admin/lands.php'); ?>"
+                    class="flex items-start gap-2.5 px-3.5 py-2.5 hover:bg-drive-surface-hover text-decoration-none transition-colors group">
+                    <div
+                        class="w-7 h-7 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs">
+                        <i class="bi bi-patch-check"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p
+                            class="text-xs text-drive-text-main font-semibold mb-0.5 truncate group-hover:text-drive-primary">
+                            Land Registration Approved
+                        </p>
+                        <p class="text-[11px] text-drive-text-muted mb-1 line-clamp-2 leading-tight">
+                            Riverdale Acres registration approved and listed on public map.
+                        </p>
+                        <span class="text-[10px] text-drive-text-muted font-medium">1 day ago</span>
+                    </div>
+                    <span
+                        class="notification-unread-dot w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0 mt-1.5"></span>
+                </a>
+            </div>
+
+            <!-- Dropdown Footer -->
+            <div class="p-1.5 bg-drive-canvas/20 border-t border-drive-border text-center">
+                <a href="<?php echo $base; ?><?php echo $bottom_role === 'gardener' ? 'gardener/requests.php' : ($bottom_role === 'landowner' ? 'landowner/requests.php' : 'admin/dashboard.php'); ?>"
+                    class="text-[11px] font-semibold text-drive-primary hover:underline text-decoration-none block py-1">
+                    View All Activity
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -174,9 +274,7 @@ function get_dock_link_class($page_name, $bottom_page)
 
         if (toggleBtn) {
             toggleBtn.addEventListener('click', function () {
-                if (window.innerWidth < 768) {
-                    toggleMobileSidebar();
-                } else {
+                if (window.innerWidth >= 768) {
                     toggleSidebarCollapse();
                 }
             });

@@ -160,19 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     </button>
                                 </div>
 
-                                <!-- LRA Authenticity / Title Details -->
-                                <div class="p-2 mb-2 rounded-3 bg-light border d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 0.72rem;">
-                                    <div class="d-flex align-items-center gap-1.5 text-truncate" style="max-width: 65%;">
-                                        <i class="bi bi-file-earmark-check-fill text-primary"></i>
-                                        <span class="fw-semibold text-dark text-truncate">${land.title_number ? ((land.title_type || 'TCT') + ': ' + land.title_number) : 'Title Pending Verification'}</span>
-                                    </div>
-                                    <div>
-                                        ${land.is_lra_verified || (land.status === 'approved' && land.epeb_no) ? 
-                                            `<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 9px;"><i class="bi bi-shield-check me-0.5"></i>LRA Verified</span>` :
-                                            (land.epeb_no ? `<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill" style="font-size: 9px;"><i class="bi bi-receipt me-0.5"></i>EPEB Attached</span>` : '')
-                                        }
-                                    </div>
-                                </div>
+
 
                                 <!-- Landowner Info -->
                                 <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 0.75rem; color: #6c757d;">

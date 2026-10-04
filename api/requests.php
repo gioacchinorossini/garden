@@ -5,18 +5,18 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Ensure mock collections exist
-if (!isset($_SESSION['mock_requests'])) {
-    $_SESSION['mock_requests'] = [];
-}
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/lands_helper.php';
 
-$method = $_SERVER['REQUEST_METHOD'];
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
+    $requests = get_all_requests($pdo);
+
     echo json_encode([
         'status' => 'success',
         'data' => [
-            'requests' => $_SESSION['mock_requests']
+            'requests' => $requests
         ]
     ]);
     exit;
@@ -34,9 +34,9 @@ if ($method === 'POST') {
         $land_id = isset($input['land_id']) ? intval($input['land_id']) : 0;
         $plot_id = isset($input['plot_id']) ? intval($input['plot_id']) : 0;
         $purpose = isset($input['purpose']) ? htmlspecialchars(trim($input['purpose'])) : '';
-        $duration = isset($input['duration']) ? htmlspecialchars(trim($input['duration'])) : '';
+        $duration = isset($input['duration']) ? htmlspecialchars(trim($input['duration'])) : '6 months';
 
-        if (!$land_id || !$plot_id || empty($purpose) || empty($duration)) {
+        if (!$land_id || !$plot_id || empty($purpose)) {
             http_response_code(400);
             echo json_encode([
                 'status' => 'error',
@@ -46,47 +46,53 @@ if ($method === 'POST') {
         }
 
         // Retrieve land title
-        $land_title = "Unknown Land";
-        if (isset($_SESSION['mock_lands'])) {
-            foreach ($_SESSION['mock_lands'] as $land) {
-                if ($land['id'] === $land_id) {
-                    $land_title = $land['title'];
-                    break;
-                }
-            }
-        }
+        $stmtLand = $pdo->prepare("SELECT title FROM `lands` WHERE id = ?");
+        $stmtLand->execute([$land_id]);
+        $land_title = $stmtLand->fetchColumn() ?: "Community Garden";
 
         // Retrieve plot number
-        $plot_num = "Any Plot";
-        if (isset($_SESSION['mock_plots'])) {
-            foreach ($_SESSION['mock_plots'] as $plot) {
-                if ($plot['id'] === $plot_id) {
-                    $plot_num = $plot['plot_number'];
-                    break;
-                }
-            }
+        $stmtPlot = $pdo->prepare("SELECT plot_number FROM `plots` WHERE id = ?");
+        $stmtPlot->execute([$plot_id]);
+        $plot_num = $stmtPlot->fetchColumn() ?: "Plot";
+
+        $gardener_id = $_SESSION['user_id'] ?? 3;
+        $gardener_name = $_SESSION['user_name'] ?? 'Mary Gardener';
+
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO `requests` 
+                (gardener_id, gardener_name, land_id, plot_id, land_title, plot_number, purpose, message, requested_duration, status)
+                VALUES 
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            ");
+            $stmt->execute([
+                $gardener_id, $gardener_name, $land_id, $plot_id,
+                $land_title, $plot_num, $purpose, $purpose, $duration
+            ]);
+            $new_id = (int)$pdo->lastInsertId();
+
+            $newRequest = [
+                'id' => $new_id,
+                'land_id' => $land_id,
+                'plot_id' => $plot_id,
+                'gardener' => $gardener_name,
+                'land_title' => $land_title,
+                'plot_num' => $plot_num,
+                'purpose' => $purpose,
+                'duration' => $duration,
+                'status' => 'pending',
+                'notes' => ''
+            ];
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Plot application submitted successfully! Tracking is available under Requests.',
+                'data' => $newRequest
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
-
-        $newRequest = [
-            'id' => count($_SESSION['mock_requests']) + 1,
-            'gardener' => $_SESSION['user_name'] ?? 'Mary Gardener',
-            'email' => 'gardener@garden.com',
-            'phone' => '09333456789',
-            'land_title' => $land_title,
-            'plot_num' => $plot_num,
-            'purpose' => $purpose,
-            'duration' => $duration,
-            'status' => 'pending',
-            'notes' => ''
-        ];
-
-        $_SESSION['mock_requests'][] = $newRequest;
-
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Plot application submitted successfully! Tracking is available under Requests.',
-            'data' => $newRequest
-        ]);
         exit;
     }
 
@@ -104,27 +110,32 @@ if ($method === 'POST') {
             exit;
         }
 
-        $found = false;
-        foreach ($_SESSION['mock_requests'] as &$req) {
-            if ($req['id'] === $id) {
-                $req['status'] = $status;
-                $req['notes'] = $notes;
-                $found = true;
-                break;
-            }
-        }
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE `requests` 
+                SET `status` = ?, `response_notes` = ?
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$status, $notes, $id]);
 
-        if ($found) {
+            // If approved, update plot to occupied
+            if ($status === 'approved') {
+                $stmtReq = $pdo->prepare("SELECT plot_id, gardener_name FROM `requests` WHERE id = ?");
+                $stmtReq->execute([$id]);
+                $reqData = $stmtReq->fetch(PDO::FETCH_ASSOC);
+                if ($reqData && !empty($reqData['plot_id'])) {
+                    $pdo->prepare("UPDATE `plots` SET `status` = 'occupied', `farmer_name` = ? WHERE `id` = ?")
+                        ->execute([$reqData['gardener_name'], $reqData['plot_id']]);
+                }
+            }
+
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Request status updated successfully!'
             ]);
-        } else {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Request not found.'
-            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
         exit;
     }

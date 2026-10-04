@@ -1,0 +1,9 @@
+{
+  "appId": "com.garden.app",
+  "appName": "garden",
+  "webDir": "www",
+  "server": {
+    "url": "http://20.0.0.19/garden/index.php#",
+    "cleartext": true
+  }
+}

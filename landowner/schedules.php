@@ -7,15 +7,15 @@ include '../includes/sidebar.php';
 ?>
 
 <main class="workspace-surface">
-    <!-- Toolbar/Title Bar -->
-    <div class="toolbar border-bottom">
+    <!-- Desktop Toolbar (Title and actions, borderless) -->
+    <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
         <div>
             <h1 class="fs-5 fw-semibold m-0 text-dark">Schedules</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2" data-bs-toggle="modal"
-                data-bs-target="#addTaskModal">
-                <i class="bi bi-calendar-plus"></i>
+            <button class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
+                    data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                <i class="bi bi-plus-lg"></i>
                 <span>Add Task</span>
             </button>
         </div>
@@ -23,16 +23,17 @@ include '../includes/sidebar.php';
 
     <!-- Workspace Scrollable Area -->
     <div class="workspace-scroll">
-        <div class="row g-4">
-            <!-- Left: Calendar Timeline List -->
-            <div class="col-md-8">
-                <h2 class="fs-6 fw-semibold text-secondary mb-3"
-                    style="letter-spacing: 0.5px; text-transform: uppercase;">Upcoming Tasks</h2>
-
-                <!-- Schedules Dynamic List Container -->
-                <div id="schedulesContainer"></div>
-            </div>
+        <!-- Mobile-only header row -->
+        <div class="d-flex d-md-none align-items-center justify-content-between mb-3">
+            <h2 class="fs-6 fw-semibold m-0" style="letter-spacing:0.5px;text-transform:uppercase;">Upcoming Quests</h2>
+            <button class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
+                    data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                <i class="bi bi-plus-lg"></i> Add Task
+            </button>
         </div>
+
+        <!-- Schedules Dynamic Container -->
+        <div id="schedulesContainer"></div>
     </div>
 </main>
 
@@ -57,10 +58,16 @@ include '../includes/sidebar.php';
                         <label for="task_type" class="form-label text-secondary"
                             style="font-size: 0.75rem; font-weight:600;">TYPE</label>
                         <select class="form-select drive-form-control w-100" id="task_type" name="task_type" required>
-                            <option value="watering">Irrigation</option>
+                            <option value="watering">Watering</option>
                             <option value="planting">Planting</option>
-                            <option value="weeding">Maintenance</option>
-                            <option value="other">Other</option>
+                            <option value="weeding">Weeding</option>
+                            <option value="pruning">Pruning</option>
+                            <option value="mulching">Mulching</option>
+                            <option value="fertilizing">Fertilizing</option>
+                            <option value="trellising">Trellising</option>
+                            <option value="harvesting">Harvesting</option>
+                            <option value="pests">Checking for Pests</option>
+                            <option value="cleaning">Cleaning Tools</option>
                         </select>
                     </div>
 
@@ -96,6 +103,7 @@ include '../includes/sidebar.php';
     </div>
 </div>
 
-<script src="<?php echo $base_path; ?>assets/js/schedules.js"></script>
+<script src="<?php echo $base_path; ?>assets/vendor/lucide/lucide.min.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/schedules.js?v=<?php echo time(); ?>"></script>
 
 <?php include '../includes/footer.php'; ?>
