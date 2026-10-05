@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/floating_bottom_nav_dock.dart';
 import 'alerts/notifications_screen.dart';
 import 'harvests/harvests_screen.dart';
+import 'home/home_screen.dart';
 import 'lands/lands_list_screen.dart';
 import 'lands/my_lands_screen.dart';
 import 'lands/register_land_dialog.dart';
@@ -49,34 +50,44 @@ class _MainShellScreenState extends State<MainShellScreen> {
         // Matches web mobile views in includes/footer.php
         final List<Widget> screens = isLandowner
             ? [
-                // 0: Gardens (landowner/dashboard.php)
+                // 0: Home (new home dashboard)
+                HomeScreen(
+                  onOpenProfile: _openProfileModal,
+                  onNavigateTo: (idx) => setState(() => _currentIndex = idx),
+                ),
+                // 1: Gardens (landowner/dashboard.php)
                 LandsListScreen(onOpenProfile: _openProfileModal),
-                // 1: My Lands (landowner/lands.php)
+                // 2: My Lands (landowner/lands.php)
                 MyLandsScreen(onOpenProfile: _openProfileModal),
-                // 2: Requests (landowner/requests.php)
+                // 3: Requests (landowner/requests.php)
                 const RequestsScreen(),
-                // 3: Schedules (landowner/schedules.php)
+                // 4: Schedules (landowner/schedules.php)
                 const SchedulesScreen(),
-                // 4: Alerts (footer.php:98-115)
+                // 5: Alerts (footer.php:98-115)
                 NotificationsScreen(
-                  onNavigateToRequests: () => setState(() => _currentIndex = 2),
-                  onNavigateToSchedules: () => setState(() => _currentIndex = 3),
-                  onNavigateToLands: () => setState(() => _currentIndex = 1),
+                  onNavigateToRequests: () => setState(() => _currentIndex = 3),
+                  onNavigateToSchedules: () => setState(() => _currentIndex = 4),
+                  onNavigateToLands: () => setState(() => _currentIndex = 2),
                 ),
               ]
             : [
-                // 0: Gardens (gardener/dashboard.php)
+                // 0: Home (new home dashboard)
+                HomeScreen(
+                  onOpenProfile: _openProfileModal,
+                  onNavigateTo: (idx) => setState(() => _currentIndex = idx),
+                ),
+                // 1: Gardens (gardener/dashboard.php)
                 LandsListScreen(onOpenProfile: _openProfileModal),
-                // 1: Requests (gardener/requests.php)
+                // 2: Requests (gardener/requests.php)
                 const RequestsScreen(),
-                // 2: Schedules (gardener/schedules.php)
+                // 3: Schedules (gardener/schedules.php)
                 const SchedulesScreen(),
-                // 3: Harvests (gardener/harvests.php)
+                // 4: Harvests (gardener/harvests.php)
                 const HarvestsScreen(),
-                // 4: Alerts (footer.php:98-115)
+                // 5: Alerts (footer.php:98-115)
                 NotificationsScreen(
-                  onNavigateToRequests: () => setState(() => _currentIndex = 1),
-                  onNavigateToSchedules: () => setState(() => _currentIndex = 2),
+                  onNavigateToRequests: () => setState(() => _currentIndex = 2),
+                  onNavigateToSchedules: () => setState(() => _currentIndex = 3),
                 ),
               ];
 
@@ -94,17 +105,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 ),
               ),
 
-              // Floating Bottom Navigation Dock (.mobile-bottom-nav-dock)
+              // Full-width Bottom Navigation Bar
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: 16,
-                child: Center(
-                  child: FloatingBottomNavDock(
-                    currentIndex: activeIndex,
-                    onTabSelected: (idx) => setState(() => _currentIndex = idx),
-                    onCenterAction: isLandowner ? _openRegisterLandDialog : null,
-                  ),
+                bottom: 0,
+                child: FloatingBottomNavDock(
+                  currentIndex: activeIndex,
+                  onTabSelected: (idx) => setState(() => _currentIndex = idx),
+                  onCenterAction: isLandowner ? _openRegisterLandDialog : null,
                 ),
               ),
             ],

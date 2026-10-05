@@ -103,6 +103,7 @@ include '../includes/sidebar.php';
     </div>
 </div>
 
+<script>window.CURRENT_USER_ROLE = 'landowner';</script>
 <script src="<?php echo $base_path; ?>assets/vendor/lucide/lucide.min.js"></script>
 <script src="<?php echo $base_path; ?>assets/js/schedules.js?v=<?php echo time(); ?>"></script>
 

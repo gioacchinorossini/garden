@@ -201,6 +201,10 @@ class ScheduleItem {
   final String status; // 'pending', 'in_progress', 'completed'
   final String difficulty;
   final int xp;
+  final String? proofImage;
+  final String? completedBy;
+  final String? completedAt;
+  final String? completionNotes;
 
   ScheduleItem({
     required this.id,
@@ -214,6 +218,10 @@ class ScheduleItem {
     required this.status,
     this.difficulty = 'medium',
     this.xp = 100,
+    this.proofImage,
+    this.completedBy,
+    this.completedAt,
+    this.completionNotes,
   });
 
   factory ScheduleItem.fromJson(Map<String, dynamic> json) {
@@ -229,6 +237,10 @@ class ScheduleItem {
       status: json['status']?.toString().toLowerCase() ?? 'pending',
       difficulty: json['difficulty']?.toString() ?? 'medium',
       xp: int.tryParse(json['xp']?.toString() ?? '100') ?? 100,
+      proofImage: json['proof_image']?.toString(),
+      completedBy: json['completed_by']?.toString(),
+      completedAt: json['completed_at']?.toString(),
+      completionNotes: json['completion_notes']?.toString(),
     );
   }
 

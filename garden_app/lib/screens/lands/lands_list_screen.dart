@@ -10,9 +10,23 @@ import '../../widgets/floating_map_header.dart';
 import '../../widgets/garden_crop_icon.dart';
 import '../../widgets/land_bottom_sheet.dart';
 import '../../widgets/status_badge.dart';
+import '../harvests/harvests_screen.dart';
 import '../requests/apply_plot_dialog.dart';
+import '../requests/requests_screen.dart';
+import '../schedules/schedules_screen.dart';
 import 'land_detail_screen.dart';
-import 'register_land_dialog.dart';
+
+class CropFilterOption {
+  final String value;
+  final String label;
+  final String icon;
+
+  const CropFilterOption({
+    required this.value,
+    required this.label,
+    required this.icon,
+  });
+}
 
 class LandsListScreen extends StatefulWidget {
   final VoidCallback? onOpenProfile;
@@ -30,6 +44,26 @@ class _LandsListScreenState extends State<LandsListScreen> {
   List<Land> _lands = [];
   bool _isLoading = true;
   String _selectedFilter = 'all';
+  String _selectedCropFilter = 'all';
+  String _selectedCropLabel = 'All Crops';
+  String _selectedCropIcon = 'generic';
+
+  static const List<CropFilterOption> _cropFilterOptions = [
+    CropFilterOption(value: 'all', label: 'All Crops', icon: 'generic'),
+    CropFilterOption(value: 'tomato', label: 'Tomato', icon: 'tomato'),
+    CropFilterOption(value: 'lettuce', label: 'Lettuce / Greens', icon: 'lettuce'),
+    CropFilterOption(value: 'herbs', label: 'Herbs / Basil', icon: 'herbs'),
+    CropFilterOption(value: 'carrot', label: 'Carrot / Root Vegs', icon: 'carrot'),
+    CropFilterOption(value: 'potato', label: 'Potato / Tubers', icon: 'potato'),
+    CropFilterOption(value: 'pepper', label: 'Pepper', icon: 'pepper'),
+    CropFilterOption(value: 'eggplant', label: 'Eggplant', icon: 'eggplant'),
+    CropFilterOption(value: 'cucumber', label: 'Cucumber', icon: 'cucumber'),
+    CropFilterOption(value: 'spinach', label: 'Spinach', icon: 'spinach'),
+    CropFilterOption(value: 'beans', label: 'Beans / Legumes', icon: 'beans'),
+    CropFilterOption(value: 'corn', label: 'Corn', icon: 'corn'),
+    CropFilterOption(value: 'strawberry', label: 'Fruits / Berries', icon: 'strawberry'),
+  ];
+
   bool _isMapView = true; // Toggle between visual map and list view
   Land? _selectedLandForSheet;
 
@@ -71,14 +105,35 @@ class _LandsListScreenState extends State<LandsListScreen> {
 
       if (!matchesSearch) return false;
 
-      if (_selectedFilter == 'all') return true;
+      // Status / Ownership filter
       if (_selectedFilter == 'available') {
-        return land.plots.any((p) => p.isAvailable) || land.availablePlots > 0;
+        final hasAvail = land.plots.any((p) => p.isAvailable) || land.availablePlots > 0;
+        if (!hasAvail) return false;
+      } else if (_selectedFilter == 'myleased') {
+        final isMy = land.plots.any((p) => p.farmerName.toLowerCase().contains('mary'));
+        if (!isMy) return false;
+      } else if (_selectedFilter == 'approved') {
+        if (land.status.toLowerCase() != 'approved') return false;
       }
-      if (_selectedFilter == 'myleased') {
-        return land.plots.any((p) => p.farmerName.toLowerCase().contains('mary'));
+
+      // Crop filter from Dropdown
+      if (_selectedCropFilter != 'all') {
+        final rawCrops = land.crops.toLowerCase();
+        final plotCrops = land.plots.map((p) => p.crop.toLowerCase()).join(' ');
+        final combined = '$rawCrops $plotCrops';
+
+        final target = _selectedCropFilter.toLowerCase();
+        final matchesCrop = combined.contains(target) ||
+            (target == 'lettuce' && (combined.contains('greens') || combined.contains('romaine'))) ||
+            (target == 'herbs' && combined.contains('basil')) ||
+            (target == 'potato' && (combined.contains('tuber') || combined.contains('russet'))) ||
+            (target == 'carrot' && combined.contains('root')) ||
+            (target == 'beans' && combined.contains('legume')) ||
+            (target == 'strawberry' && (combined.contains('fruit') || combined.contains('berr')));
+        if (!matchesCrop) return false;
       }
-      return land.crops.toLowerCase().contains(_selectedFilter.toLowerCase());
+
+      return true;
     }).toList();
   }
 
@@ -103,12 +158,7 @@ class _LandsListScreenState extends State<LandsListScreen> {
     );
   }
 
-  void _openRegisterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => RegisterLandDialog(onLandCreated: _fetchLands),
-    );
-  }
+
 
   void _showLandDetailsSheet(Land land) {
     setState(() => _selectedLandForSheet = land);
@@ -121,13 +171,64 @@ class _LandsListScreenState extends State<LandsListScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black38,
-      builder: (context) => LandBottomSheet(
-        land: land,
-        onClose: () => Navigator.of(context).pop(),
-        onApply: (plot) {
-          Navigator.of(context).pop();
-          _openApplyDialog(land, plot);
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final currentLand = _selectedLandForSheet ?? land;
+          return LandBottomSheet(
+            land: currentLand,
+            onClose: () => Navigator.of(context).pop(),
+            onPrevious: () {
+              final idx = _filteredLands.indexWhere((l) => l.id == currentLand.id);
+              if (idx > 0) {
+                final prev = _filteredLands[idx - 1];
+                setSheetState(() => _selectedLandForSheet = prev);
+                setState(() => _selectedLandForSheet = prev);
+                _mapController.move(LatLng(prev.latitude - 0.0035, prev.longitude), 14.5);
+              } else if (_filteredLands.isNotEmpty) {
+                final last = _filteredLands.last;
+                setSheetState(() => _selectedLandForSheet = last);
+                setState(() => _selectedLandForSheet = last);
+                _mapController.move(LatLng(last.latitude - 0.0035, last.longitude), 14.5);
+              }
+            },
+            onNext: () {
+              final idx = _filteredLands.indexWhere((l) => l.id == currentLand.id);
+              if (idx >= 0 && idx < _filteredLands.length - 1) {
+                final next = _filteredLands[idx + 1];
+                setSheetState(() => _selectedLandForSheet = next);
+                setState(() => _selectedLandForSheet = next);
+                _mapController.move(LatLng(next.latitude - 0.0035, next.longitude), 14.5);
+              } else if (_filteredLands.isNotEmpty) {
+                final first = _filteredLands.first;
+                setSheetState(() => _selectedLandForSheet = first);
+                setState(() => _selectedLandForSheet = first);
+                _mapController.move(LatLng(first.latitude - 0.0035, first.longitude), 14.5);
+              }
+            },
+            onApply: (plot) {
+              Navigator.of(context).pop();
+              _openApplyDialog(currentLand, plot);
+            },
+            onOpenSchedules: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SchedulesScreen()),
+              );
+            },
+            onOpenHarvests: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const HarvestsScreen()),
+              );
+            },
+            onOpenRequests: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const RequestsScreen()),
+              );
+            },
+          );
         },
       ),
     ).whenComplete(() {
@@ -141,6 +242,7 @@ class _LandsListScreenState extends State<LandsListScreen> {
   Widget build(BuildContext context) {
     final user = AuthState().currentUser;
     final isLandowner = user?.isLandowner ?? false;
+    final topInset = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
@@ -154,28 +256,57 @@ class _LandsListScreenState extends State<LandsListScreen> {
                 : (_isMapView ? _buildRealLeafletMap() : _buildCardListView()),
           ),
 
-          // Top Scrim Gradient (matching .map-top-gradient-scrim in style.css)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 140,
-            child: IgnorePointer(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x993E2B1E),
-                      Color(0x333E2B1E),
-                      Colors.transparent,
-                    ],
+          // Top Black Gradient Scrim Overlay (reaching comfortably past the chips)
+          if (_isMapView)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: topInset + 145,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xD9000000), // rgba(0, 0, 0, 0.85) at top
+                        Color(0xB3000000), // rgba(0, 0, 0, 0.70) behind search bar
+                        Color(0x73000000), // rgba(0, 0, 0, 0.45) directly behind the chips
+                        Color(0x26000000), // rgba(0, 0, 0, 0.15) just past chips
+                        Colors.transparent,
+                      ],
+                      stops: [0.0, 0.45, 0.75, 0.90, 1.0],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+
+          // Bottom Black Gradient Scrim Overlay (matching .map-bottom-gradient-scrim in style.css)
+          if (_isMapView)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 130,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Color(0xB3000000), // rgba(0, 0, 0, 0.70)
+                        Color(0x59000000), // rgba(0, 0, 0, 0.35)
+                        Colors.transparent,
+                      ],
+                      stops: [0.0, 0.55, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
           // Floating Top Header & Filter Chips Anchored at Top
           Positioned(
@@ -194,61 +325,16 @@ class _LandsListScreenState extends State<LandsListScreen> {
                     onProfileTap: widget.onOpenProfile,
                   ),
 
-                  // Horizontal Map Filter Chips (matching .mobile-map-chips-bar & .map-chip)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+                  // Top Filter Bar matching .mobile-map-chips-bar on web
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                     child: Row(
                       children: [
-                        _buildMapChip(
-                          id: 'all',
-                          label: 'All Gardens (${_lands.length})',
-                          cropIcon: 'generic',
-                        ),
+                        _buildAllFilterDropdown(isLandowner),
                         const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'available',
-                          label: 'Available Plots',
-                          icon: Icons.check_circle,
-                          iconColor: AppColors.availableGreen,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'myleased',
-                          label: 'My Leased',
-                          icon: Icons.favorite,
-                          iconColor: AppColors.coral,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'tomato',
-                          label: 'Tomato',
-                          cropIcon: 'tomato',
-                        ),
-                        const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'herbs',
-                          label: 'Herbs / Basil',
-                          cropIcon: 'basil',
-                        ),
-                        const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'carrot',
-                          label: 'Carrots',
-                          cropIcon: 'carrot',
-                        ),
-                        const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'lettuce',
-                          label: 'Lettuce / Greens',
-                          cropIcon: 'romaine',
-                        ),
-                        const SizedBox(width: 8),
-                        _buildMapChip(
-                          id: 'potato',
-                          label: 'Potato',
-                          cropIcon: 'potato',
-                        ),
+                        _buildCropFilterDropdown(),
+                        const Spacer(),
+                        _buildViewToggleChip(),
                       ],
                     ),
                   ),
@@ -257,97 +343,29 @@ class _LandsListScreenState extends State<LandsListScreen> {
             ),
           ),
 
-          // Map Action Floating Buttons (View Toggle & Recenter Map)
-          Positioned(
-            top: 135,
-            right: 14,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Toggle Map / List
-                GestureDetector(
-                  onTap: () => setState(() => _isMapView = !_isMapView),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(color: AppColors.cocoa, width: 2),
-                      boxShadow: AppColors.tactileShadow,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _isMapView ? Icons.view_agenda_rounded : Icons.map_rounded,
-                          size: 16,
-                          color: AppColors.textMain,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _isMapView ? 'List View' : 'Map View',
-                          style: GoogleFonts.quicksand(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textMain),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_isMapView) ...[
-                  const SizedBox(height: 10),
-                  // Recenter FAB button (matching .map-fab-btn from dashboard.php)
-                  GestureDetector(
-                    onTap: _recenterMap,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.cocoa, width: 2),
-                        boxShadow: AppColors.tactileShadow,
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.my_location_rounded, color: AppColors.primary, size: 20),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // Register Land Action Button (for Landowner)
-          if (isLandowner)
+          // Recenter FAB button (matching .map-fab-btn from web)
+          if (_isMapView)
             Positioned(
-              bottom: 96,
-              right: 16,
+              top: 135,
+              right: 14,
               child: GestureDetector(
-                onTap: _openRegisterDialog,
+                onTap: _recenterMap,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(99),
-                    border: Border.all(color: AppColors.cocoaButtonBorder, width: 2),
-                    boxShadow: AppColors.tactileShadowLg,
+                    color: AppColors.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.cocoa, width: 2),
+                    boxShadow: AppColors.tactileShadow,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.add_location_alt_rounded, color: AppColors.surface, size: 20),
-                      const SizedBox(width: 6),
-                      Text(
-                        'List Idle Land',
-                        style: GoogleFonts.quicksand(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.surface,
-                        ),
-                      ),
-                    ],
-                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.my_location_rounded, color: AppColors.primary, size: 20),
                 ),
               ),
             ),
+
+
         ],
       ),
     );
@@ -473,55 +491,410 @@ class _LandsListScreenState extends State<LandsListScreen> {
     );
   }
 
-  Widget _buildMapChip({
-    required String id,
-    required String label,
-    IconData? icon,
-    Color? iconColor,
-    String? cropIcon,
-  }) {
-    final isSelected = _selectedFilter == id;
+  String _getAllFilterLabel(bool isLandowner) {
+    switch (_selectedFilter) {
+      case 'available':
+        return 'Available Plots';
+      case 'myleased':
+        return 'My Leased';
+      case 'my':
+        return 'Mine';
+      case 'approved':
+        return 'Approved';
+      case 'all':
+      default:
+        return 'All (${_lands.length})';
+    }
+  }
 
-    return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = id),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(
-            color: isSelected ? AppColors.cocoaButtonBorder : AppColors.cocoa,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isSelected ? AppColors.cocoaButtonBorder : AppColors.cocoa,
-              offset: const Offset(0, 3),
-              blurRadius: 0,
+  Widget _buildAllFilterDropdown(bool isLandowner) {
+    final availableCount = _lands.where((l) => l.plots.any((p) => p.isAvailable) || l.availablePlots > 0).length;
+    final myLeasedCount = _lands.where((l) => l.plots.any((p) => p.farmerName.toLowerCase().contains('mary'))).length;
+    final approvedCount = _lands.where((l) => l.status.toLowerCase() == 'approved').length;
+
+    return Theme(
+      data: Theme.of(context).copyWith(
+        cardColor: AppColors.surface,
+        dividerTheme: DividerThemeData(
+          color: AppColors.cocoa.withValues(alpha: 0.2),
+          thickness: 1,
+          space: 8,
+        ),
+      ),
+      child: PopupMenuButton<String>(
+        tooltip: 'Filter Gardens',
+        offset: const Offset(0, 38),
+        elevation: 8,
+        color: AppColors.surface,
+        shadowColor: AppColors.cocoa.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.cocoa, width: 2),
+        ),
+        constraints: const BoxConstraints(
+          minWidth: 185,
+          maxWidth: 220,
+        ),
+        onSelected: (val) {
+          setState(() => _selectedFilter = val);
+          _recenterMap();
+        },
+        itemBuilder: (context) {
+          if (isLandowner) {
+            return [
+              _buildFilterMenuItem(
+                value: 'all',
+                label: 'All Lands',
+                icon: Icons.grid_view_rounded,
+                iconColor: AppColors.textSub,
+                count: _lands.length,
+                isSelected: _selectedFilter == 'all',
+              ),
+              const PopupMenuDivider(height: 8),
+              _buildFilterMenuItem(
+                value: 'my',
+                label: 'Mine',
+                icon: Icons.person_rounded,
+                iconColor: AppColors.primary,
+                count: _lands.length,
+                isSelected: _selectedFilter == 'my',
+              ),
+              _buildFilterMenuItem(
+                value: 'approved',
+                label: 'Approved',
+                icon: Icons.check_circle_rounded,
+                iconColor: AppColors.availableGreen,
+                count: approvedCount,
+                isSelected: _selectedFilter == 'approved',
+              ),
+            ];
+          } else {
+            return [
+              _buildFilterMenuItem(
+                value: 'all',
+                label: 'All Gardens',
+                icon: Icons.grid_view_rounded,
+                iconColor: AppColors.textSub,
+                count: _lands.length,
+                isSelected: _selectedFilter == 'all',
+              ),
+              const PopupMenuDivider(height: 8),
+              _buildFilterMenuItem(
+                value: 'available',
+                label: 'Available Plots',
+                icon: Icons.check_circle_rounded,
+                iconColor: AppColors.availableGreen,
+                count: availableCount,
+                isSelected: _selectedFilter == 'available',
+              ),
+              _buildFilterMenuItem(
+                value: 'myleased',
+                label: 'My Leased',
+                icon: Icons.favorite_rounded,
+                iconColor: AppColors.coral,
+                count: myLeasedCount,
+                isSelected: _selectedFilter == 'myleased',
+              ),
+            ];
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(
+              color: AppColors.cocoaButtonBorder,
+              width: 2,
             ),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.cocoaButtonBorder,
+                offset: Offset(0, 3),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _getAllFilterLabel(isLandowner),
+                style: GoogleFonts.quicksand(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.surface,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 16,
+                color: AppColors.surface,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildFilterMenuItem({
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color iconColor,
+    int? count,
+    required bool isSelected,
+  }) {
+    return PopupMenuItem<String>(
+      value: value,
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? AppColors.surface : iconColor,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.quicksand(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                  color: isSelected ? AppColors.surface : AppColors.textMain,
+                ),
+              ),
+            ),
+            if (count != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.surface.withValues(alpha: 0.25)
+                      : AppColors.cocoa.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.quicksand(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected ? AppColors.surface : AppColors.textSub,
+                  ),
+                ),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewToggleChip() {
+    return GestureDetector(
+      onTap: () => setState(() => _isMapView = !_isMapView),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(99),
+          border: Border.all(color: AppColors.cocoa, width: 2),
+          boxShadow: AppColors.tactileShadow,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (cropIcon != null) ...[
-              GardenCropIcon(crop: cropIcon, size: 16),
-              const SizedBox(width: 6),
-            ] else if (icon != null) ...[
-              Icon(icon, size: 14, color: isSelected ? AppColors.surface : (iconColor ?? AppColors.primary)),
-              const SizedBox(width: 6),
-            ],
+            Icon(
+              _isMapView ? Icons.view_agenda_rounded : Icons.map_rounded,
+              size: 15,
+              color: AppColors.textMain,
+            ),
+            const SizedBox(width: 5),
             Text(
-              label,
+              _isMapView ? 'List' : 'Map',
               style: GoogleFonts.quicksand(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
-                color: isSelected ? AppColors.surface : AppColors.textMain,
+                color: AppColors.textMain,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCropFilterDropdown() {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        cardColor: AppColors.surface,
+        dividerTheme: DividerThemeData(
+          color: AppColors.cocoa.withValues(alpha: 0.2),
+          thickness: 1,
+          space: 8,
+        ),
+      ),
+      child: PopupMenuButton<CropFilterOption>(
+        tooltip: 'Filter by Crop',
+        offset: const Offset(0, 38),
+        elevation: 8,
+        color: AppColors.surface,
+        shadowColor: AppColors.cocoa.withValues(alpha: 0.4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.cocoa, width: 2),
+        ),
+        constraints: const BoxConstraints(
+          minWidth: 190,
+          maxWidth: 220,
+          maxHeight: 280,
+        ),
+        onSelected: (option) {
+          setState(() {
+            _selectedCropFilter = option.value;
+            _selectedCropLabel = option.label;
+            _selectedCropIcon = option.icon;
+          });
+          _recenterMap();
+        },
+        itemBuilder: (context) {
+          final items = <PopupMenuEntry<CropFilterOption>>[];
+
+          // First item: All Crops
+          final allOpt = _cropFilterOptions.first;
+          final isAllActive = _selectedCropFilter == 'all';
+          items.add(
+            PopupMenuItem<CropFilterOption>(
+              value: allOpt,
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isAllActive ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    GardenCropIcon(crop: allOpt.icon, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        allOpt.label,
+                        style: GoogleFonts.quicksand(
+                          fontSize: 12,
+                          fontWeight: isAllActive ? FontWeight.w800 : FontWeight.w700,
+                          color: isAllActive ? AppColors.surface : AppColors.textMain,
+                        ),
+                      ),
+                    ),
+                    if (isAllActive)
+                      const Icon(Icons.check_rounded, size: 15, color: AppColors.surface),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+          // Divider matching web hr.dropdown-divider.my-1
+          items.add(const PopupMenuDivider(height: 8));
+
+          // Remaining Crops
+          for (final opt in _cropFilterOptions.skip(1)) {
+            final isItemActive = _selectedCropFilter == opt.value;
+            items.add(
+              PopupMenuItem<CropFilterOption>(
+                value: opt,
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isItemActive ? AppColors.primary : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      GardenCropIcon(crop: opt.icon, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          opt.label,
+                          style: GoogleFonts.quicksand(
+                            fontSize: 12,
+                            fontWeight: isItemActive ? FontWeight.w800 : FontWeight.w700,
+                            color: isItemActive ? AppColors.surface : AppColors.textMain,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isItemActive)
+                        const Icon(Icons.check_rounded, size: 15, color: AppColors.surface),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return items;
+        },
+        child: _buildCropDropdownChip(),
+      ),
+    );
+  }
+
+  Widget _buildCropDropdownChip() {
+    final isCropActive = _selectedCropFilter != 'all';
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: isCropActive ? AppColors.primary : AppColors.surface,
+        borderRadius: BorderRadius.circular(99),
+        border: Border.all(
+          color: isCropActive ? AppColors.cocoaButtonBorder : AppColors.cocoa,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isCropActive ? AppColors.cocoaButtonBorder : AppColors.cocoa,
+            offset: const Offset(0, 3),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GardenCropIcon(crop: _selectedCropIcon, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            _selectedCropLabel,
+            style: GoogleFonts.quicksand(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: isCropActive ? AppColors.surface : AppColors.textMain,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 16,
+            color: isCropActive ? AppColors.surface : AppColors.textSub,
+          ),
+        ],
       ),
     );
   }

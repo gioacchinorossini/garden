@@ -244,12 +244,21 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
         linear-gradient(90deg, rgba(15, 23, 42, 0.25) 0%, rgba(15, 23, 42, 0) 230px);
 }
 
+@media (max-width: 768px) {
+    .map-ambient-dim-overlay {
+        display: none !important;
+    }
+}
+
 /* Desktop positioning for map overlays on full-screen map */
 @media (min-width: 769px) {
 
     body.has-fullscreen-map .map-top-gradient-scrim,
     body:has(.landowner-map-page) .map-top-gradient-scrim,
-    body:has(.gardener-map-page) .map-top-gradient-scrim {
+    body:has(.gardener-map-page) .map-top-gradient-scrim,
+    body.has-fullscreen-map .map-bottom-gradient-scrim,
+    body:has(.landowner-map-page) .map-bottom-gradient-scrim,
+    body:has(.gardener-map-page) .map-bottom-gradient-scrim {
         display: none !important;
     }
 
@@ -1253,8 +1262,28 @@ a.text-decoration-none:hover {
 
 @media (max-width: 768px) {
     .map-top-gradient-scrim {
-        height: 145px;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.45) 60%, rgba(0, 0, 0, 0) 100%);
+        height: 155px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.65) 55%, rgba(0, 0, 0, 0.35) 80%, rgba(0, 0, 0, 0) 100%);
+    }
+}
+
+/* ─── Bottom Black Gradient Scrim Overlay (behind bottom nav dock) ─── */
+.map-bottom-gradient-scrim {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 95px;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.30) 55%, rgba(0, 0, 0, 0) 100%);
+    z-index: 45;
+    pointer-events: none;
+    transition: height 0.2s ease;
+}
+
+@media (max-width: 768px) {
+    .map-bottom-gradient-scrim {
+        height: 130px;
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.70) 0%, rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0) 100%);
     }
 }
 
@@ -2455,25 +2484,7 @@ header,
     opacity: 0.8;
 }
 
-/* ── Completed ribbon ───────────────────────────────────────────────────── */
-.task-completed-ribbon {
-    position: absolute;
-    top: 12px;
-    right: -24px;
-    background: #7FA668;
-    border: 1.5px solid #523E31;
-    color: #fff;
-    font-size: 0.62rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    padding: 3px 28px 3px 10px;
-    transform: rotate(35deg);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    z-index: 2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
+/* ── Completed ribbon (removed in favor of aligned badge) ──────────────── */
 
 /* ── Card header band ───────────────────────────────────────────────────── */
 .task-card-header-band {
@@ -2558,10 +2569,10 @@ header,
 
 .task-card-badges {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 5px;
+    align-items: center;
+    gap: 6px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 .task-xp-badge {
     display: inline-flex;
@@ -2571,10 +2582,10 @@ header,
     color: #4A3528 !important;
     border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
     box-shadow: 0 1.5px 0 var(--cs-cocoa, #785D4D) !important;
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     font-weight: 800;
     border-radius: 99px;
-    padding: 3px 8px;
+    padding: 3px 9px;
     letter-spacing: 0.3px;
 }
 .task-xp-badge [data-lucide] {
@@ -2584,13 +2595,21 @@ header,
 .task-status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.65rem;
+    gap: 4px;
+    font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.3px;
     border-radius: 99px;
-    padding: 3px 8px;
+    padding: 3px 9px;
     border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 1.5px 0 var(--cs-cocoa, #785D4D) !important;
+}
+.task-status-pill--completed {
+    background: #DCFCE7 !important;
+    color: #15803D !important;
+}
+.task-status-pill--completed [data-lucide] {
+    stroke: #15803D !important;
 }
 
 /* ── Perforated Dashed Divider (Cats & Soup Signature) ─────────────────── */
@@ -2651,25 +2670,21 @@ header,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1.1rem 0.95rem;
+    padding: 0.75rem 1.1rem 0.85rem;
     border-top: 2px dashed #DFCFC2 !important;
     margin-top: 0.25rem;
     background: #FAF7F2;
 }
-.task-difficulty-block {
+.task-card-footer-info {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--drive-text-sub, #6B5446);
 }
-.task-difficulty-stars {
-    display: flex;
-    gap: 2px;
-}
-.task-difficulty-label {
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.4px;
-    text-transform: uppercase;
+.task-card-footer-info [data-lucide] {
+    color: var(--drive-text-sub, #6B5446);
 }
 .task-action-btn {
     display: inline-flex;
@@ -2697,8 +2712,43 @@ header,
     box-shadow: 0 1px 0 #523E31 !important;
 }
 .task-action-btn [data-lucide] {
-    color: #fff !important;
-    stroke: #fff !important;
+    color: inherit !important;
+    stroke: currentColor !important;
+}
+
+.task-action-btn--complete {
+    background: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
+}
+.task-action-btn--complete:hover {
+    background: #6E9557 !important;
+    color: #FFFDF9 !important;
+    box-shadow: 0 4px 0 #523E31 !important;
+}
+
+.task-action-btn--view {
+    background: #F7EFE6 !important;
+    color: #4A3528 !important;
+    border: 2px solid #785D4D !important;
+    box-shadow: 0 3px 0 #785D4D !important;
+}
+.task-action-btn--view:hover {
+    background: #EDE2D4 !important;
+    color: #3E2B1E !important;
+    box-shadow: 0 4px 0 #785D4D !important;
+}
+.task-action-btn--view:active {
+    box-shadow: 0 1px 0 #785D4D !important;
+}
+
+.quest-dropzone {
+    transition: all 0.2s ease;
+}
+.quest-dropzone:hover {
+    background: #F7EFE6 !important;
+    border-color: #785D4D !important;
 }
 
 /* ── Empty state ────────────────────────────────────────────────────────── */

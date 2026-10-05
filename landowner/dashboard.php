@@ -99,8 +99,8 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
             <!-- Top Black Gradient Scrim Overlay -->
             <div class="map-top-gradient-scrim"></div>
 
-            <!-- Ambient Dim & Vignette Overlay Around the Whole Map -->
-            <div class="map-ambient-dim-overlay"></div>
+            <!-- Bottom Black Gradient Scrim Overlay -->
+            <div class="map-bottom-gradient-scrim"></div>
 
             <!-- Floating Search Bar & Profile Header (Mobile Only) -->
             <div class="floating-map-header d-md-none">

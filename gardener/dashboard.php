@@ -129,6 +129,9 @@ unset($land);
             <!-- Top Black Gradient Scrim Overlay -->
             <div class="map-top-gradient-scrim"></div>
 
+            <!-- Bottom Black Gradient Scrim Overlay -->
+            <div class="map-bottom-gradient-scrim"></div>
+
             <!-- Floating Search Bar & Profile Header (Mobile Only) -->
             <div class="floating-map-header d-md-none">
                 <a href="<?php echo $base_path; ?>gardener/dashboard.php"
@@ -187,15 +190,40 @@ unset($land);
 
             <!-- Filter chips -->
             <div class="mobile-map-chips-bar d-flex align-items-center gap-2" id="mapChipsBar">
-                <button type="button" class="map-chip active" onclick="filterGardenerMapLands('all',this)">
-                    All Gardens (<?php echo count($lands_data); ?>)
-                </button>
-                <button type="button" class="map-chip" onclick="filterGardenerMapLands('available',this)">
-                    <i class="bi bi-check-circle-fill me-1" style="color:#22c55e;"></i>Available Plots
-                </button>
-                <button type="button" class="map-chip" onclick="filterGardenerMapLands('my',this)">
-                    <i class="bi bi-heart-fill me-1" style="color:#f59e0b;"></i>My Leased
-                </button>
+                <!-- Status/Gardens Filter Dropdown ("All") -->
+                <div class="dropdown d-inline-block">
+                    <button class="map-chip dropdown-toggle d-flex align-items-center gap-1.5 active" type="button"
+                        id="allFilterDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}'
+                        aria-expanded="false">
+                        <span id="selectedAllFilterLabel">All (<?php echo count($lands_data); ?>)</span>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="allFilterDropdown"
+                        style="min-width: 180px; font-size: 0.82rem; z-index: 1060;">
+                        <li>
+                            <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between active"
+                                href="#"
+                                onclick="filterGardenerMapLands('all', this, 'All (<?php echo count($lands_data); ?>)'); return false;">
+                                <span class="d-flex align-items-center gap-2"><i class="bi bi-grid-fill text-muted"></i>All Gardens</span>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?php echo count($lands_data); ?></span>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider my-1">
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between"
+                                href="#" onclick="filterGardenerMapLands('available', this, 'Available Plots'); return false;">
+                                <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i>Available Plots</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between"
+                                href="#" onclick="filterGardenerMapLands('my', this, 'My Leased'); return false;">
+                                <span class="d-flex align-items-center gap-2"><i class="bi bi-heart-fill text-warning"></i>My Leased</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
                 <!-- Crop Filter Dropdown -->
                 <div class="dropdown d-inline-block">
@@ -1017,10 +1045,20 @@ unset($land);
         closeLandCardSheet();
     }
 
-    function filterGardenerMapLands(type, btn) {
-        document.querySelectorAll('#mapChipsBar > .map-chip').forEach(c => c.classList.remove('active'));
-        if (btn) btn.classList.add('active');
+    function filterGardenerMapLands(type, el, label) {
         currentGardenerFilterType = type;
+        if (label) {
+            const labelEl = document.getElementById('selectedAllFilterLabel');
+            if (labelEl) labelEl.textContent = label;
+        }
+        const parentMenu = el ? el.closest('.dropdown-menu') : null;
+        if (parentMenu) {
+            parentMenu.querySelectorAll('.dropdown-item').forEach(item => item.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+        const dropdownBtn = document.getElementById('allFilterDropdown');
+        if (dropdownBtn) dropdownBtn.classList.add('active');
+
         applyCombinedGardenerMapFilters();
         closeLandCardSheet();
     }

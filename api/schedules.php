@@ -5,9 +5,10 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Always reset mock schedules so title/data changes take effect immediately
-$today = date('Y-m-d');
-$_SESSION['mock_schedules'] = [
+// Initialize mock schedules if not already set, or on explicit reset
+if (!isset($_SESSION['mock_schedules']) || isset($_GET['reset'])) {
+    $today = date('Y-m-d');
+    $_SESSION['mock_schedules'] = [
     [
         'id'          => 1,
         'land_title'  => 'Plot A – North Rooftop',
@@ -139,7 +140,7 @@ $_SESSION['mock_schedules'] = [
         'xp'          => 100,
     ],
 ];
-
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -179,14 +180,15 @@ if ($method === 'POST') {
 
         $newSched = [
             'id' => count($_SESSION['mock_schedules']) + 1,
-            'land_title' => 'Downtown Rooftop Garden',
+            'land_title' => 'Plot A – North Rooftop',
             'gardener' => 'Mary Gardener',
             'title' => $title,
             'description' => $description,
             'start_time' => $start_time,
             'end_time' => $end_time,
             'task_type' => $task_type,
-            'status' => 'scheduled'
+            'status' => 'pending',
+            'xp' => 150
         ];
 
         $_SESSION['mock_schedules'][] = $newSched;
@@ -196,6 +198,84 @@ if ($method === 'POST') {
             'message' => 'Task scheduled successfully!',
             'data' => $newSched
         ]);
+        exit;
+    }
+
+    if ($action === 'complete_schedule') {
+        $id = isset($input['id']) ? intval($input['id']) : 0;
+        $role = isset($input['role']) ? trim($input['role']) : (isset($_SESSION['active_role']) ? $_SESSION['active_role'] : 'gardener');
+        $completed_by = isset($input['completed_by']) ? htmlspecialchars(trim($input['completed_by'])) : '';
+        $notes = isset($input['notes']) ? htmlspecialchars(trim($input['notes'])) : '';
+        $proof_image = isset($input['proof_image']) ? trim($input['proof_image']) : '';
+
+        // Handle uploaded image file if provided in $_FILES
+        if (isset($_FILES['proof_image']) && $_FILES['proof_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../uploads/quests/';
+            if (!is_dir($uploadDir)) {
+                @mkdir($uploadDir, 0777, true);
+            }
+            $ext = strtolower(pathinfo($_FILES['proof_image']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif'])) {
+                $ext = 'jpg';
+            }
+            $filename = 'proof_' . $id . '_' . time() . '.' . $ext;
+            $target = $uploadDir . $filename;
+            if (move_uploaded_file($_FILES['proof_image']['tmp_name'], $target)) {
+                $proof_image = 'uploads/quests/' . $filename;
+            }
+        }
+
+        // Only gardeners upload proof photos; landowners mark complete directly
+        if ($role === 'landowner') {
+            $proof_image = ''; // Landowners do not upload photos
+        } else {
+            // Gardener role: strictly enforce photo proof
+            if (empty($proof_image)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'To complete this quest as a gardener, please attach a photo of your completed work.'
+                ]);
+                exit;
+            }
+        }
+
+        if (empty($completed_by)) {
+            $completed_by = ($role === 'landowner') ? 'Landowner' : (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Mary Gardener');
+        }
+
+        $found = false;
+        $updatedItem = null;
+        foreach ($_SESSION['mock_schedules'] as &$sched) {
+            if ($sched['id'] === $id) {
+                $sched['status'] = 'completed';
+                $sched['proof_image'] = $proof_image;
+                $sched['completed_by'] = $completed_by;
+                $sched['completed_at'] = date('Y-m-d H:i:s');
+                if (!empty($notes)) {
+                    $sched['completion_notes'] = $notes;
+                }
+                $found = true;
+                $updatedItem = $sched;
+                break;
+            }
+        }
+
+        if ($found) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => ($role === 'landowner') 
+                    ? 'Quest marked as completed by Landowner!' 
+                    : 'Quest completed and proof photo submitted successfully!',
+                'data' => $updatedItem
+            ]);
+        } else {
+            http_response_code(404);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Quest not found.'
+            ]);
+        }
         exit;
     }
 
