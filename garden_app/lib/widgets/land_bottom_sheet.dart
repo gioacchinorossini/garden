@@ -68,23 +68,13 @@ class LandBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Color status strip (matching #sheetStatusStrip on web)
-          Container(
-            height: 4,
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            decoration: BoxDecoration(
-              color: isAvailable ? const Color(0xFF198754) : AppColors.primary,
-              borderRadius: BorderRadius.circular(99),
-            ),
-          ),
-
           // Drag handle (matching .sheet-drag-handle on web)
           Container(
-            margin: const EdgeInsets.only(top: 8, bottom: 8),
-            width: 38,
-            height: 4,
+            margin: const EdgeInsets.only(top: 10, bottom: 8),
+            width: 44,
+            height: 5,
             decoration: BoxDecoration(
-              color: AppColors.cocoa.withValues(alpha: 0.35),
+              color: const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(99),
             ),
           ),
@@ -232,23 +222,34 @@ class LandBottomSheet extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (onPrevious != null)
-                      _buildHeaderNavButton(
-                        icon: Icons.chevron_left_rounded,
-                        tooltip: 'Previous Garden',
-                        onTap: onPrevious!,
+                    _buildHeaderNavButton(
+                      child: const CustomPaint(
+                        painter: _HeaderChevronPainter(
+                          isLeft: true,
+                          color: Color(0xFF0F172A),
+                        ),
                       ),
-                    if (onNext != null) ...[
-                      const SizedBox(width: 5),
-                      _buildHeaderNavButton(
-                        icon: Icons.chevron_right_rounded,
-                        tooltip: 'Next Garden',
-                        onTap: onNext!,
-                      ),
-                    ],
+                      tooltip: 'Previous Garden',
+                      onTap: onPrevious ?? () {},
+                    ),
                     const SizedBox(width: 5),
                     _buildHeaderNavButton(
-                      icon: Icons.close_rounded,
+                      child: const CustomPaint(
+                        painter: _HeaderChevronPainter(
+                          isLeft: false,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      tooltip: 'Next Garden',
+                      onTap: onNext ?? () {},
+                    ),
+                    const SizedBox(width: 5),
+                    _buildHeaderNavButton(
+                      child: const CustomPaint(
+                        painter: _HeaderClosePainter(
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
                       tooltip: 'Close',
                       onTap: onClose,
                     ),
@@ -604,7 +605,7 @@ class LandBottomSheet extends StatelessWidget {
   }
 
   Widget _buildHeaderNavButton({
-    required IconData icon,
+    required Widget child,
     required String tooltip,
     required VoidCallback onTap,
   }) {
@@ -613,24 +614,89 @@ class LandBottomSheet extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 30,
-          height: 30,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F9FA),
+            color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFDEE2E6), width: 1),
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x10000000),
-                offset: Offset(0, 1),
-                blurRadius: 1,
+                color: Color(0x14000000),
+                offset: Offset(0, 1.5),
+                blurRadius: 2,
               ),
             ],
           ),
           alignment: Alignment.center,
-          child: Icon(icon, size: 16, color: const Color(0xFF212529)),
+          child: SizedBox(
+            width: 14,
+            height: 14,
+            child: child,
+          ),
         ),
       ),
     );
   }
+}
+
+class _HeaderChevronPainter extends CustomPainter {
+  final bool isLeft;
+  final Color color;
+
+  const _HeaderChevronPainter({required this.isLeft, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.6
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+    if (isLeft) {
+      path.moveTo(size.width * 0.68, size.height * 0.18);
+      path.lineTo(size.width * 0.30, size.height * 0.50);
+      path.lineTo(size.width * 0.68, size.height * 0.82);
+    } else {
+      path.moveTo(size.width * 0.32, size.height * 0.18);
+      path.lineTo(size.width * 0.70, size.height * 0.50);
+      path.lineTo(size.width * 0.32, size.height * 0.82);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HeaderChevronPainter old) =>
+      old.isLeft != isLeft || old.color != color;
+}
+
+class _HeaderClosePainter extends CustomPainter {
+  final Color color;
+  const _HeaderClosePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(
+      Offset(size.width * 0.20, size.height * 0.20),
+      Offset(size.width * 0.80, size.height * 0.80),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.80, size.height * 0.20),
+      Offset(size.width * 0.20, size.height * 0.80),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _HeaderClosePainter old) => old.color != color;
 }

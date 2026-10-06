@@ -76,8 +76,13 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
             padding: 0 !important;
         }
 
+        .floating-map-header {
+            z-index: 1050 !important;
+        }
+
         .mobile-map-chips-bar {
             top: 74px !important;
+            z-index: 1000 !important;
         }
 
         .leaflet-top.leaflet-right {
@@ -91,6 +96,45 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
 
 <main class="workspace-surface landowner-map-page d-flex flex-column overflow-hidden h-100">
 
+    <!-- Header Search Bar Template (injected into #headerSearchSlot on desktop) -->
+    <template id="landownerHeaderSearchTemplate">
+        <div class="position-relative w-100" id="landownerUnifiedSearchWrapper" style="max-width:520px;">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
+                    <i class="bi bi-search" style="font-size:0.75rem;"></i>
+                </span>
+                <input type="text" id="landownerDesktopPlaceInput"
+                    class="form-control bg-light border-start-0 border-end-0 py-1.5 focus-ring-none"
+                    style="font-size:0.75rem;" placeholder="Search my lands, crops, places, or addresses..."
+                    autocomplete="off" oninput="handleLandownerUnifiedSearch(this.value)"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();handleLandownerUnifiedSearchEnter(this.value);}">
+                <button type="button" id="landownerPlaceClearBtn"
+                    class="input-group-text bg-light border-start-0 border-0 text-muted d-none"
+                    onclick="clearLandownerUnifiedSearch()" style="cursor:pointer;" title="Clear">
+                    <i class="bi bi-x-circle-fill" style="font-size:0.75rem;"></i>
+                </button>
+                <button type="button"
+                    class="input-group-text bg-light border-start-0 rounded-end-pill pe-3 text-success border-0"
+                    onclick="useMyLocationLandowner()" title="Use my GPS location" style="cursor:pointer;">
+                    <i class="bi bi-crosshair" style="font-size:0.8rem;"></i>
+                </button>
+            </div>
+            <!-- Unified Suggestions Dropdown -->
+            <div id="landownerDesktopPlaceResults"
+                class="position-absolute start-0 end-0 mt-1 rounded-3 border bg-white shadow-lg"
+                style="display:none; z-index:2100; max-height:380px; overflow-y:auto; font-size:0.82rem; top:100%;">
+            </div>
+        </div>
+    </template>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const slot = document.getElementById('headerSearchSlot');
+            const tpl = document.getElementById('landownerHeaderSearchTemplate');
+            if (slot && tpl) {
+                slot.appendChild(tpl.content.cloneNode(true));
+            }
+        });
+    </script>
 
     <!-- Map Container -->
     <div class="flex-grow-1 position-relative overflow-hidden w-100 h-100" style="min-height:0;">
@@ -115,7 +159,9 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
                 <div class="vr mx-1 my-auto text-muted opacity-25" style="height:20px;"></div>
                 <i class="bi bi-search text-muted fs-6 ms-0.5"></i>
                 <input type="text" id="mobileMapSearchInput" class="floating-map-search-input"
-                    placeholder="Search lands, crops..." oninput="handleMobileMapSearch(this.value)" autocomplete="off">
+                    placeholder="Search lands, crops, places..." oninput="handleMobileMapSearch(this.value)"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();handleMobileMapSearchEnter(this.value);}"
+                    autocomplete="off">
                 <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear"
                     onclick="clearMobileMapSearch()">
                     <i class="bi bi-x-circle-fill"></i>
@@ -309,8 +355,6 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
 
             <!-- Bottom Sheet -->
             <div id="mobileLandCardSheet" class="mobile-land-sheet hidden">
-                <!-- Color status strip -->
-                <div id="sheetStatusStrip" class="sheet-status-strip" style="background:#198754;"></div>
 
                 <!-- Drag handle -->
                 <div class="sheet-drag-handle-container" id="sheetDragHandleContainer"
@@ -352,18 +396,29 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
                         </p>
                     </div>
                     <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
-                        <button type="button"
-                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
-                            style="width:30px;height:30px;" onclick="navigateGardenCard(-1)" title="Previous Garden">
-                            <i data-lucide="chevron-left" style="width:16px;height:16px;" class="text-dark"></i>
+                        <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(-1)"
+                            title="Previous Garden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="m15 18-6-6 6-6" />
+                            </svg>
                         </button>
-                        <button type="button"
-                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
-                            style="width:30px;height:30px;" onclick="navigateGardenCard(1)" title="Next Garden">
-                            <i data-lucide="chevron-right" style="width:16px;height:16px;" class="text-dark"></i>
+                        <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(1)" title="Next Garden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
                         </button>
-                        <button type="button" class="btn-close ms-1" style="font-size:0.7rem;"
-                            onclick="closeLandCardSheet()"></button>
+                        <button type="button" class="sheet-nav-btn ms-1" onclick="closeLandCardSheet()" title="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -703,7 +758,8 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
         const approved = land.status === 'approved';
         const stripColor = approved ? '#198754' : '#ffc107';
 
-        document.getElementById('sheetStatusStrip').style.background = stripColor;
+        const strip = document.getElementById('sheetStatusStrip');
+        if (strip) strip.style.background = stripColor;
         const statusBadge = document.getElementById('sheetStatusBadge');
         if (statusBadge) {
             if (!approved) {
@@ -1058,6 +1114,7 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
     }
 
     let mobileSearchQuery = '';
+    let _mobileMapPlaceDebounce = null;
 
     function handleMobileMapSearch(query) {
         mobileSearchQuery = (query || '').trim().toLowerCase();
@@ -1065,8 +1122,45 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
         if (clearBtn) {
             clearBtn.style.display = mobileSearchQuery ? 'inline-block' : 'none';
         }
-        renderSearchSuggestions(mobileSearchQuery);
         applyCombinedMapFilters();
+
+        clearTimeout(_mobileMapPlaceDebounce);
+        const box = document.getElementById('mobileSearchSuggestions');
+        if (!box) return;
+
+        if (!mobileSearchQuery) {
+            box.innerHTML = '';
+            box.style.display = 'none';
+            return;
+        }
+
+        // Direct coordinate check (e.g. "14.5995, 120.9842")
+        const coord = mobileSearchQuery.match(/^([-+]?\d+(\.\d+)?)[,\s]+([-+]?\d+(\.\d+)?)$/);
+        if (coord) {
+            const lat = parseFloat(coord[1]), lng = parseFloat(coord[3]);
+            if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                flyLandownerMapToPlace(lat, lng, query.trim());
+                box.innerHTML = '';
+                box.style.display = 'none';
+                return;
+            }
+        }
+
+        renderSearchSuggestions(query.trim());
+    }
+
+    function handleMobileMapSearchEnter(query) {
+        if (!query || !query.trim()) return;
+        const q = query.trim().toLowerCase();
+        const match = landsData.find(land =>
+            (land.title || '').toLowerCase().includes(q) ||
+            (land.location || '').toLowerCase().includes(q)
+        );
+        if (match) {
+            selectSearchSuggestion(match.id);
+        } else {
+            performMobileLandownerPlaceSearch(query.trim(), true);
+        }
     }
 
     function renderSearchSuggestions(query) {
@@ -1079,6 +1173,7 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
             return;
         }
 
+        const q = query.toLowerCase();
         const matches = landsData.filter(land => {
             const title = (land.title || '').toLowerCase();
             const location = (land.location || '').toLowerCase();
@@ -1088,48 +1183,105 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
             const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
             const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
 
-            return title.includes(query) ||
-                location.includes(query) ||
-                owner.includes(query) ||
-                allCrops.includes(query);
-        }).slice(0, 5);
+            return title.includes(q) ||
+                location.includes(q) ||
+                owner.includes(q) ||
+                allCrops.includes(q);
+        }).slice(0, 4);
 
-        if (matches.length === 0) {
-            box.innerHTML = `
-                <div class="p-3 text-center text-muted" style="font-size:0.82rem;">
-                    <i class="bi bi-geo-alt me-1"></i> No matching gardens found
-                </div>
-            `;
-            box.style.display = 'block';
-            return;
+        let html = '';
+
+        if (matches.length > 0) {
+            html += `<div class="px-3 pt-2 pb-1" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">My Lands</div>`;
+            html += matches.map(land => {
+                const cropList = Array.isArray(land.crops) ? land.crops.join(', ') : (land.allowed_seeds || []).join(', ');
+                return `
+                    <div class="search-suggestion-item" onclick="selectSearchSuggestion(${land.id})">
+                        <div class="search-suggestion-icon">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="search-suggestion-title text-truncate">${escapeHtml(land.title)}</div>
+                            <div class="search-suggestion-sub text-truncate">
+                                <span><i class="bi bi-pin-map me-1"></i>${escapeHtml(land.location || '')}</span>
+                                ${cropList ? `<span class="ms-2 badge bg-success-subtle text-success py-0.5 px-1.5" style="font-size:0.68rem;">${escapeHtml(cropList)}</span>` : ''}
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                    </div>
+                `;
+            }).join('');
         }
 
-        box.innerHTML = matches.map(land => {
-            const cropList = Array.isArray(land.crops) ? land.crops.join(', ') : (land.allowed_seeds || []).join(', ');
-            return `
-                <div class="search-suggestion-item" onclick="selectSearchSuggestion(${land.id})">
-                    <div class="search-suggestion-icon">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
-                    <div class="flex-grow-1 overflow-hidden">
-                        <div class="search-suggestion-title text-truncate">${escapeHtml(land.title)}</div>
-                        <div class="search-suggestion-sub text-truncate">
-                            <span><i class="bi bi-pin-map me-1"></i>${escapeHtml(land.location || '')}</span>
-                            ${cropList ? `<span class="ms-2 badge bg-success-subtle text-success py-0.5 px-1.5" style="font-size:0.68rem;">${escapeHtml(cropList)}</span>` : ''}
-                        </div>
-                    </div>
-                    <i class="bi bi-chevron-right text-muted" style="font-size:0.75rem;"></i>
-                </div>
-            `;
-        }).join('');
+        // Places lookup section (same Nominatim lookup as register page map)
+        html += `<div class="px-3 pt-2 pb-1 ${matches.length > 0 ? 'border-top' : ''}" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">Places</div>`;
+        html += `<div id="mobileLandownerPlaceResultsInline"><div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div></div>`;
 
+        box.innerHTML = html;
         box.style.display = 'block';
+
+        clearTimeout(_mobileMapPlaceDebounce);
+        _mobileMapPlaceDebounce = setTimeout(() => performMobileLandownerPlaceSearch(query, false), 350);
+    }
+
+    async function performMobileLandownerPlaceSearch(query, selectFirst) {
+        const inlineBox = document.getElementById('mobileLandownerPlaceResultsInline');
+        const box = document.getElementById('mobileSearchSuggestions');
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            if (selectFirst && data.length > 0) {
+                if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                flyLandownerMapToPlace(parseFloat(data[0].lat), parseFloat(data[0].lon), data[0].display_name);
+                const input = document.getElementById('mobileMapSearchInput');
+                if (input) input.value = data[0].name || data[0].display_name.split(',')[0];
+                return;
+            }
+
+            if (!inlineBox) return;
+            if (!data || data.length === 0) {
+                inlineBox.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
+                return;
+            }
+
+            inlineBox.innerHTML = data.map((item, idx) => `
+                <div class="px-3 py-2 d-flex align-items-start gap-2 landowner-mobile-place-item" style="cursor:pointer;transition:background .15s;border-top:1px solid #f0f0f0;" data-idx="${idx}"
+                    onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
+                    <i class="bi bi-geo-alt text-success mt-1 flex-shrink-0" style="font-size:0.85rem;"></i>
+                    <div class="overflow-hidden">
+                        <div class="fw-semibold text-dark text-truncate" style="font-size:0.8rem;">${escapeHtml(item.name || item.display_name.split(',')[0])}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.72rem;">${escapeHtml(item.display_name)}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            inlineBox.querySelectorAll('.landowner-mobile-place-item').forEach((el, idx) => {
+                el.addEventListener('click', () => {
+                    if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                    const inp = document.getElementById('mobileMapSearchInput');
+                    if (inp) {
+                        inp.value = data[idx].name || data[idx].display_name.split(',')[0];
+                        const clearBtn = document.getElementById('mobileMapSearchClear');
+                        if (clearBtn) clearBtn.style.display = 'inline-block';
+                    }
+                    flyLandownerMapToPlace(parseFloat(data[idx].lat), parseFloat(data[idx].lon), data[idx].display_name);
+                });
+            });
+        } catch (e) {
+            if (inlineBox) inlineBox.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+        }
     }
 
     function selectSearchSuggestion(landId) {
         const land = landsData.find(l => l.id == landId);
         const box = document.getElementById('mobileSearchSuggestions');
-        if (box) box.style.display = 'none';
+        if (box) {
+            box.innerHTML = '';
+            box.style.display = 'none';
+        }
 
         if (land) {
             const input = document.getElementById('mobileMapSearchInput');
@@ -1141,18 +1293,26 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
             // Filter map to show this and open its card sheet
             applyCombinedMapFilters();
             openLandCardSheet(land);
+            flyLandownerMapToPlace(parseFloat(land.latitude), parseFloat(land.longitude), land.title);
         }
     }
 
     function clearMobileMapSearch() {
         const input = document.getElementById('mobileMapSearchInput');
         if (input) input.value = '';
+        const clearBtn = document.getElementById('mobileMapSearchClear');
+        if (clearBtn) clearBtn.style.display = 'none';
         const box = document.getElementById('mobileSearchSuggestions');
         if (box) {
             box.innerHTML = '';
             box.style.display = 'none';
         }
-        handleMobileMapSearch('');
+        mobileSearchQuery = '';
+        applyCombinedMapFilters();
+        if (window._landownerPlaceMarker) {
+            window._landownerPlaceMarker.remove();
+            window._landownerPlaceMarker = null;
+        }
     }
 
     // Close suggestion box when clicking outside
@@ -1160,9 +1320,225 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
         const box = document.getElementById('mobileSearchSuggestions');
         const header = document.querySelector('.floating-map-header');
         if (box && header && !header.contains(e.target)) {
+            box.innerHTML = '';
             box.style.display = 'none';
         }
+        // Close unified desktop dropdown
+        const placeResults = document.getElementById('landownerDesktopPlaceResults');
+        const placeWrapper = document.getElementById('landownerUnifiedSearchWrapper') ||
+            document.getElementById('headerSearchSlot');
+        if (placeResults && placeWrapper && !placeWrapper.contains(e.target)) {
+            placeResults.innerHTML = '';
+            placeResults.style.display = 'none';
+        }
     });
+
+    // ─── Unified Desktop Search (Lands + Nominatim Places) ───────────────────
+    let _landownerUnifiedDebounce = null;
+
+    function handleLandownerUnifiedSearch(val) {
+        const clearBtn = document.getElementById('landownerPlaceClearBtn');
+        if (clearBtn) clearBtn.classList.toggle('d-none', !val.trim());
+
+        const query = val.trim();
+
+        // Also sync mobile search query for map filtering
+        mobileSearchQuery = query.toLowerCase();
+        applyCombinedMapFilters();
+
+        clearTimeout(_landownerUnifiedDebounce);
+        if (!query) {
+            const box = document.getElementById('landownerDesktopPlaceResults');
+            if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+            return;
+        }
+
+        // Coordinate shortcut
+        const coord = query.match(/^([-+]?\d+(\.\d+)?)[,\s]+([-+]?\d+(\.\d+)?)$/);
+        if (coord) {
+            const lat = parseFloat(coord[1]), lng = parseFloat(coord[3]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                flyLandownerMapToPlace(lat, lng, query);
+                const box = document.getElementById('landownerDesktopPlaceResults');
+                if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                return;
+            }
+        }
+
+        renderLandownerUnifiedSuggestions(query);
+    }
+
+    function handleLandownerUnifiedSearchEnter(query) {
+        if (!query.trim()) return;
+        const q = query.trim().toLowerCase();
+        const match = landsData.find(land =>
+            (land.title || '').toLowerCase().includes(q) ||
+            (land.location || '').toLowerCase().includes(q)
+        );
+        if (match) {
+            selectLandownerSearchSuggestion(match.id);
+        } else {
+            performLandownerUnifiedPlaceSearch(query.trim(), true);
+        }
+    }
+
+    function selectLandownerSearchSuggestion(landId) {
+        const land = landsData.find(l => l.id == landId);
+        const box = document.getElementById('landownerDesktopPlaceResults');
+        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+        if (land) {
+            openLandCardSheet(land);
+            flyLandownerMapToPlace(parseFloat(land.latitude), parseFloat(land.longitude), land.title);
+        }
+    }
+
+    function clearLandownerUnifiedSearch() {
+        const input = document.getElementById('landownerDesktopPlaceInput');
+        if (input) input.value = '';
+        const clearBtn = document.getElementById('landownerPlaceClearBtn');
+        if (clearBtn) clearBtn.classList.add('d-none');
+        const box = document.getElementById('landownerDesktopPlaceResults');
+        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+        mobileSearchQuery = '';
+        applyCombinedMapFilters();
+        if (window._landownerPlaceMarker) { window._landownerPlaceMarker.remove(); window._landownerPlaceMarker = null; }
+    }
+
+    async function renderLandownerUnifiedSuggestions(query) {
+        const box = document.getElementById('landownerDesktopPlaceResults');
+        if (!box) return;
+
+        const q = query.toLowerCase();
+        const landMatches = landsData.filter(land => {
+            const title = (land.title || '').toLowerCase();
+            const location = (land.location || '').toLowerCase();
+            const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+            const landPlots = plotsData.filter(p => p.land_id == land.id);
+            const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
+            const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
+            return title.includes(q) || location.includes(q) || allCrops.includes(q);
+        }).slice(0, 4);
+
+        let html = '';
+
+        if (landMatches.length > 0) {
+            html += `<div class="px-3 pt-2 pb-1" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">My Lands</div>`;
+            html += landMatches.map(land => {
+                const cropList = Array.isArray(land.crops) ? land.crops.join(', ') : (land.allowed_seeds || []).join(', ');
+                return `
+                    <div class="search-suggestion-item" onclick="selectLandownerSearchSuggestion(${land.id})">
+                        <div class="search-suggestion-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="search-suggestion-title text-truncate">${escapeHtml(land.title)}</div>
+                            <div class="search-suggestion-sub text-truncate">
+                                <span><i class="bi bi-pin-map me-1"></i>${escapeHtml(land.location || '')}</span>
+                                ${cropList ? `<span class="ms-2 badge bg-success-subtle text-success py-0.5 px-1.5" style="font-size:0.68rem;">${escapeHtml(cropList)}</span>` : ''}
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                    </div>`;
+            }).join('');
+        }
+
+        // Places section header + spinner
+        html += `<div class="px-3 pt-2 pb-1 border-top" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">Places</div>`;
+        html += `<div id="landownerPlaceResultsInline"><div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div></div>`;
+
+        box.innerHTML = html;
+        box.style.display = 'block';
+
+        // Attach garden click events
+        box.querySelectorAll('.search-suggestion-item').forEach(el => {
+            // onclick already set inline
+        });
+
+        clearTimeout(_landownerUnifiedDebounce);
+        _landownerUnifiedDebounce = setTimeout(() => performLandownerUnifiedPlaceSearch(query, false), 350);
+    }
+
+    async function performLandownerUnifiedPlaceSearch(query, selectFirst) {
+        const inlineBox = document.getElementById('landownerPlaceResultsInline');
+        const dropBox = document.getElementById('landownerDesktopPlaceResults');
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            if (selectFirst && data.length > 0) {
+                if (dropBox) { dropBox.innerHTML = ''; dropBox.style.display = 'none'; }
+                flyLandownerMapToPlace(parseFloat(data[0].lat), parseFloat(data[0].lon), data[0].display_name);
+                return;
+            }
+
+            if (!inlineBox) return;
+            if (!data || data.length === 0) {
+                inlineBox.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
+                return;
+            }
+            inlineBox.innerHTML = data.map((item, idx) => `
+                <div class="px-3 py-2 d-flex align-items-start gap-2 landowner-place-inline-item" style="cursor:pointer;transition:background .15s;border-top:1px solid #f0f0f0;" data-idx="${idx}"
+                    onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
+                    <i class="bi bi-geo-alt text-success mt-1 flex-shrink-0" style="font-size:0.85rem;"></i>
+                    <div class="overflow-hidden">
+                        <div class="fw-semibold text-dark text-truncate" style="font-size:0.8rem;">${escapeHtml(item.name || item.display_name.split(',')[0])}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.72rem;">${escapeHtml(item.display_name)}</div>
+                    </div>
+                </div>
+            `).join('');
+            inlineBox.querySelectorAll('.landowner-place-inline-item').forEach((el, idx) => {
+                el.addEventListener('click', () => {
+                    if (dropBox) { dropBox.innerHTML = ''; dropBox.style.display = 'none'; }
+                    const inp = document.getElementById('landownerDesktopPlaceInput');
+                    if (inp) inp.value = data[idx].display_name;
+                    flyLandownerMapToPlace(parseFloat(data[idx].lat), parseFloat(data[idx].lon), data[idx].display_name);
+                });
+            });
+        } catch (e) {
+            if (inlineBox) inlineBox.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+        }
+    }
+
+    function flyLandownerMapToPlace(lat, lng, label) {
+        if (!landownerMap || isNaN(lat) || isNaN(lng)) return;
+        landownerMap.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
+        // Place a temporary location marker
+        if (window._landownerPlaceMarker) {
+            window._landownerPlaceMarker.remove();
+        }
+        const icon = L.divIcon({
+            className: '',
+            html: `<div style="width:18px;height:18px;background:#198754;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        });
+        window._landownerPlaceMarker = L.marker([lat, lng], { icon })
+            .addTo(landownerMap)
+            .bindPopup(`<div style="font-size:0.8rem;"><b>📍 ${escapeHtml(label)}</b></div>`, { maxWidth: 280 })
+            .openPopup();
+    }
+
+    function clearLandownerPlaceSearch() {
+        const input = document.getElementById('landownerDesktopPlaceInput');
+        if (input) input.value = '';
+        const clearBtn = document.getElementById('landownerPlaceClearBtn');
+        if (clearBtn) clearBtn.classList.add('d-none');
+        const box = document.getElementById('landownerDesktopPlaceResults');
+        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+        if (window._landownerPlaceMarker) {
+            window._landownerPlaceMarker.remove();
+            window._landownerPlaceMarker = null;
+        }
+    }
+
+    function useMyLocationLandowner() {
+        if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+        navigator.geolocation.getCurrentPosition(
+            pos => flyLandownerMapToPlace(pos.coords.latitude, pos.coords.longitude, 'My Location'),
+            err => alert('Unable to get your location: ' + err.message),
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
+    }
 
     function applyCombinedMapFilters() {
         let list = landsData;

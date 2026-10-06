@@ -24,6 +24,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $has_3d = isset($_POST['enable_3d_view']) ? 1 : 0;
     $polygon = isset($_POST['lot_polygon']) ? htmlspecialchars(trim($_POST['lot_polygon'])) : '';
 
+    // Harvest sharing configuration
+    $harvest_share_type = $_POST['harvest_share_type'] ?? 'percentage';
+    if (!in_array($harvest_share_type, ['percentage', 'fixed_kg', 'negotiated'], true)) {
+        $harvest_share_type = 'percentage';
+    }
+    $landowner_share_percentage = null;
+    $landowner_share_kg = null;
+
+    if ($harvest_share_type === 'percentage') {
+        $landowner_share_percentage = max(0, min(100, floatval($_POST['landowner_share_percentage'] ?? 25)));
+    } elseif ($harvest_share_type === 'fixed_kg') {
+        $landowner_share_kg = max(0, floatval($_POST['landowner_share_kg'] ?? 0));
+    }
+
     $seeds = isset($_POST['allowed_seeds']) ? array_map('htmlspecialchars', $_POST['allowed_seeds']) : [];
     if (empty($seeds)) {
         $seeds = ['Vegetables', 'Herbs'];
@@ -54,9 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         $stmt = $pdo->prepare("
             INSERT INTO `lands` 
-            (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon)
+            (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon, harvest_share_type, landowner_share_percentage, landowner_share_kg)
             VALUES 
-            (?, ?, '', '', '', '', '', ?, ?, '', 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+            (?, ?, '', '', '', '', '', ?, ?, '', 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $owner_id,
@@ -72,7 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $plot_count,
             $landowner_name,
             $has_3d,
-            $polygon
+            $polygon,
+            $harvest_share_type,
+            $landowner_share_percentage,
+            $landowner_share_kg
         ]);
         $new_id = (int) $pdo->lastInsertId();
 
@@ -465,6 +482,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 
 
+                    <!-- Harvest Sharing Configuration -->
+                    <div class="col-12">
+                        <div class="border rounded-4 p-3 p-md-4 bg-light"
+                            style="border-color: var(--drive-border) !important;">
+                            <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                                <div>
+                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">HARVEST SHARING
+                                        AGREEMENT</label>
+                                    <div class="text-muted text-xs">Configure how the harvest from this land will be
+                                        divided between the landowner and farmer.</div>
+                                </div>
+                                <span class="badge bg-success-subtle text-success rounded-pill">Landowner Share</span>
+                            </div>
+
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label for="harvest_share_type"
+                                        class="form-label text-secondary fw-semibold text-xs mb-1">SHARING
+                                        METHOD</label>
+                                    <select class="form-select drive-form-control" id="harvest_share_type"
+                                        name="harvest_share_type" onchange="updateHarvestShareFields()">
+                                        <option value="percentage" selected>Percentage of harvest</option>
+                                        <option value="fixed_kg">Fixed kilograms per harvest</option>
+                                        <option value="negotiated">Negotiated / manual</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4" id="percentageShareField">
+                                    <label for="landowner_share_percentage"
+                                        class="form-label text-secondary fw-semibold text-xs mb-1">LANDOWNER SHARE
+                                        (%)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control drive-form-control"
+                                            id="landowner_share_percentage" name="landowner_share_percentage" min="0"
+                                            max="100" step="0.01" value="25" oninput="updateHarvestSharePreview()">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 d-none" id="fixedKgShareField">
+                                    <label for="landowner_share_kg"
+                                        class="form-label text-secondary fw-semibold text-xs mb-1">LANDOWNER SHARE
+                                        (KG)</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control drive-form-control"
+                                            id="landowner_share_kg" name="landowner_share_kg" min="0" step="0.01"
+                                            value="0" oninput="updateHarvestSharePreview()">
+                                        <span class="input-group-text">kg</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-white border rounded-3 h-100"
+                                        style="border-color: var(--drive-border) !important;">
+                                        <div class="text-muted text-xs mb-1">SHARING PREVIEW</div>
+                                        <div id="harvestSharePreview" class="fw-semibold text-dark text-sm">Landowner:
+                                            25% · Farmer: 75%</div>
+                                        <div class="text-muted mt-1" style="font-size: 0.7rem;">Actual kilograms will be
+                                            calculated when a harvest is recorded.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- OCT Document Upload (col-12) -->
                     <div class="col-12">
                         <label class="form-label text-secondary fw-semibold text-xs mb-1">UPLOAD OCT DOCUMENT (ORIGINAL
@@ -500,6 +582,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </div>
     </div>
 </main>
+
+<script>
+    function updateHarvestShareFields() {
+        const type = document.getElementById('harvest_share_type')?.value;
+        const percentageField = document.getElementById('percentageShareField');
+        const fixedKgField = document.getElementById('fixedKgShareField');
+        const percentageInput = document.getElementById('landowner_share_percentage');
+        const fixedKgInput = document.getElementById('landowner_share_kg');
+
+        if (!percentageField || !fixedKgField) return;
+
+        percentageField.classList.toggle('d-none', type !== 'percentage');
+        fixedKgField.classList.toggle('d-none', type !== 'fixed_kg');
+
+        if (percentageInput) percentageInput.required = type === 'percentage';
+        if (fixedKgInput) fixedKgInput.required = type === 'fixed_kg';
+
+        updateHarvestSharePreview();
+    }
+
+    function updateHarvestSharePreview() {
+        const type = document.getElementById('harvest_share_type')?.value;
+        const preview = document.getElementById('harvestSharePreview');
+        if (!preview) return;
+
+        if (type === 'percentage') {
+            let percentage = parseFloat(document.getElementById('landowner_share_percentage')?.value || 0);
+            percentage = Math.max(0, Math.min(100, percentage));
+            const farmer = (100 - percentage).toFixed(2).replace(/\.00$/, '');
+            const owner = percentage.toFixed(2).replace(/\.00$/, '');
+            preview.textContent = `Landowner: ${owner}% · Farmer: ${farmer}%`;
+        } else if (type === 'fixed_kg') {
+            const kg = Math.max(0, parseFloat(document.getElementById('landowner_share_kg')?.value || 0));
+            preview.textContent = `Landowner: ${kg} kg per harvest · Farmer: Remaining harvest`;
+        } else {
+            preview.textContent = 'Landowner: Negotiated · Farmer: Negotiated';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateHarvestShareFields();
+    });
+</script>
 
 <?php
 $seedTypes = [

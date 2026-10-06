@@ -1109,7 +1109,7 @@ a.text-decoration-none:hover {
     top: 14px;
     left: 14px;
     right: 14px;
-    z-index: 1000;
+    z-index: 1050;
     background: #FFFDF9 !important;
     border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
     border-radius: 99px !important;
@@ -1293,7 +1293,7 @@ a.text-decoration-none:hover {
     top: 14px;
     left: 0;
     right: 0;
-    z-index: 1040;
+    z-index: 1000;
     display: flex;
     gap: 8px;
     align-items: center;
@@ -1617,12 +1617,44 @@ body:has(#mobileLandCardSheet:not(.hidden)) .mobile-bottom-nav-dock {
     transition: background-color 0.2s ease, width 0.2s ease, transform 0.2s ease;
 }
 
-/* Sheet status strip at top */
+/* Sheet status strip at top (hidden per user request) */
 .sheet-status-strip {
-    height: 5px;
-    margin: 0 -16px;
-    width: calc(100% + 32px);
-    transition: background-color 0.3s ease;
+    display: none !important;
+}
+
+/* Sheet Header Navigation & Close Buttons (Force visible high contrast) */
+.sheet-nav-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
+}
+
+.sheet-nav-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    transform: translateY(-1px);
+}
+
+.sheet-nav-btn:active {
+    transform: translateY(0);
+}
+
+.sheet-nav-btn svg {
+    stroke: #0f172a !important;
+    fill: none !important;
+    display: block !important;
+    stroke-width: 2.8px !important;
 }
 
 /* Sheet stat tiles */

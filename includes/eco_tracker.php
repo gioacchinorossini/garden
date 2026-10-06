@@ -1,13 +1,34 @@
 <?php
 // Gamified Environmental Contribution Tracker component
-// Dynamic eco calculations based on user role or default mock state
-$eco_level = isset($eco_level_override) ? $eco_level_override : 3;
-$eco_xp = isset($eco_xp_override) ? $eco_xp_override : 850;
-$eco_max_xp = 1000;
-$co2_offset = isset($co2_offset_override) ? $co2_offset_override : 142.8; // kg
-$water_saved = isset($water_saved_override) ? $water_saved_override : 1250; // Liters
-$organic_yield = isset($organic_yield_override) ? $organic_yield_override : 57.5; // kg
-$streak_days = isset($streak_days_override) ? $streak_days_override : 7;
+// Dynamic eco calculations connected to completed tasks in schedules
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+$sched_list = $_SESSION['mock_schedules'] ?? [];
+$completed_scheds = array_filter($sched_list, fn($s) => ($s['status'] ?? '') === 'completed');
+$completed_count = count($completed_scheds);
+$task_xp_earned = array_sum(array_column($completed_scheds, 'xp'));
+
+$watering_count = count(array_filter($completed_scheds, fn($s) => ($s['task_type'] ?? '') === 'watering'));
+$planting_count = count(array_filter($completed_scheds, fn($s) => ($s['task_type'] ?? '') === 'planting'));
+$harvest_count = count(array_filter($completed_scheds, fn($s) => ($s['task_type'] ?? '') === 'harvesting'));
+
+$user_role = $_SESSION['active_role'] ?? 'gardener';
+$base_xp = ($user_role === 'landowner') ? 500 : 350;
+$total_xp = $base_xp + $task_xp_earned;
+$calc_level = 1 + floor($total_xp / 300);
+$level_cap = (floor($total_xp / 300) + 1) * 300;
+
+$eco_level = isset($eco_level_override) ? $eco_level_override : $calc_level;
+$eco_xp = isset($eco_xp_override) ? $eco_xp_override : $total_xp;
+$eco_max_xp = isset($eco_max_xp_override) ? $eco_max_xp_override : $level_cap;
+if ($eco_max_xp <= $eco_xp) $eco_max_xp = $eco_xp + 100;
+
+$co2_offset = isset($co2_offset_override) ? $co2_offset_override : round(85.0 + ($planting_count * 25.0) + ($completed_count * 12.0), 1);
+$water_saved = isset($water_saved_override) ? $water_saved_override : (650 + ($watering_count * 350) + ($completed_count * 80));
+$organic_yield = isset($organic_yield_override) ? $organic_yield_override : round(35.0 + ($harvest_count * 15.0) + ($planting_count * 5.0), 1);
+$streak_days = isset($streak_days_override) ? $streak_days_override : (7 + min($completed_count, 14));
 ?>
 
 <div class="card border rounded-4 overflow-hidden mb-4 bg-white shadow-xs" style="border-color: var(--drive-border) !important;">
@@ -19,10 +40,13 @@ $streak_days = isset($streak_days_override) ? $streak_days_override : 7;
                     <span class="fs-2">🌿</span>
                 </div>
                 <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                         <span class="badge rounded-pill bg-white/20 text-white border border-white/30 text-uppercase tracking-wider text-[10px] px-2.5 py-0.5">Level <?php echo $eco_level; ?> Rank</span>
                         <span class="badge rounded-pill bg-amber-400 text-amber-950 font-bold text-[10px] px-2.5 py-0.5 d-flex align-items-center gap-1">
                             🔥 <?php echo $streak_days; ?>-Day Streak
+                        </span>
+                        <span class="badge rounded-pill bg-white/20 text-white border border-white/30 text-[10px] px-2.5 py-0.5">
+                            🌱 <?php echo $completed_count; ?> Tasks Done (+<?php echo $task_xp_earned; ?> XP)
                         </span>
                     </div>
                     <h3 class="fs-5 fw-bold mb-0 text-white">Green Guardian Eco Tracker</h3>
@@ -36,9 +60,9 @@ $streak_days = isset($streak_days_override) ? $streak_days_override : 7;
                     <span><?php echo $eco_xp; ?> / <?php echo $eco_max_xp; ?> XP</span>
                 </div>
                 <div class="progress rounded-pill bg-white/20 overflow-hidden" style="height: 10px;">
-                    <div class="progress-bar bg-amber-300 rounded-pill transition-all" role="progressbar" style="width: <?php echo ($eco_xp / $eco_max_xp) * 100; ?>%;"></div>
+                    <div class="progress-bar bg-amber-300 rounded-pill transition-all" role="progressbar" style="width: <?php echo min(100, round(($eco_xp / $eco_max_xp) * 100)); ?>%;"></div>
                 </div>
-                <span class="text-[10px] text-white/75 d-block mt-1 text-end">+<?php echo ($eco_max_xp - $eco_xp); ?> XP to Level <?php echo ($eco_level + 1); ?></span>
+                <span class="text-[10px] text-white/75 d-block mt-1 text-end">+<?php echo max(0, $eco_max_xp - $eco_xp); ?> XP to Level <?php echo ($eco_level + 1); ?></span>
             </div>
         </div>
     </div>

@@ -234,7 +234,7 @@ if ($method === 'POST') {
                 http_response_code(400);
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'To complete this quest as a gardener, please attach a photo of your completed work.'
+                    'message' => 'To complete this task as a gardener, please attach a photo of your completed work.'
                 ]);
                 exit;
             }
@@ -262,18 +262,27 @@ if ($method === 'POST') {
         }
 
         if ($found) {
+            $completed_all = array_filter($_SESSION['mock_schedules'], fn($s) => ($s['status'] ?? '') === 'completed');
+            $total_xp = array_sum(array_column($completed_all, 'xp'));
+            $earned_xp = $updatedItem['xp'] ?? 100;
+
             echo json_encode([
                 'status' => 'success',
                 'message' => ($role === 'landowner') 
-                    ? 'Quest marked as completed by Landowner!' 
-                    : 'Quest completed and proof photo submitted successfully!',
-                'data' => $updatedItem
+                    ? "Task verified and marked completed! +{$earned_xp} XP earned." 
+                    : "Task completed and proof submitted successfully! +{$earned_xp} XP earned.",
+                'data' => $updatedItem,
+                'gamification' => [
+                    'earned_xp' => $earned_xp,
+                    'total_xp' => $total_xp,
+                    'completed_count' => count($completed_all)
+                ]
             ]);
         } else {
             http_response_code(404);
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Quest not found.'
+                'message' => 'Task not found.'
             ]);
         }
         exit;

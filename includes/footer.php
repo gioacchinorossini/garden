@@ -72,6 +72,11 @@ function get_dock_link_class($page_name, $bottom_page)
             <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Schedules</span>
         </a>
+        <a href="<?php echo $base; ?>landowner/profile.php"
+            class="<?php echo get_dock_link_class('profile.php', $bottom_page); ?>">
+            <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+            <span class="hidden sm:inline">Profile</span>
+        </a>
     <?php elseif ($bottom_role == 'gardener'): ?>
         <a href="<?php echo $base; ?>gardener/dashboard.php"
             class="<?php echo get_dock_link_class('dashboard.php', $bottom_page); ?>">
@@ -92,6 +97,11 @@ function get_dock_link_class($page_name, $bottom_page)
             class="<?php echo get_dock_link_class('harvests.php', $bottom_page); ?>">
             <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">Harvests</span>
+        </a>
+        <a href="<?php echo $base; ?>gardener/profile.php"
+            class="<?php echo get_dock_link_class('profile.php', $bottom_page); ?>">
+            <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+            <span class="hidden sm:inline">Profile</span>
         </a>
     <?php endif; ?>
 

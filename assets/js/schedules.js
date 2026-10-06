@@ -405,11 +405,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     <span>${formatDate(sched.start_time)}</span>
                 </div>
                 ${isCompleted
-                    ? `<button type="button" class="task-action-btn task-action-btn--view" onclick="openViewQuestModal(${sched.id})">
-                           ${lucideIcon('eye', 14)} View Quest
+                    ? `<button type="button" class="task-action-btn task-action-btn--view" onclick="openViewTaskModal(${sched.id})">
+                           ${lucideIcon('eye', 14)} View Task
                        </button>`
-                    : `<button type="button" class="task-action-btn task-action-btn--complete" onclick="openCompleteQuestModal(${sched.id})">
-                           ${lucideIcon(isLandownerUser() ? 'shield-check' : 'check-circle', 14)} ${isLandownerUser() ? 'Mark Complete' : 'Complete Quest'}
+                    : `<button type="button" class="task-action-btn task-action-btn--complete" onclick="openCompleteTaskModal(${sched.id})">
+                           ${lucideIcon(isLandownerUser() ? 'shield-check' : 'check-circle', 14)} ${isLandownerUser() ? 'Mark Complete' : 'Complete Task'}
                        </button>`
                 }
             </div>
@@ -423,8 +423,8 @@ document.addEventListener("DOMContentLoaded", function () {
             schedulesContainer.innerHTML = `
                 <div class="task-empty-state">
                     ${lucideIcon('sprout', 48)}
-                    <h3>No quests yet!</h3>
-                    <p>Click <strong>+ Add Task</strong> to plant your first quest.</p>
+                    <h3>No tasks yet!</h3>
+                    <p>Click <strong>+ Add Task</strong> to schedule your first garden task.</p>
                 </div>`;
             lucide.createIcons();
             return;
@@ -434,12 +434,58 @@ document.addEventListener("DOMContentLoaded", function () {
         const active    = schedulesList.filter(s => s.status !== 'completed');
         const completed = schedulesList.filter(s => s.status === 'completed');
 
-        let html = '';
+        // Gamification metrics calculated directly from schedules
+        const totalTaskXP = completed.reduce((sum, s) => sum + (s.xp || 100), 0);
+        const baseXP = isLandownerUser() ? 500 : 350;
+        const currentTotalXP = baseXP + totalTaskXP;
+        const userLevel = 1 + Math.floor(currentTotalXP / 300);
+        const levelProgressXP = currentTotalXP % 300;
+        const levelGoalXP = 300;
+        const progressPct = Math.min(100, Math.round((levelProgressXP / levelGoalXP) * 100));
+
+        let html = `
+            <!-- Gamification Task Progress Banner -->
+            <div class="card border rounded-4 mb-4 bg-white shadow-xs p-3 p-md-3.5" style="border-color: var(--drive-border) !important;">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-3 bg-emerald-100 text-emerald-800 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;font-size:1.35rem;">
+                            🌿
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-0.5">
+                                <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">Level ${userLevel} Eco Caretaker</span>
+                                <span class="badge rounded-pill bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 d-flex align-items-center gap-1">
+                                    🔥 7-Day Streak
+                                </span>
+                            </div>
+                            <h4 class="fw-bold text-dark m-0 fs-6">${isLandownerUser() ? 'Landowner' : 'Gardener'} Eco Progress</h4>
+                            <span class="text-secondary" style="font-size:0.75rem;">
+                                <strong>${completed.length}</strong> of <strong>${schedulesList.length}</strong> tasks completed • <strong>+${totalTaskXP} XP</strong> earned from schedule tasks
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="min-w-[210px] flex-shrink-0">
+                        <div class="d-flex justify-content-between small fw-semibold text-secondary mb-1" style="font-size:0.75rem;">
+                            <span>Level Progress</span>
+                            <span class="text-emerald-700 font-bold">${levelProgressXP} / ${levelGoalXP} XP</span>
+                        </div>
+                        <div class="progress rounded-pill bg-slate-100 overflow-hidden" style="height: 8px;">
+                            <div class="progress-bar bg-emerald-500 rounded-pill transition-all" role="progressbar" style="width: ${progressPct}%;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1 text-muted" style="font-size:0.68rem;">
+                            <span>Total XP: ${currentTotalXP}</span>
+                            <span>+${levelGoalXP - levelProgressXP} XP to Level ${userLevel + 1}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
 
         if (active.length) {
             html += `<div class="task-section-label">
-                        ${lucideIcon('swords', 15)}
-                        Active Quests <span class="task-count-badge">${active.length}</span>
+                        ${lucideIcon('calendar-check', 15)}
+                        Active Tasks <span class="task-count-badge">${active.length}</span>
                      </div>
                      <div class="task-quest-grid">${active.map(renderCard).join('')}</div>`;
         }
@@ -527,19 +573,19 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.getElementById('completeQuestModal')) return;
 
         const modalHtml = `
-        <!-- Complete Quest Modal -->
+        <!-- Complete Task Modal -->
         <div class="modal fade" id="completeQuestModal" tabindex="-1" aria-hidden="true" style="z-index: 10050;">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 24px;">
                     <div class="modal-header border-0 pb-1">
                         <div>
                             <span class="badge rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs" id="complete_task_role_badge">GARDENER PROOF</span>
-                            <h5 class="modal-title fw-bold text-dark m-0" id="complete_modal_heading">Complete Quest</h5>
+                            <h5 class="modal-title fw-bold text-dark m-0" id="complete_modal_heading">Complete Task</h5>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body pt-2 pb-3">
-                        <!-- Quest Summary Banner -->
+                        <!-- Task Summary Banner -->
                         <div class="p-3 rounded-4 mb-3" style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <span class="fw-bold text-dark small" id="complete_land_title">Plot A</span>
@@ -557,7 +603,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div id="gardenerProofSection">
                                 <div class="alert alert-info py-2 px-3 rounded-3 border-0 d-flex align-items-center gap-2 mb-3" style="font-size:0.78rem;">
                                     <i class="bi bi-camera-fill fs-6 text-primary flex-shrink-0"></i>
-                                    <span><strong>Photo Proof Required:</strong> As the gardener, attach a photo of your completed garden work to earn your XP and finish this quest.</span>
+                                    <span><strong>Photo Proof Required:</strong> As the gardener, attach a photo of your completed garden work to earn your XP and finish this task.</span>
                                 </div>
 
                                 <label class="form-label text-secondary d-block mb-1" style="font-size:0.75rem; font-weight:700;">WORK PROOF PHOTO <span class="text-danger">*</span></label>
@@ -583,7 +629,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <span class="text-muted d-block mb-1.5" style="font-size:0.7rem;font-weight:600;">OR USE SAMPLE WORK PHOTO:</span>
                                     <div class="d-flex flex-wrap gap-1.5">
                                         <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small" onclick="useSamplePhoto('watering')" style="font-size:0.7rem;">
-                                            <i class="bi bi-droplet text-primary me-1"></i> Watered Beds
+                                             <i class="bi bi-droplet text-primary me-1"></i> Watered Beds
                                         </button>
                                         <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2.5 small" onclick="useSamplePhoto('planting')" style="font-size:0.7rem;">
                                             <i class="bi bi-seedling text-success me-1"></i> Planted Beds
@@ -601,7 +647,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <i class="bi bi-shield-check fs-5 text-success flex-shrink-0"></i>
                                     <div>
                                         <strong>Landowner Direct Verification:</strong><br>
-                                        You are marking this quest completed for <strong id="landownerTargetGardener">the gardener</strong> directly. Only gardeners upload proof photos.
+                                        You are marking this task completed for <strong id="landownerTargetGardener">the gardener</strong> directly. Only gardeners upload proof photos.
                                     </div>
                                 </div>
                             </div>
@@ -616,7 +662,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="d-flex justify-content-end gap-2 pt-2">
                                 <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" id="submitCompleteQuestBtn" class="btn btn-success rounded-pill px-4 fw-bold">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Complete Quest
+                                    <i class="bi bi-check-circle-fill me-1"></i> Complete Task
                                 </button>
                             </div>
                         </form>
@@ -625,7 +671,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
         </div>
 
-        <!-- View Quest Details & Proof Modal -->
+        <!-- View Task Details & Proof Modal -->
         <div class="modal fade" id="viewQuestModal" tabindex="-1" aria-hidden="true" style="z-index: 10050;">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 24px;">
@@ -634,7 +680,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <span class="badge rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs" style="background:#DCFCE7;color:#15803D;border:1.5px solid #785D4D;" id="view_status_pill">
                                 <i class="bi bi-check-circle-fill me-1"></i> Completed
                             </span>
-                            <h5 class="modal-title fw-bold text-dark m-0" id="view_quest_title">Quest Details</h5>
+                            <h5 class="modal-title fw-bold text-dark m-0" id="view_quest_title">Task Details</h5>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -695,7 +741,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="d-flex">
                     <div class="toast-body py-2.5 px-3 d-flex align-items-center gap-2">
                         <i class="bi bi-check-circle-fill text-success" id="questToastIcon"></i>
-                        <span id="questToastMsg" class="small fw-medium">Quest completed!</span>
+                        <span id="questToastMsg" class="small fw-medium">Task completed!</span>
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
@@ -785,7 +831,7 @@ document.addEventListener("DOMContentLoaded", function () {
         showProofPreview(sampleUrl);
     };
 
-    window.openCompleteQuestModal = function (id) {
+    window.openCompleteTaskModal = function (id) {
         ensureQuestModals();
         const sched = schedulesList.find(s => s.id === id);
         if (!sched) return;
@@ -810,12 +856,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (roleInput) roleInput.value = isLandowner ? 'landowner' : 'gardener';
 
         if (isLandowner) {
-            // Landowner marks quest complete directly - only gardeners upload photos
+            // Landowner marks task complete directly - only gardeners upload photos
             if (roleBadge) {
                 roleBadge.textContent = 'LANDOWNER VERIFICATION';
                 roleBadge.className = 'badge bg-success-subtle text-success rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs';
             }
-            document.getElementById('complete_modal_heading').textContent = 'Mark Quest as Completed';
+            document.getElementById('complete_modal_heading').textContent = 'Mark Task as Completed';
             document.getElementById('landownerTargetGardener').textContent = sched.gardener || 'the assigned gardener';
             if (gardenerSection) gardenerSection.classList.add('d-none');
             if (landownerSection) landownerSection.classList.remove('d-none');
@@ -831,7 +877,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 roleBadge.textContent = 'GARDENER PROOF REQUIRED';
                 roleBadge.className = 'badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs';
             }
-            document.getElementById('complete_modal_heading').textContent = 'Complete Quest & Submit Proof';
+            document.getElementById('complete_modal_heading').textContent = 'Complete Task & Submit Proof';
             if (gardenerSection) gardenerSection.classList.remove('d-none');
             if (landownerSection) landownerSection.classList.add('d-none');
             if (notesLabel) notesLabel.textContent = 'COMPLETION NOTES (OPTIONAL)';
@@ -846,8 +892,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
     };
+    // Alias for compatibility
+    window.openCompleteQuestModal = window.openCompleteTaskModal;
 
-    window.openViewQuestModal = function (id) {
+    window.openViewTaskModal = function (id) {
         ensureQuestModals();
         const sched = schedulesList.find(s => s.id === id);
         if (!sched) return;
@@ -897,6 +945,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
     };
+    // Alias for compatibility
+    window.openViewQuestModal = window.openViewTaskModal;
 
     async function handleCompleteQuestSubmit(e) {
         e.preventDefault();
@@ -908,7 +958,7 @@ document.addEventListener("DOMContentLoaded", function () {
             currentSelectedProofFile = null;
             currentSelectedProofImage = '';
         } else if (role === 'gardener' && !currentSelectedProofImage && !currentSelectedProofFile) {
-            alert("A photo proof is required for gardeners to complete this quest.");
+            alert("A photo proof is required for gardeners to complete this task.");
             return;
         }
 
@@ -954,23 +1004,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
 
-                showQuestToast(res.message || "Quest completed successfully!");
+                const earnedXp = res.data?.xp || 100;
+                showTaskToast(res.message || `🎉 Task completed! +${earnedXp} XP added to your Eco Level!`);
                 await loadSchedules();
             } else {
-                alert("Error: " + (res.message || "Failed to complete quest."));
+                alert("Error: " + (res.message || "Failed to complete task."));
             }
         } catch (err) {
-            console.error("Complete quest failed:", err);
-            alert("Connection error. Could not complete quest.");
+            console.error("Complete task failed:", err);
+            alert("Connection error. Could not complete task.");
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Complete Quest';
+                submitBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Complete Task';
             }
         }
     }
 
-    function showQuestToast(msg) {
+    function showTaskToast(msg) {
         const toastEl = document.getElementById('questToast');
         const msgEl = document.getElementById('questToastMsg');
         if (!toastEl) return;
@@ -978,6 +1029,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
         toast.show();
     }
+    window.showQuestToast = showTaskToast;
 
     // ─── Initial Load ─────────────────────────────────────────────────────────
     ensureQuestModals();

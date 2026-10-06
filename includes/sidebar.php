@@ -97,6 +97,11 @@ $bp = isset($base_path) ? $base_path : '';
                     <i data-lucide="shopping-bag" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
                     <span class="sidebar-text truncate">Record Harvest</span>
                 </a>
+                <a href="<?php echo $bp; ?>gardener/profile.php" title="My Profile"
+                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'profile.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
+                    <i data-lucide="user" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">My Profile</span>
+                </a>
             <?php endif; ?>
         </nav>
     </div>

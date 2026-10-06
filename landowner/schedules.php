@@ -25,7 +25,7 @@ include '../includes/sidebar.php';
     <div class="workspace-scroll">
         <!-- Mobile-only header row -->
         <div class="d-flex d-md-none align-items-center justify-content-between mb-3">
-            <h2 class="fs-6 fw-semibold m-0" style="letter-spacing:0.5px;text-transform:uppercase;">Upcoming Quests</h2>
+            <h2 class="fs-6 fw-semibold m-0" style="letter-spacing:0.5px;text-transform:uppercase;">Upcoming Tasks</h2>
             <button class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
                     data-bs-toggle="modal" data-bs-target="#addTaskModal">
                 <i class="bi bi-plus-lg"></i> Add Task

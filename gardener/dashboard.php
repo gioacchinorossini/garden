@@ -72,8 +72,13 @@ unset($land);
             padding: 0 !important;
         }
 
+        .floating-map-header {
+            z-index: 1050 !important;
+        }
+
         .mobile-map-chips-bar {
             top: 74px !important;
+            z-index: 1000 !important;
         }
 
         .leaflet-top.leaflet-right {
@@ -87,35 +92,47 @@ unset($land);
 
 <main class="workspace-surface gardener-map-page d-flex flex-column overflow-hidden h-100">
 
-    <!-- Desktop Toolbar with Integrated Search Lands -->
+    <!-- Desktop Toolbar with Unified Search (Gardens + Places) -->
     <div
         class="toolbar border-bottom d-none d-md-flex align-items-center justify-content-between px-4 py-2 bg-white flex-shrink-0">
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <h1 class="fs-5 fw-semibold m-0 text-dark d-flex align-items-center gap-2 text-nowrap">
                 <i data-lucide="map-pin" class="text-success" style="width:20px;height:20px;"></i>
-                Gardens & Plots Map
+                Gardens &amp; Plots Map
             </h1>
         </div>
 
-        <!-- Integrated Search Lands Bar -->
-        <div class="position-relative flex-grow-1 mx-4" style="max-width: 480px;">
+        <!-- Unified Search Bar -->
+        <div class="position-relative flex-grow-1 mx-4" style="max-width: 560px;" id="gardenerUnifiedSearchWrapper">
             <div class="input-group input-group-sm">
                 <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
                     <i class="bi bi-search"></i>
                 </span>
-                <input type="text" id="desktopMapSearchInput" class="form-control bg-light border-start-0 border-end-0 py-1.5 text-xs focus-ring-none"
-                    placeholder="Search lands by name, location, or crop type..."
-                    oninput="handleGardenerMapSearch(this.value)" autocomplete="off">
-                <button type="button" id="desktopMapSearchClear" class="input-group-text bg-light border-start-0 rounded-end-pill pe-3 text-muted border-0 d-none"
-                    onclick="clearGardenerMapSearch()" style="cursor: pointer;" title="Clear search">
+                <input type="text" id="desktopMapSearchInput"
+                    class="form-control bg-light border-start-0 border-end-0 py-1.5 text-xs focus-ring-none"
+                    placeholder="Search gardens, crops, places, or addresses..."
+                    autocomplete="off"
+                    oninput="handleGardenerUnifiedSearch(this.value)"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();handleGardenerUnifiedSearchEnter(this.value);}">
+                <button type="button" id="desktopMapSearchClear"
+                    class="input-group-text bg-light border-start-0 border-0 text-muted d-none"
+                    onclick="clearGardenerUnifiedSearch()" style="cursor:pointer;" title="Clear">
                     <i class="bi bi-x-circle-fill"></i>
                 </button>
+                <button type="button"
+                    class="input-group-text bg-light border-start-0 rounded-end-pill pe-3 text-success border-0"
+                    onclick="useMyLocationGardener()" title="Use my GPS location" style="cursor:pointer;">
+                    <i class="bi bi-crosshair"></i>
+                </button>
             </div>
-            <!-- Desktop Suggestions Dropdown -->
-            <div id="desktopGardenerSearchSuggestions" class="floating-search-suggestions shadow-lg rounded-3 border bg-white mt-1 w-100" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1070; max-height:280px; overflow-y:auto;"></div>
+            <!-- Unified Suggestions Dropdown -->
+            <div id="desktopGardenerSearchSuggestions"
+                class="position-absolute top-100 start-0 end-0 mt-1 rounded-3 border bg-white shadow-lg"
+                style="display:none; z-index:1070; max-height:380px; overflow-y:auto; font-size:0.82rem;">
+            </div>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <a href="browse.php" class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill text-nowrap">
                 <i data-lucide="compass" style="width:15px;height:15px;"></i> Browse All Lands
             </a>
@@ -145,7 +162,8 @@ unset($land);
                 <div class="vr mx-1 my-auto text-muted opacity-25" style="height:20px;"></div>
                 <i class="bi bi-search text-muted fs-6 ms-0.5"></i>
                 <input type="text" id="mobileMapSearchInput" class="floating-map-search-input"
-                    placeholder="Search gardens, crops..." oninput="handleMobileGardenerMapSearch(this.value)"
+                    placeholder="Search gardens, crops, places..." oninput="handleMobileGardenerMapSearch(this.value)"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();handleMobileGardenerUnifiedSearchEnter(this.value);}"
                     autocomplete="off">
                 <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear"
                     onclick="clearMobileGardenerMapSearch()">
@@ -166,6 +184,10 @@ unset($land);
                                 <span class="badge bg-success-subtle text-success text-xs">Gardener</span>
                             </div>
                         </li>
+                        <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2"
+                                href="<?php echo $base_path; ?>gardener/profile.php">
+                                <i class="bi bi-person text-success"></i> My Profile
+                            </a></li>
                         <li><a class="dropdown-item rounded-3 py-2 px-3 text-sm d-flex align-items-center gap-2"
                                 href="<?php echo $base_path; ?>gardener/browse.php">
                                 <i class="bi bi-search text-success"></i> Browse Lands
@@ -334,8 +356,6 @@ unset($land);
 
             <!-- Bottom Sheet -->
             <div id="mobileLandCardSheet" class="mobile-land-sheet hidden">
-                <!-- Color status strip -->
-                <div id="sheetStatusStrip" class="sheet-status-strip" style="background:#198754;"></div>
 
                 <!-- Drag handle -->
                 <div class="sheet-drag-handle-container" id="sheetDragHandleContainer"
@@ -377,18 +397,15 @@ unset($land);
                         </p>
                     </div>
                     <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
-                        <button type="button"
-                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
-                            style="width:30px;height:30px;" onclick="navigateGardenCard(-1)" title="Previous Garden">
-                            <i data-lucide="chevron-left" style="width:16px;height:16px;" class="text-dark"></i>
+                        <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(-1)" title="Previous Garden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         </button>
-                        <button type="button"
-                            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center shadow-xs"
-                            style="width:30px;height:30px;" onclick="navigateGardenCard(1)" title="Next Garden">
-                            <i data-lucide="chevron-right" style="width:16px;height:16px;" class="text-dark"></i>
+                        <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(1)" title="Next Garden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </button>
-                        <button type="button" class="btn-close ms-1" style="font-size:0.7rem;"
-                            onclick="closeLandCardSheet()"></button>
+                        <button type="button" class="sheet-nav-btn ms-1" onclick="closeLandCardSheet()" title="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
                     </div>
                 </div>
 
@@ -727,7 +744,8 @@ unset($land);
             });
         }
 
-        document.getElementById('sheetStatusStrip').style.background = '#198754';
+        const strip = document.getElementById('sheetStatusStrip');
+        if (strip) strip.style.background = '#198754';
         document.getElementById('sheetStatusBadge').textContent = `${land.available_plots ?? 0} Plots Available`;
         document.getElementById('sheetStatusBadge').style.background = '#198754';
         document.getElementById('sheetStatusBadge').style.color = '#fff';
@@ -1064,7 +1082,9 @@ unset($land);
     }
 
     let mobileGardenerSearchQuery = '';
+    let _gardenerUnifiedDebounce = null;
 
+    // Unified search handler — called by both the desktop bar and mobile bar
     function handleGardenerMapSearch(query) {
         mobileGardenerSearchQuery = (query || '').trim().toLowerCase();
 
@@ -1094,9 +1114,296 @@ unset($land);
         applyCombinedGardenerMapFilters();
     }
 
-    // Alias for backward compatibility
+    // NEW: Desktop unified input handler
+    function handleGardenerUnifiedSearch(query) {
+        mobileGardenerSearchQuery = (query || '').trim().toLowerCase();
+
+        const desktopClear = document.getElementById('desktopMapSearchClear');
+        if (desktopClear) desktopClear.classList.toggle('d-none', !query.trim());
+
+        // Sync mobile
+        const mobileInput = document.getElementById('mobileMapSearchInput');
+        if (mobileInput && mobileInput.value !== query) mobileInput.value = query || '';
+        const mobileClear = document.getElementById('mobileMapSearchClear');
+        if (mobileClear) mobileClear.style.display = query.trim() ? 'inline-block' : 'none';
+
+        applyCombinedGardenerMapFilters();
+
+        clearTimeout(_gardenerUnifiedDebounce);
+        if (!query.trim()) {
+            const box = document.getElementById('desktopGardenerSearchSuggestions');
+            if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+            return;
+        }
+        // Render garden matches immediately, then fetch places
+        renderGardenerUnifiedSuggestions(query.trim());
+    }
+
+    let _gardenerMobileUnifiedDebounce = null;
+
     function handleMobileGardenerMapSearch(query) {
-        handleGardenerMapSearch(query);
+        mobileGardenerSearchQuery = (query || '').trim().toLowerCase();
+
+        // Sync Mobile Clear Button
+        const mobileClear = document.getElementById('mobileMapSearchClear');
+        if (mobileClear) {
+            mobileClear.style.display = mobileGardenerSearchQuery ? 'inline-block' : 'none';
+        }
+
+        applyCombinedGardenerMapFilters();
+
+        clearTimeout(_gardenerMobileUnifiedDebounce);
+        const box = document.getElementById('mobileGardenerSearchSuggestions');
+        if (!box) return;
+
+        if (!mobileGardenerSearchQuery) {
+            box.innerHTML = '';
+            box.style.display = 'none';
+            return;
+        }
+
+        // Direct coordinate check (e.g. "14.5995, 120.9842")
+        const coord = mobileGardenerSearchQuery.match(/^([-+]?\d+(\.\d+)?)[,\s]+([-+]?\d+(\.\d+)?)$/);
+        if (coord) {
+            const lat = parseFloat(coord[1]), lng = parseFloat(coord[3]);
+            if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                flyGardenerMapToPlace(lat, lng, query.trim());
+                box.innerHTML = '';
+                box.style.display = 'none';
+                return;
+            }
+        }
+
+        renderMobileGardenerUnifiedSuggestions(query.trim());
+    }
+
+    function handleMobileGardenerUnifiedSearchEnter(query) {
+        if (!query || !query.trim()) return;
+        const q = query.trim().toLowerCase();
+        const match = landsData.find(land =>
+            (land.title || '').toLowerCase().includes(q) ||
+            (land.location || '').toLowerCase().includes(q)
+        );
+        if (match) {
+            selectGardenerSearchSuggestion(match.id);
+        } else {
+            performMobileGardenerPlaceSearch(query.trim(), true);
+        }
+    }
+
+    function renderMobileGardenerUnifiedSuggestions(query) {
+        const box = document.getElementById('mobileGardenerSearchSuggestions');
+        if (!box) return;
+
+        const q = query.toLowerCase();
+        const gardenMatches = landsData.filter(land => {
+            const title = (land.title || '').toLowerCase();
+            const location = (land.location || '').toLowerCase();
+            const owner = (land.landowner || '').toLowerCase();
+            const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+            const landPlots = plotsData.filter(p => p.land_id == land.id);
+            const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
+            const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
+            return title.includes(q) || location.includes(q) || owner.includes(q) || allCrops.includes(q);
+        }).slice(0, 4);
+
+        let html = '';
+
+        if (gardenMatches.length > 0) {
+            html += `<div class="px-3 pt-2 pb-1" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">Gardens</div>`;
+            html += gardenMatches.map(land => {
+                const cropList = Array.isArray(land.crops) ? land.crops.join(', ') : (land.allowed_seeds || []).join(', ');
+                return `
+                    <div class="search-suggestion-item" onclick="selectGardenerSearchSuggestion(${land.id})">
+                        <div class="search-suggestion-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="search-suggestion-title text-truncate">${escapeHtml(land.title)}</div>
+                            <div class="search-suggestion-sub text-truncate">
+                                <span><i class="bi bi-pin-map me-1"></i>${escapeHtml(land.location || '')}</span>
+                                ${cropList ? `<span class="ms-2 badge bg-success-subtle text-success py-0.5 px-1.5" style="font-size:0.68rem;">${escapeHtml(cropList)}</span>` : ''}
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                    </div>`;
+            }).join('');
+        }
+
+        // Places section (Nominatim lookup like register page map)
+        html += `<div class="px-3 pt-2 pb-1 ${gardenMatches.length > 0 ? 'border-top' : ''}" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">Places</div>`;
+        html += `<div id="mobileGardenerPlaceResultsInline"><div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div></div>`;
+
+        box.innerHTML = html;
+        box.style.display = 'block';
+
+        clearTimeout(_gardenerMobileUnifiedDebounce);
+        _gardenerMobileUnifiedDebounce = setTimeout(() => performMobileGardenerPlaceSearch(query, false), 350);
+    }
+
+    async function performMobileGardenerPlaceSearch(query, selectFirst) {
+        const inlineBox = document.getElementById('mobileGardenerPlaceResultsInline');
+        const box = document.getElementById('mobileGardenerSearchSuggestions');
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            if (selectFirst && data.length > 0) {
+                const item = data[0];
+                if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                flyGardenerMapToPlace(parseFloat(item.lat), parseFloat(item.lon), item.display_name);
+                const input = document.getElementById('mobileMapSearchInput');
+                if (input) input.value = item.name || item.display_name.split(',')[0];
+                return;
+            }
+
+            if (!inlineBox) return;
+            if (!data || data.length === 0) {
+                inlineBox.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
+                return;
+            }
+            inlineBox.innerHTML = data.map((item, idx) => `
+                <div class="px-3 py-2 d-flex align-items-start gap-2 gardener-mobile-place-item" style="cursor:pointer;transition:background .15s;border-top:1px solid #f0f0f0;" data-idx="${idx}"
+                    onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
+                    <i class="bi bi-geo-alt text-success mt-1 flex-shrink-0" style="font-size:0.85rem;"></i>
+                    <div class="overflow-hidden">
+                        <div class="fw-semibold text-dark text-truncate" style="font-size:0.8rem;">${escapeHtml(item.name || item.display_name.split(',')[0])}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.72rem;">${escapeHtml(item.display_name)}</div>
+                    </div>
+                </div>
+            `).join('');
+            inlineBox.querySelectorAll('.gardener-mobile-place-item').forEach((el, idx) => {
+                el.addEventListener('click', () => {
+                    if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                    const inp = document.getElementById('mobileMapSearchInput');
+                    if (inp) {
+                        inp.value = data[idx].name || data[idx].display_name.split(',')[0];
+                        const mobileClear = document.getElementById('mobileMapSearchClear');
+                        if (mobileClear) mobileClear.style.display = 'inline-block';
+                    }
+                    flyGardenerMapToPlace(parseFloat(data[idx].lat), parseFloat(data[idx].lon), data[idx].display_name);
+                });
+            });
+        } catch (e) {
+            if (inlineBox) inlineBox.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+        }
+    }
+
+    function handleGardenerUnifiedSearchEnter(query) {
+        if (!query.trim()) return;
+        // If any garden matches, select top one; otherwise trigger place search
+        const q = query.trim().toLowerCase();
+        const match = landsData.find(land =>
+            (land.title || '').toLowerCase().includes(q) ||
+            (land.location || '').toLowerCase().includes(q)
+        );
+        if (match) {
+            selectGardenerSearchSuggestion(match.id);
+        } else {
+            performGardenerUnifiedPlaceSearch(query.trim(), true);
+        }
+    }
+
+    function clearGardenerUnifiedSearch() {
+        handleGardenerMapSearch('');
+        const mobileBox = document.getElementById('mobileGardenerSearchSuggestions');
+        if (mobileBox) { mobileBox.innerHTML = ''; mobileBox.style.display = 'none'; }
+        const desktopBox = document.getElementById('desktopGardenerSearchSuggestions');
+        if (desktopBox) { desktopBox.innerHTML = ''; desktopBox.style.display = 'none'; }
+        if (window._gardenerPlaceMarker) { window._gardenerPlaceMarker.remove(); window._gardenerPlaceMarker = null; }
+    }
+
+    async function renderGardenerUnifiedSuggestions(query) {
+        const box = document.getElementById('desktopGardenerSearchSuggestions');
+        if (!box) return;
+
+        const q = query.toLowerCase();
+        const gardenMatches = landsData.filter(land => {
+            const title = (land.title || '').toLowerCase();
+            const location = (land.location || '').toLowerCase();
+            const owner = (land.landowner || '').toLowerCase();
+            const rawCrops = Array.isArray(land.crops) ? land.crops : (land.allowed_seeds || []);
+            const landPlots = plotsData.filter(p => p.land_id == land.id);
+            const plotCrops = landPlots.map(p => p.crop).filter(Boolean);
+            const allCrops = [...rawCrops, ...plotCrops].join(' ').toLowerCase();
+            return title.includes(q) || location.includes(q) || owner.includes(q) || allCrops.includes(q);
+        }).slice(0, 4);
+
+        let html = '';
+
+        if (gardenMatches.length > 0) {
+            html += `<div class="px-3 pt-2 pb-1" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">Gardens</div>`;
+            html += gardenMatches.map(land => {
+                const cropList = Array.isArray(land.crops) ? land.crops.join(', ') : (land.allowed_seeds || []).join(', ');
+                return `
+                    <div class="search-suggestion-item" onclick="selectGardenerSearchSuggestion(${land.id})">
+                        <div class="search-suggestion-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="search-suggestion-title text-truncate">${escapeHtml(land.title)}</div>
+                            <div class="search-suggestion-sub text-truncate">
+                                <span><i class="bi bi-pin-map me-1"></i>${escapeHtml(land.location || '')}</span>
+                                ${cropList ? `<span class="ms-2 badge bg-success-subtle text-success py-0.5 px-1.5" style="font-size:0.68rem;">${escapeHtml(cropList)}</span>` : ''}
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted" style="font-size:0.75rem;"></i>
+                    </div>`;
+            }).join('');
+        }
+
+        // Placeholder row for places while fetching
+        html += `<div class="px-3 pt-2 pb-1 border-top" id="gardenerPlaceSectionHeader" style="font-size:0.68rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#6c757d;">Places</div>`;
+        html += `<div id="gardenerPlaceResultsInline"><div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div></div>`;
+
+        box.innerHTML = html;
+        box.style.display = 'block';
+
+        // Fetch places async
+        clearTimeout(_gardenerUnifiedDebounce);
+        _gardenerUnifiedDebounce = setTimeout(() => performGardenerUnifiedPlaceSearch(query, false), 350);
+    }
+
+    async function performGardenerUnifiedPlaceSearch(query, selectFirst) {
+        const inlineBox = document.getElementById('gardenerPlaceResultsInline');
+        const dropBox = document.getElementById('desktopGardenerSearchSuggestions');
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+
+            if (selectFirst && data.length > 0) {
+                const item = data[0];
+                if (dropBox) { dropBox.innerHTML = ''; dropBox.style.display = 'none'; }
+                flyGardenerMapToPlace(parseFloat(item.lat), parseFloat(item.lon), item.display_name);
+                return;
+            }
+
+            if (!inlineBox) return;
+            if (!data || data.length === 0) {
+                inlineBox.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
+                return;
+            }
+            inlineBox.innerHTML = data.map((item, idx) => `
+                <div class="px-3 py-2 d-flex align-items-start gap-2 gardener-place-inline-item" style="cursor:pointer;transition:background .15s;border-top:1px solid #f0f0f0;" data-idx="${idx}"
+                    onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
+                    <i class="bi bi-geo-alt text-success mt-1 flex-shrink-0" style="font-size:0.85rem;"></i>
+                    <div class="overflow-hidden">
+                        <div class="fw-semibold text-dark text-truncate" style="font-size:0.8rem;">${escapeHtml(item.name || item.display_name.split(',')[0])}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.72rem;">${escapeHtml(item.display_name)}</div>
+                    </div>
+                </div>
+            `).join('');
+            inlineBox.querySelectorAll('.gardener-place-inline-item').forEach((el, idx) => {
+                el.addEventListener('click', () => {
+                    if (dropBox) { dropBox.innerHTML = ''; dropBox.style.display = 'none'; }
+                    const inp = document.getElementById('desktopMapSearchInput');
+                    if (inp) inp.value = data[idx].display_name;
+                    flyGardenerMapToPlace(parseFloat(data[idx].lat), parseFloat(data[idx].lon), data[idx].display_name);
+                });
+            });
+        } catch (e) {
+            if (inlineBox) inlineBox.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+        }
     }
 
     function renderGardenerSearchSuggestions(query, targetId) {
@@ -1159,16 +1466,26 @@ unset($land);
     function selectGardenerSearchSuggestion(landId) {
         const land = landsData.find(l => l.id == landId);
         const mobileBox = document.getElementById('mobileGardenerSearchSuggestions');
-        if (mobileBox) mobileBox.style.display = 'none';
+        if (mobileBox) { mobileBox.innerHTML = ''; mobileBox.style.display = 'none'; }
         const desktopBox = document.getElementById('desktopGardenerSearchSuggestions');
-        if (desktopBox) desktopBox.style.display = 'none';
+        if (desktopBox) { desktopBox.innerHTML = ''; desktopBox.style.display = 'none'; }
 
         if (land) {
-            handleGardenerMapSearch(land.title);
+            const mobileInput = document.getElementById('mobileMapSearchInput');
+            if (mobileInput) mobileInput.value = land.title;
+            const desktopInput = document.getElementById('desktopMapSearchInput');
+            if (desktopInput) desktopInput.value = land.title;
+            mobileGardenerSearchQuery = land.title.toLowerCase();
+
+            const mobileClear = document.getElementById('mobileMapSearchClear');
+            if (mobileClear) mobileClear.style.display = 'inline-block';
+            const desktopClear = document.getElementById('desktopMapSearchClear');
+            if (desktopClear) desktopClear.classList.remove('d-none');
 
             // Filter map to show this and open its card sheet
             applyCombinedGardenerMapFilters();
             openLandCardSheet(land);
+            flyGardenerMapToPlace(parseFloat(land.latitude), parseFloat(land.longitude), land.title);
         }
     }
 
@@ -1184,11 +1501,29 @@ unset($land);
             desktopBox.innerHTML = '';
             desktopBox.style.display = 'none';
         }
+        if (window._gardenerPlaceMarker) {
+            window._gardenerPlaceMarker.remove();
+            window._gardenerPlaceMarker = null;
+        }
     }
 
-    // Alias for backward compatibility
+    // Mobile clear handler
     function clearMobileGardenerMapSearch() {
-        clearGardenerMapSearch();
+        const input = document.getElementById('mobileMapSearchInput');
+        if (input) input.value = '';
+        const mobileClear = document.getElementById('mobileMapSearchClear');
+        if (mobileClear) mobileClear.style.display = 'none';
+        const box = document.getElementById('mobileGardenerSearchSuggestions');
+        if (box) {
+            box.innerHTML = '';
+            box.style.display = 'none';
+        }
+        mobileGardenerSearchQuery = '';
+        applyCombinedGardenerMapFilters();
+        if (window._gardenerPlaceMarker) {
+            window._gardenerPlaceMarker.remove();
+            window._gardenerPlaceMarker = null;
+        }
     }
 
     // Close suggestion boxes when clicking outside
@@ -1196,11 +1531,13 @@ unset($land);
         const mobileBox = document.getElementById('mobileGardenerSearchSuggestions');
         const header = document.querySelector('.floating-map-header');
         if (mobileBox && header && !header.contains(e.target)) {
+            mobileBox.innerHTML = '';
             mobileBox.style.display = 'none';
         }
         const desktopBox = document.getElementById('desktopGardenerSearchSuggestions');
         const desktopSearchContainer = document.getElementById('desktopMapSearchInput')?.closest('.position-relative');
         if (desktopBox && desktopSearchContainer && !desktopSearchContainer.contains(e.target)) {
+            desktopBox.innerHTML = '';
             desktopBox.style.display = 'none';
         }
     });
@@ -1307,6 +1644,132 @@ unset($land);
                 gardenerMap.invalidateSize();
             }
         }
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+        // Garden search suggestions
+        const gardenBox = document.getElementById('desktopGardenerSearchSuggestions');
+        const gardenInput = document.getElementById('desktopMapSearchInput');
+        if (gardenBox && gardenInput && !gardenInput.closest('.position-relative')?.contains(e.target)) {
+            gardenBox.style.display = 'none';
+        }
+        // Place search results
+        const placeResults = document.getElementById('gardenerDesktopPlaceResults');
+        const placeWrapper = document.getElementById('gardenerPlaceSearchWrapper');
+        if (placeResults && placeWrapper && !placeWrapper.contains(e.target)) {
+            placeResults.style.display = 'none';
+        }
+    });
+
+    // ─── Desktop Place Search (Nominatim Geocoding) ─────────────────────────
+    let _gardenerPlaceDebounce = null;
+
+    function handleGardenerDesktopPlaceInput(val) {
+        const clearBtn = document.getElementById('gardenerPlaceClearBtn');
+        if (clearBtn) clearBtn.classList.toggle('d-none', !val.trim());
+        clearTimeout(_gardenerPlaceDebounce);
+        const query = val.trim();
+        if (query.length < 2) {
+            const box = document.getElementById('gardenerDesktopPlaceResults');
+            if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+            return;
+        }
+        const coord = query.match(/^([-+]?\d+(\.\d+)?)[,\s]+([-+]?\d+(\.\d+)?)$/);
+        if (coord) {
+            const lat = parseFloat(coord[1]), lng = parseFloat(coord[3]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                flyGardenerMapToPlace(lat, lng, query);
+                const box = document.getElementById('gardenerDesktopPlaceResults');
+                if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                return;
+            }
+        }
+        _gardenerPlaceDebounce = setTimeout(() => performGardenerPlaceSearch(query, false), 400);
+    }
+
+    async function performGardenerPlaceSearch(query, selectFirst) {
+        if (!query || query.trim().length < 2) return;
+        const box = document.getElementById('gardenerDesktopPlaceResults');
+        if (!box) return;
+        box.innerHTML = `<div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div>`;
+        box.style.display = 'block';
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&addressdetails=1`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            if (!data || data.length === 0) {
+                box.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
+                return;
+            }
+            if (selectFirst) {
+                chooseGardenerPlaceResult(data[0]);
+                return;
+            }
+            box.innerHTML = data.map((item, idx) => `
+                <div class="px-3 py-2 border-bottom d-flex align-items-start gap-2 gardener-place-item" style="cursor:pointer;transition:background .15s" data-idx="${idx}" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
+                    <i class="bi bi-geo-alt text-success mt-1 flex-shrink-0"></i>
+                    <div class="overflow-hidden">
+                        <div class="fw-semibold text-dark text-truncate" style="font-size:0.8rem;">${escapeHtml(item.name || item.display_name.split(',')[0])}</div>
+                        <div class="text-muted text-truncate" style="font-size:0.72rem;">${escapeHtml(item.display_name)}</div>
+                    </div>
+                </div>
+            `).join('');
+            box.querySelectorAll('.gardener-place-item').forEach((el, idx) => {
+                el.addEventListener('click', () => chooseGardenerPlaceResult(data[idx]));
+            });
+        } catch (e) {
+            box.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+        }
+    }
+
+    function chooseGardenerPlaceResult(item) {
+        const box = document.getElementById('gardenerDesktopPlaceResults');
+        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+        const input = document.getElementById('gardenerDesktopPlaceInput');
+        if (input) input.value = item.display_name;
+        const clearBtn = document.getElementById('gardenerPlaceClearBtn');
+        if (clearBtn) clearBtn.classList.remove('d-none');
+        flyGardenerMapToPlace(parseFloat(item.lat), parseFloat(item.lon), item.display_name);
+    }
+
+    function flyGardenerMapToPlace(lat, lng, label) {
+        if (!gardenerMap || isNaN(lat) || isNaN(lng)) return;
+        gardenerMap.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
+        if (window._gardenerPlaceMarker) {
+            window._gardenerPlaceMarker.remove();
+        }
+        const icon = L.divIcon({
+            className: '',
+            html: `<div style="width:18px;height:18px;background:#198754;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        });
+        window._gardenerPlaceMarker = L.marker([lat, lng], { icon })
+            .addTo(gardenerMap)
+            .bindPopup(`<div style="font-size:0.8rem;"><b>📍 ${escapeHtml(label)}</b></div>`, { maxWidth: 280 })
+            .openPopup();
+    }
+
+    function clearGardenerPlaceSearch() {
+        const input = document.getElementById('gardenerDesktopPlaceInput');
+        if (input) input.value = '';
+        const clearBtn = document.getElementById('gardenerPlaceClearBtn');
+        if (clearBtn) clearBtn.classList.add('d-none');
+        const box = document.getElementById('gardenerDesktopPlaceResults');
+        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+        if (window._gardenerPlaceMarker) {
+            window._gardenerPlaceMarker.remove();
+            window._gardenerPlaceMarker = null;
+        }
+    }
+
+    function useMyLocationGardener() {
+        if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+        navigator.geolocation.getCurrentPosition(
+            pos => flyGardenerMapToPlace(pos.coords.latitude, pos.coords.longitude, 'My Location'),
+            err => alert('Unable to get your location: ' + err.message),
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
     }
 </script>
 
