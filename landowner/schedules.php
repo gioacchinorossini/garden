@@ -1,101 +1,117 @@
 <?php
 $base_path = '../';
 $page_title = "Landowner Schedules";
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+$_SESSION['active_role'] = 'landowner';
+if (!isset($_SESSION['user_name'])) {
+    $_SESSION['user_name'] = 'John Landowner';
+}
+
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 ?>
 
-<main class="workspace-surface">
-    <!-- Desktop Toolbar (Title and actions, borderless) -->
-    <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Schedules</h1>
+<main class="workspace-surface d-flex flex-column h-100 overflow-hidden">
+    <!-- Desktop & Mobile Toolbar -->
+    <div class="toolbar border-bottom d-flex align-items-center justify-content-between px-3 px-md-4 py-2.5 bg-white flex-shrink-0">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success p-2 flex-shrink-0" style="width:36px;height:36px;">
+                <i data-lucide="calendar" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="min-w-0">
+                <h1 class="fs-6 fw-bold m-0 text-dark font-['Outfit'] text-truncate" style="line-height:1.2;">
+                    Garden Task Schedules
+                </h1>
+                <p class="text-secondary mb-0 small text-truncate" style="font-size:0.75rem;">
+                    Coordinate maintenance, irrigation, and stewardship across your lands
+                </p>
+            </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
-                    data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                <i class="bi bi-plus-lg"></i>
+
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <button class="btn btn-drive-primary btn-sm rounded-pill px-3.5 d-inline-flex align-items-center gap-1.5"
+                    style="font-size:0.76rem;" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                <i data-lucide="plus" style="width:15px;height:15px;"></i>
                 <span>Add Task</span>
             </button>
         </div>
     </div>
 
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll">
-        <!-- Mobile-only header row -->
-        <div class="d-flex d-md-none align-items-center justify-content-between mb-3">
-            <h2 class="fs-6 fw-semibold m-0" style="letter-spacing:0.5px;text-transform:uppercase;">Upcoming Tasks</h2>
-            <button class="btn btn-drive-primary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
-                    data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                <i class="bi bi-plus-lg"></i> Add Task
-            </button>
-        </div>
-
+    <div class="workspace-scroll flex-grow-1 p-3 p-md-4">
         <!-- Schedules Dynamic Container -->
         <div id="schedulesContainer"></div>
     </div>
 </main>
 
-<!-- Add Task Modal (Single instance) -->
-<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true">
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true" style="z-index: 10050;">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content drive-modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Add Task</h5>
+        <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-1">
+                <div>
+                    <span class="badge rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs" style="background:#EBF3E8;color:#2D5A27;border:1px solid #BDDAB8;">LANDOWNER ACTION</span>
+                    <h5 class="modal-title fw-bold text-dark m-0">Schedule Garden Task</h5>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body pt-2 pb-3">
                 <form id="addTaskForm">
                     <div class="mb-3">
-                        <label for="title" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">TASK NAME</label>
+                        <label for="title" class="form-label text-secondary mb-1"
+                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">TASK NAME <span class="text-danger">*</span></label>
                         <input type="text" class="form-control drive-form-control w-100" id="title" name="title"
-                            required placeholder="Irrigation Check">
+                            required placeholder="e.g., Morning Irrigation & Soil Moisture Check">
                     </div>
 
                     <div class="mb-3">
-                        <label for="task_type" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">TYPE</label>
+                        <label for="task_type" class="form-label text-secondary mb-1"
+                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">TASK CATEGORY <span class="text-danger">*</span></label>
                         <select class="form-select drive-form-control w-100" id="task_type" name="task_type" required>
-                            <option value="watering">Watering</option>
-                            <option value="planting">Planting</option>
-                            <option value="weeding">Weeding</option>
-                            <option value="pruning">Pruning</option>
-                            <option value="mulching">Mulching</option>
-                            <option value="fertilizing">Fertilizing</option>
-                            <option value="trellising">Trellising</option>
-                            <option value="harvesting">Harvesting</option>
-                            <option value="pests">Checking for Pests</option>
-                            <option value="cleaning">Cleaning Tools</option>
+                            <option value="watering">💧 Watering / Irrigation</option>
+                            <option value="planting">🌱 Planting / Seedlings</option>
+                            <option value="weeding">🌿 Weeding & Bed Cleanup</option>
+                            <option value="pruning">✂️ Pruning & Tree Care</option>
+                            <option value="mulching">🪵 Mulching & Moisture Retention</option>
+                            <option value="fertilizing">🧪 Organic Compost & Feeding</option>
+                            <option value="trellising">🎋 Trellising & Staking</option>
+                            <option value="harvesting">🌾 Harvesting Crops</option>
+                            <option value="pests">🐛 Pest Scouting & Control</option>
+                            <option value="cleaning">🧹 Tool & Facility Sanitizing</option>
                         </select>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="start_time" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">START TIME</label>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label for="start_time" class="form-label text-secondary mb-1"
+                                style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">START TIME <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control drive-form-control w-100" id="start_time"
                                 name="start_time" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="end_time" class="form-label text-secondary"
-                                style="font-size: 0.75rem; font-weight:600;">END TIME</label>
+                        <div class="col-6">
+                            <label for="end_time" class="form-label text-secondary mb-1"
+                                style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">END TIME <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control drive-form-control w-100" id="end_time"
                                 name="end_time" required>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label for="description" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">INSTRUCTIONS</label>
+                        <label for="description" class="form-label text-secondary mb-1"
+                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">INSTRUCTIONS &amp; GUIDELINES</label>
                         <textarea class="form-control drive-form-control w-100" id="description" name="description"
-                            rows="3" placeholder="Provide instructions..."></textarea>
+                            rows="3" placeholder="Provide specific instructions, target plots, equipment needed, or safety notes..."></textarea>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-drive-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-drive-primary">Create Task</button>
+                        <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-drive-primary rounded-pill px-4 fw-bold">
+                            <i data-lucide="plus" style="width:14px;height:14px;" class="me-1"></i> Create Task
+                        </button>
                     </div>
                 </form>
             </div>

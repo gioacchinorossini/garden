@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="landSkyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EBF5E9" />
+      <stop offset="100%" stop-color="#D5ECC2" />
+    </linearGradient>
+    <linearGradient id="landFieldGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7FA668" />
+      <stop offset="100%" stop-color="#558B2F" />
+    </linearGradient>
+    <linearGradient id="landFieldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A4CE84" />
+      <stop offset="100%" stop-color="#689F38" />
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle / Plate -->
+  <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#landSkyGrad)" stroke="#BDDAB8" stroke-width="1.5" />
+  
+  <!-- Gentle Sun / Horizon -->
+  <circle cx="34" cy="15" r="5" fill="#FEE7AA" stroke="#E5A93C" stroke-width="1.2" opacity="0.9" />
+  
+  <!-- Back Land Hill / Ridge -->
+  <path d="M2 30 C 12 24, 22 26, 32 23 C 38 21, 42 22, 46 25 L 46 44 C 46 45, 45 46, 44 46 L 4 46 C 3 46, 2 45, 2 44 Z" fill="url(#landFieldGrad2)" opacity="0.75"/>
+  
+  <!-- Front Land Field / Terraced Plot Rows -->
+  <path d="M2 34 C 10 30, 20 31, 30 28 C 38 26, 42 27, 46 29 L 46 44 C 46 45, 45 46, 44 46 L 4 46 C 3 46, 2 45, 2 44 Z" fill="url(#landFieldGrad1)" />
+  
+  <!-- Furrow lines indicating cultivated land rows -->
+  <path d="M8 38 C 16 35, 26 36, 38 33" stroke="#2D5A27" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M6 42 C 15 39, 25 40, 40 37" stroke="#1E3E1A" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.5"/>
+  
+  <!-- Growing Plant / Crop sprout firmly rooted on the land -->
+  <path d="M19 33 L 19 20" stroke="#1E3E1A" stroke-width="2.4" stroke-linecap="round" />
+  <path d="M19 26 C 13 24, 11 19, 13 16 C 17 16, 19 21, 19 26 Z" fill="#4C8B3E" stroke="#1E3E1A" stroke-width="1.4" stroke-linejoin="round" />
+  <path d="M19 23 C 25 21, 27 16, 25 13 C 21 13, 19 18, 19 23 Z" fill="#7FA668" stroke="#1E3E1A" stroke-width="1.4" stroke-linejoin="round" />
+  
+  <!-- Small plot boundary flag / pin marker -->
+  <path d="M35 29 L 35 21" stroke="#684813" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M35 21 L 41 23.5 L 35 26 Z" fill="#E2735D" />
+</svg>

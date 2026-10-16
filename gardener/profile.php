@@ -36,18 +36,7 @@ $completed_tasks_count = count($completed_scheds);
 
 <main class="workspace-surface">
     <!-- Toolbar (Title and actions) -->
-    <div class="toolbar justify-content-between align-items-center">
-        <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Gardener Profile & Eco Impact</h1>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-drive-secondary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
-                data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
-                <span>Edit Profile</span>
-            </button>
-        </div>
-    </div>
+
 
     <!-- Workspace Scrollable Area -->
     <div class="workspace-scroll">
@@ -60,44 +49,61 @@ $completed_tasks_count = count($completed_scheds);
         <?php endif; ?>
 
         <!-- Gardener Profile Card -->
-        <div class="card border rounded-4 overflow-hidden mb-4 bg-white shadow-xs" style="border-color: var(--drive-border) !important;">
+        <!-- Landowner Profile Card -->
+        <h2 class="fs-6 fw-semibold text-secondary mb-3 mt-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
+            Profile Information
+        </h2>
+        <div class="card border rounded-4 overflow-hidden mb-4 bg-white shadow-xs"
+            style="border-color: var(--drive-border) !important;">
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4">
                     <!-- Avatar -->
                     <div class="position-relative">
-                        <div class="w-24 h-24 rounded-full bg-emerald-600 text-white d-flex align-items-center justify-content-center fw-bold fs-2 shadow-sm border-4 border-white">
+                        <div
+                            class="w-24 h-24 rounded-full bg-emerald-600 text-white d-flex align-items-center justify-content-center fw-bold fs-2 shadow-sm border-4 border-white">
                             <?php echo strtoupper(substr($_SESSION['user_name'], 0, 1)); ?>
                         </div>
-                        <span class="position-absolute bottom-0 end-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white" title="Verified Gardener">
+                        <span
+                            class="position-absolute bottom-0 end-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white"
+                            title="Verified Gardener">
                             <i data-lucide="sprout" style="width: 14px; height: 14px;"></i>
                         </span>
                     </div>
 
                     <!-- Profile Info -->
                     <div class="flex-grow-1 text-center text-md-start">
-                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
+                        <div
+                            class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
                             <div>
-                                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
-                                    <h2 class="fs-4 fw-bold text-dark mb-0"><?php echo htmlspecialchars($_SESSION['user_name']); ?></h2>
-                                    <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Gardener</span>
+                                <div
+                                    class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                                    <h2 class="fs-4 fw-bold text-dark mb-0">
+                                        <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                                    </h2>
+                                    <span
+                                        class="badge rounded-pill bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Gardener</span>
                                 </div>
-                                <p class="text-secondary text-xs mb-0 mt-1 d-flex align-items-center justify-content-center justify-content-md-start gap-1">
+                                <p
+                                    class="text-secondary text-xs mb-0 mt-1 d-flex align-items-center justify-content-center justify-content-md-start gap-1">
                                     <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
                                     <?php echo htmlspecialchars($user_address); ?>
                                 </p>
                             </div>
-
-                            <button class="btn btn-sm btn-drive-primary rounded-pill px-3 py-1.5 text-xs font-semibold d-flex align-items-center gap-1.5"
-                                data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
-                                Profile Settings
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <button
+                                    class="btn btn-drive-secondary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
+                                    data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                    <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
+                                    <span>Edit Profile</span>
+                                </button>
+                            </div>
                         </div>
 
                         <p class="text-dark text-xs mb-3 max-w-2xl"><?php echo htmlspecialchars($user_bio); ?></p>
 
                         <!-- Quick Details -->
-                        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-4 pt-3 border-top text-xs text-secondary">
+                        <div
+                            class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 pt-3 border-top text-xs text-secondary">
                             <div class="d-flex align-items-center gap-1.5">
                                 <i data-lucide="mail" style="width: 14px; height: 14px;" class="text-primary"></i>
                                 <span><?php echo htmlspecialchars($user_email); ?></span>
@@ -119,24 +125,28 @@ $completed_tasks_count = count($completed_scheds);
             <div class="bg-light border-top p-3 px-4">
                 <div class="row text-center g-3">
                     <div class="col-4 border-end">
-                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Active Plots</span>
+                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Active
+                            Plots</span>
                         <span class="fs-5 fw-bold text-dark">2</span>
                     </div>
                     <div class="col-4 border-end">
-                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Tasks Completed</span>
+                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Tasks
+                            Completed</span>
                         <span class="fs-5 fw-bold text-emerald-600"><?php echo $completed_tasks_count; ?></span>
                     </div>
                     <div class="col-4">
-                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Total Harvests</span>
-                        <span class="fs-5 fw-bold text-primary">42.5 <span class="fs-6 font-normal text-muted">kg</span></span>
+                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Total
+                            Harvests</span>
+                        <span class="fs-5 fw-bold text-primary">42.5 <span
+                                class="fs-6 font-normal text-muted">kg</span></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Gamified Environmental Contribution Tracker Section -->
+        <!-- Garden Stewardship & Environmental Contribution Section -->
         <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
-            Environmental Contribution & Eco Badges
+            Environmental Impact
         </h2>
 
         <?php
@@ -148,7 +158,8 @@ $completed_tasks_count = count($completed_scheds);
             <h2 class="fs-6 fw-semibold text-secondary m-0" style="letter-spacing: 0.5px; text-transform: uppercase;">
                 Assigned Plots & Crops
             </h2>
-            <a href="schedules.php" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+            <a href="schedules.php"
+                class="text-decoration-none text-primary d-inline-flex align-items-center gap-1 text-xs fw-semibold">
                 View My Tasks & Schedules <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
@@ -159,11 +170,16 @@ $completed_tasks_count = count($completed_scheds);
                 <div class="drive-card h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Plot A-1 • Leased</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="sprout" class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> Tomatoes</span>
+                            <span
+                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Plot
+                                A-1 • Leased</span>
+                            <span class="text-xs text-secondary font-semibold"><i data-lucide="sprout"
+                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i>
+                                Tomatoes</span>
                         </div>
                         <h3 class="fs-6 fw-bold text-dark mb-1">Downtown Rooftop Garden</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>45 Main St, Business District</p>
+                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
+                                style="width: 12px; height: 12px;"></i>45 Main St, Business District</p>
                         <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">Plot Size:</span>
@@ -191,11 +207,16 @@ $completed_tasks_count = count($completed_scheds);
                 <div class="drive-card h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Plot B-2 • Leased</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="sprout" class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> Organic Herbs</span>
+                            <span
+                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Plot
+                                B-2 • Leased</span>
+                            <span class="text-xs text-secondary font-semibold"><i data-lucide="sprout"
+                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> Organic
+                                Herbs</span>
                         </div>
                         <h3 class="fs-6 fw-bold text-dark mb-1">Sunnyvale Community Yard</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>124 Green Ave, Sunnyvale</p>
+                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
+                                style="width: 12px; height: 12px;"></i>124 Green Ave, Sunnyvale</p>
                         <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">Plot Size:</span>
@@ -233,37 +254,44 @@ $completed_tasks_count = count($completed_scheds);
                 <input type="hidden" name="action" value="update_profile">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="userName" class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">FULL NAME</label>
+                        <label for="userName" class="form-label text-secondary"
+                            style="font-size: 0.75rem; font-weight:600;">FULL NAME</label>
                         <input type="text" class="form-control drive-form-control w-100" id="userName" name="user_name"
                             value="<?php echo htmlspecialchars($_SESSION['user_name']); ?>" required>
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-md-6">
-                            <label for="userEmail" class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">EMAIL ADDRESS</label>
-                            <input type="email" class="form-control drive-form-control w-100" id="userEmail" name="user_email"
-                                value="<?php echo htmlspecialchars($user_email); ?>" required>
+                            <label for="userEmail" class="form-label text-secondary"
+                                style="font-size: 0.75rem; font-weight:600;">EMAIL ADDRESS</label>
+                            <input type="email" class="form-control drive-form-control w-100" id="userEmail"
+                                name="user_email" value="<?php echo htmlspecialchars($user_email); ?>" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="userPhone" class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">PHONE NUMBER</label>
-                            <input type="tel" class="form-control drive-form-control w-100" id="userPhone" name="user_phone"
-                                value="<?php echo htmlspecialchars($user_phone); ?>" required>
+                            <label for="userPhone" class="form-label text-secondary"
+                                style="font-size: 0.75rem; font-weight:600;">PHONE NUMBER</label>
+                            <input type="tel" class="form-control drive-form-control w-100" id="userPhone"
+                                name="user_phone" value="<?php echo htmlspecialchars($user_phone); ?>" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="userAddress" class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">GARDEN LOCATION / ADDRESS</label>
-                        <input type="text" class="form-control drive-form-control w-100" id="userAddress" name="user_address"
-                            value="<?php echo htmlspecialchars($user_address); ?>" required>
+                        <label for="userAddress" class="form-label text-secondary"
+                            style="font-size: 0.75rem; font-weight:600;">GARDEN LOCATION / ADDRESS</label>
+                        <input type="text" class="form-control drive-form-control w-100" id="userAddress"
+                            name="user_address" value="<?php echo htmlspecialchars($user_address); ?>" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="userBio" class="form-label text-secondary" style="font-size: 0.75rem; font-weight:600;">BIO & EXPERIENCE</label>
-                        <textarea class="form-control drive-form-control w-100" id="userBio" name="user_bio" rows="3"><?php echo htmlspecialchars($user_bio); ?></textarea>
+                        <label for="userBio" class="form-label text-secondary"
+                            style="font-size: 0.75rem; font-weight:600;">BIO & EXPERIENCE</label>
+                        <textarea class="form-control drive-form-control w-100" id="userBio" name="user_bio"
+                            rows="3"><?php echo htmlspecialchars($user_bio); ?></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-drive-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-drive-secondary btn-sm rounded-pill px-3"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-drive-primary btn-sm rounded-pill px-4">Save Changes</button>
                 </div>
             </form>

@@ -3,7 +3,7 @@
   "appName": "garden",
   "webDir": "www",
   "server": {
-    "url": "http://20.0.0.19/garden/index.php#",
+    "url": "http://20.0.0.21/garden/index.php#",
     "cleartext": true
   }
 }

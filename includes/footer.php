@@ -7,7 +7,7 @@ $bottom_page = basename($_SERVER['PHP_SELF']);
 
 function get_dock_link_class($page_name, $bottom_page)
 {
-    $active = ($bottom_page == $page_name);
+    $active = ($bottom_page == $page_name) || ($page_name == 'requests.php' && $bottom_page == 'browse.php');
     $base_classes = "flex flex-col items-center text-decoration-none text-[10px] font-medium transition-all px-2.5 py-1 rounded-full gap-0.5 hover:text-drive-text-main hover:translate-y-[-2px] duration-150";
     return $active
         ? "$base_classes bg-drive-surface-active text-drive-primary-text font-semibold"
@@ -56,17 +56,20 @@ function get_dock_link_class($page_name, $bottom_page)
             <i data-lucide="trees" style="width: 20px; height: 20px;"></i>
             <span class="hidden sm:inline">My Lands</span>
         </a>
+
+        <a href="<?php echo $base; ?>landowner/requests.php"
+            class="<?php echo get_dock_link_class('requests.php', $bottom_page); ?>">
+            <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+            <span class="hidden sm:inline">Requests</span>
+        </a>
+
         <!-- Action Trigger -->
         <a href="<?php echo $base; ?>landowner/register.php"
             class="w-11 h-11 bg-drive-primary text-white rounded-full flex items-center justify-center shadow-md hover:scale-105 hover:bg-drive-primary-hover active:scale-95 transition-all flex-shrink-0 text-decoration-none"
             title="Register Land">
             <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
         </a>
-        <a href="<?php echo $base; ?>landowner/requests.php"
-            class="<?php echo get_dock_link_class('requests.php', $bottom_page); ?>">
-            <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Requests</span>
-        </a>
+
         <a href="<?php echo $base; ?>landowner/schedules.php"
             class="<?php echo get_dock_link_class('schedules.php', $bottom_page); ?>">
             <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
@@ -221,9 +224,6 @@ function get_dock_link_class($page_name, $bottom_page)
 <!-- Bootstrap Bundle with Popper JS -->
 <script src="<?php echo $base; ?>assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 
-<!-- Leaflet.js Map script (Loads standard OpenStreetMap map) -->
-<script src="<?php echo $base; ?>assets/vendor/leaflet/leaflet.js"></script>
-
 <!-- Initialize Tooltips and Mobile Navigation Toggle -->
 <script>
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -286,6 +286,8 @@ function get_dock_link_class($page_name, $bottom_page)
             toggleBtn.addEventListener('click', function () {
                 if (window.innerWidth >= 768) {
                     toggleSidebarCollapse();
+                } else {
+                    toggleMobileSidebar();
                 }
             });
         }

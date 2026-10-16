@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot A – North Rooftop",
             gardener: "Maria Santos",
             start_time: (() => { const d = new Date(); d.setHours(6, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setHours(7, 30, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setHours(7, 30, 0); return d.toISOString(); })(),
             description: "Water all raised beds in sections B-1 and B-2. Check drip-line pressure valves before starting.",
             xp: 120,
             difficulty: "easy"
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot B – Greenhouse Bay",
             gardener: "Juan dela Cruz",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 30, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 30, 0); return d.toISOString(); })(),
             description: "Move cherry tomato seedlings from nursery trays into prepared beds. Spacing: 40 cm apart.",
             xp: 250,
             difficulty: "medium"
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot C – East Strip",
             gardener: null,
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(7, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(9, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(9, 0, 0); return d.toISOString(); })(),
             description: "Remove aggressive weed growth along the eastern boundary. Bag all cuttings and transport to compost.",
             xp: 180,
             difficulty: "medium"
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot D – South Cornfield",
             gardener: "Ana Reyes",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(5, 30, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 0, 0); return d.toISOString(); })(),
             description: "Harvest mature corn ears from rows 5 through 12. Sort by size and transport to market storage.",
             xp: 400,
             difficulty: "hard"
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot A – North Rooftop",
             gardener: "Maria Santos",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(11, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(11, 0, 0); return d.toISOString(); })(),
             description: "Spread a 3-inch protective mulch layer around tomato and pepper bases to regulate soil moisture.",
             xp: 150,
             difficulty: "easy"
@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot E – Orchard Row",
             gardener: null,
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 5); d.setHours(7, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 5); d.setHours(10, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 5); d.setHours(10, 0, 0); return d.toISOString(); })(),
             description: "Shape and prune young fruit trees. Remove crossing branches and seal cuts with pruning paste.",
             xp: 220,
             difficulty: "hard"
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot B – Greenhouse Bay",
             gardener: "Carlos Mendoza",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(10, 30, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(10, 30, 0); return d.toISOString(); })(),
             description: "Install wooden lattice trellises for climbing pole bean rows. Secure main vines with garden ties.",
             xp: 210,
             difficulty: "medium"
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot C – East Strip",
             gardener: "Juan dela Cruz",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(11, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(11, 0, 0); return d.toISOString(); })(),
             description: "Apply compost mix to raised beds in Plot C. Ratio: 2 kg per sq. meter. Work into topsoil.",
             xp: 300,
             difficulty: "medium"
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot D – South Cornfield",
             gardener: "Ana Reyes",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 30, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 30, 0); return d.toISOString(); })(),
             description: "Inspect undersides of squash and bean foliage with magnifying glass for aphids or mites. Release ladybugs.",
             xp: 140,
             difficulty: "easy"
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
             land_title: "Plot E – Tool Shed Bay",
             gardener: "Carlos Mendoza",
             start_time: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(14, 0, 0); return d.toISOString(); })(),
-            end_time:   (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(15, 30, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(15, 30, 0); return d.toISOString(); })(),
             description: "Clean, disinfect, and sharpen trowels, hoes, and secateurs. Apply protective oil coat to prevent rust.",
             xp: 100,
             difficulty: "easy"
@@ -138,102 +138,102 @@ document.addEventListener("DOMContentLoaded", function () {
     // ─── 10 Task Types Config (Using tasksicons.png - Flat Solid Colors) ─────
     const TYPE_CONFIG = {
         watering: {
-            label:        "Watering",
-            icon:         "watering.png",
-            color:        "#5B8FB9",
-            badgeBg:      "#E8F1F5",
-            badgeColor:   "#2E5266",
-            accentBg:     "#F4F8FA",
+            label: "Watering",
+            icon: "watering.png",
+            color: "#5B8FB9",
+            badgeBg: "#E8F1F5",
+            badgeColor: "#2E5266",
+            accentBg: "#F4F8FA",
             accentBorder: "#C8DBE5",
         },
         planting: {
-            label:        "Planting",
-            icon:         "planting.png",
-            color:        "#7FA668",
-            badgeBg:      "#E5EFE0",
-            badgeColor:   "#385723",
-            accentBg:     "#F3F8F0",
+            label: "Planting",
+            icon: "planting.png",
+            color: "#7FA668",
+            badgeBg: "#E5EFE0",
+            badgeColor: "#385723",
+            accentBg: "#F3F8F0",
             accentBorder: "#C5DCBD",
         },
         weeding: {
-            label:        "Weeding",
-            icon:         "weeding.png",
-            color:        "#DDA15E",
-            badgeBg:      "#FDF4E7",
-            badgeColor:   "#7A4C15",
-            accentBg:     "#FCF8F2",
+            label: "Weeding",
+            icon: "weeding.png",
+            color: "#DDA15E",
+            badgeBg: "#FDF4E7",
+            badgeColor: "#7A4C15",
+            accentBg: "#FCF8F2",
             accentBorder: "#F3DCBA",
         },
         pruning: {
-            label:        "Pruning",
-            icon:         "pruning.png",
-            color:        "#C86D51",
-            badgeBg:      "#F9ECE8",
-            badgeColor:   "#7D2F1B",
-            accentBg:     "#FCF5F3",
+            label: "Pruning",
+            icon: "pruning.png",
+            color: "#C86D51",
+            badgeBg: "#F9ECE8",
+            badgeColor: "#7D2F1B",
+            accentBg: "#FCF5F3",
             accentBorder: "#ECC9BF",
         },
         mulching: {
-            label:        "Mulching",
-            icon:         "mulching.png",
-            color:        "#8B5E3C",
-            badgeBg:      "#F5ECE5",
-            badgeColor:   "#54321A",
-            accentBg:     "#FAF5F1",
+            label: "Mulching",
+            icon: "mulching.png",
+            color: "#8B5E3C",
+            badgeBg: "#F5ECE5",
+            badgeColor: "#54321A",
+            accentBg: "#FAF5F1",
             accentBorder: "#DBC6B8",
         },
         fertilizing: {
-            label:        "Fertilizing",
-            icon:         "fertilizing.png",
-            color:        "#9A7AA0",
-            badgeBg:      "#F4EDF6",
-            badgeColor:   "#5B3663",
-            accentBg:     "#FAF7FB",
+            label: "Fertilizing",
+            icon: "fertilizing.png",
+            color: "#9A7AA0",
+            badgeBg: "#F4EDF6",
+            badgeColor: "#5B3663",
+            accentBg: "#FAF7FB",
             accentBorder: "#DAC9DD",
         },
         trellising: {
-            label:        "Trellising",
-            icon:         "trellising.png",
-            color:        "#606C38",
-            badgeBg:      "#EEF0E5",
-            badgeColor:   "#313916",
-            accentBg:     "#F7F8F3",
+            label: "Trellising",
+            icon: "trellising.png",
+            color: "#606C38",
+            badgeBg: "#EEF0E5",
+            badgeColor: "#313916",
+            accentBg: "#F7F8F3",
             accentBorder: "#CBD2B6",
         },
         harvesting: {
-            label:        "Harvesting",
-            icon:         "harvesting.png",
-            color:        "#D97443",
-            badgeBg:      "#FCEEE7",
-            badgeColor:   "#7D320D",
-            accentBg:     "#FCF7F3",
+            label: "Harvesting",
+            icon: "harvesting.png",
+            color: "#D97443",
+            badgeBg: "#FCEEE7",
+            badgeColor: "#7D320D",
+            accentBg: "#FCF7F3",
             accentBorder: "#F3CCB9",
         },
         pests: {
-            label:        "Checking for Pests",
-            icon:         "pests.png",
-            color:        "#778A35",
-            badgeBg:      "#F1F4E6",
-            badgeColor:   "#3C4814",
-            accentBg:     "#F9FAF3",
+            label: "Checking for Pests",
+            icon: "pests.png",
+            color: "#778A35",
+            badgeBg: "#F1F4E6",
+            badgeColor: "#3C4814",
+            accentBg: "#F9FAF3",
             accentBorder: "#D3DDB6",
         },
         cleaning: {
-            label:        "Cleaning Tools",
-            icon:         "cleaning.png",
-            color:        "#52796F",
-            badgeBg:      "#E8EFEF",
-            badgeColor:   "#223C35",
-            accentBg:     "#F4F7F7",
+            label: "Cleaning Tools",
+            icon: "cleaning.png",
+            color: "#52796F",
+            badgeBg: "#E8EFEF",
+            badgeColor: "#223C35",
+            accentBg: "#F4F7F7",
             accentBorder: "#C3D6D2",
         },
     };
 
     // Aliases
     TYPE_CONFIG.checking_pests = TYPE_CONFIG.pests;
-    TYPE_CONFIG.pest_control   = TYPE_CONFIG.pests;
+    TYPE_CONFIG.pest_control = TYPE_CONFIG.pests;
     TYPE_CONFIG.cleaning_tools = TYPE_CONFIG.cleaning;
-    TYPE_CONFIG.other          = TYPE_CONFIG.cleaning;
+    TYPE_CONFIG.other = TYPE_CONFIG.cleaning;
 
     // Returns the authentic image icon markup extracted from tasksicons.png
     function taskIcon(typeKey) {
@@ -244,26 +244,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ─── Status Config ────────────────────────────────────────────────────────
     const STATUS_CONFIG = {
-        pending:     { label: "Pending",     bg: "#fef9c3", color: "#713f12", dot: "#eab308", icon: "clock" },
+        pending: { label: "Pending", bg: "#fef9c3", color: "#713f12", dot: "#eab308", icon: "clock" },
         in_progress: { label: "In Progress", bg: "#dbeafe", color: "#1e3a5f", dot: "#3b82f6", icon: "play-circle" },
-        completed:   { label: "Completed",   bg: "#dcfce7", color: "#14532d", dot: "#22c55e", icon: "check-circle-2" },
-        overdue:     { label: "Overdue",     bg: "#fee2e2", color: "#7f1d1d", dot: "#ef4444", icon: "alert-circle" },
+        completed: { label: "Completed", bg: "#dcfce7", color: "#14532d", dot: "#22c55e", icon: "check-circle-2" },
+        overdue: { label: "Overdue", bg: "#fee2e2", color: "#7f1d1d", dot: "#ef4444", icon: "alert-circle" },
     };
 
     // ─── Difficulty Config ────────────────────────────────────────────────────
     const DIFFICULTY_CONFIG = {
-        easy:   { label: "Easy",   stars: 1, color: "#22c55e" },
+        easy: { label: "Easy", stars: 1, color: "#22c55e" },
         medium: { label: "Medium", stars: 2, color: "#f59e0b" },
-        hard:   { label: "Hard",   stars: 3, color: "#ef4444" },
+        hard: { label: "Hard", stars: 3, color: "#ef4444" },
     };
 
     const BASE_PATH = '../';
     let schedulesList = [];
+    let currentTaskFilter = 'all';
+
+    window.setTaskCategoryFilter = function(filterKey) {
+        currentTaskFilter = filterKey;
+        renderSchedules();
+    };
 
     // DOM Elements
     const schedulesContainer = document.getElementById('schedulesContainer');
-    const addTaskModalEl     = document.getElementById('addTaskModal');
-    const addTaskForm        = document.getElementById('addTaskForm');
+    const addTaskModalEl = document.getElementById('addTaskModal');
+    const addTaskForm = document.getElementById('addTaskForm');
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -314,8 +320,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // ─── Card Renderer ────────────────────────────────────────────────────────
 
     function renderCard(sched) {
-        const type   = TYPE_CONFIG[sched.task_type] || TYPE_CONFIG.watering;
-        const xp     = sched.xp || 100;
+        const type = TYPE_CONFIG[sched.task_type] || TYPE_CONFIG.watering;
+        const xp = sched.xp || 100;
         const isCompleted = sched.status === 'completed';
 
         // Custom inline icon
@@ -329,11 +335,12 @@ document.addEventListener("DOMContentLoaded", function () {
                </span>`
             : '';
 
-        // XP badge
+        // Task points badge
+        const points = sched.points || sched.xp || 50;
         const xpBadge = `
-            <span class="task-xp-badge">
-                ${lucideIcon('zap', 12)}
-                +${xp} XP
+            <span class="task-stewardship-badge" title="${isLandownerUser() ? 'Stewardship Points' : 'Task Points'}">
+                ${lucideIcon('award', 12)}
+                +${points} pts
             </span>`;
 
         // Gardener chip
@@ -405,13 +412,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     <span>${formatDate(sched.start_time)}</span>
                 </div>
                 ${isCompleted
-                    ? `<button type="button" class="task-action-btn task-action-btn--view" onclick="openViewTaskModal(${sched.id})">
+                ? `<button type="button" class="task-action-btn task-action-btn--view" onclick="openViewTaskModal(${sched.id})">
                            ${lucideIcon('eye', 14)} View Task
                        </button>`
-                    : `<button type="button" class="task-action-btn task-action-btn--complete" onclick="openCompleteTaskModal(${sched.id})">
+                : `<button type="button" class="task-action-btn task-action-btn--complete" onclick="openCompleteTaskModal(${sched.id})">
                            ${lucideIcon(isLandownerUser() ? 'shield-check' : 'check-circle', 14)} ${isLandownerUser() ? 'Mark Complete' : 'Complete Task'}
                        </button>`
-                }
+            }
             </div>
         </div>`;
     }
@@ -431,71 +438,206 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Group: active first, completed last
-        const active    = schedulesList.filter(s => s.status !== 'completed');
+        const active = schedulesList.filter(s => s.status !== 'completed');
         const completed = schedulesList.filter(s => s.status === 'completed');
 
-        // Gamification metrics calculated directly from schedules
-        const totalTaskXP = completed.reduce((sum, s) => sum + (s.xp || 100), 0);
-        const baseXP = isLandownerUser() ? 500 : 350;
-        const currentTotalXP = baseXP + totalTaskXP;
-        const userLevel = 1 + Math.floor(currentTotalXP / 300);
-        const levelProgressXP = currentTotalXP % 300;
-        const levelGoalXP = 300;
-        const progressPct = Math.min(100, Math.round((levelProgressXP / levelGoalXP) * 100));
+        let html = '';
 
-        let html = `
-            <!-- Gamification Task Progress Banner -->
-            <div class="card border rounded-4 mb-4 bg-white shadow-xs p-3 p-md-3.5" style="border-color: var(--drive-border) !important;">
-                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-3 bg-emerald-100 text-emerald-800 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;font-size:1.35rem;">
-                            🌿
-                        </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-2 mb-0.5">
-                                <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">Level ${userLevel} Eco Caretaker</span>
-                                <span class="badge rounded-pill bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 d-flex align-items-center gap-1">
-                                    🔥 7-Day Streak
+        // Garden Stewardship & Environmental Impact Component (Only for Landowners)
+        if (isLandownerUser()) {
+            // Realistic stewardship & impact metrics calculated directly from schedules
+            const totalTaskPts = completed.reduce((sum, s) => sum + (s.points || s.xp || 50), 0);
+            const basePts = 500;
+            const currentTotalPts = basePts + totalTaskPts;
+
+            let tierLevel = 1;
+            let tierName = "Junior Steward";
+            let tierNextPts = 300;
+            if (currentTotalPts >= 900) {
+                tierLevel = 4;
+                tierName = "Master Grower";
+                tierNextPts = 1200;
+            } else if (currentTotalPts >= 600) {
+                tierLevel = 3;
+                tierName = "Urban Cultivator";
+                tierNextPts = 900;
+            } else if (currentTotalPts >= 300) {
+                tierLevel = 2;
+                tierName = "Garden Caretaker";
+                tierNextPts = 600;
+            }
+
+            const progressPct = Math.min(100, Math.round((currentTotalPts / tierNextPts) * 100));
+            const ptsNeeded = Math.max(0, tierNextPts - currentTotalPts);
+
+            // Realistic environmental counters from task types:
+            const wateringTasks = completed.filter(s => s.task_type === 'watering').length;
+            const plantingTasks = completed.filter(s => s.task_type === 'planting').length;
+            const harvestTasks = completed.filter(s => s.task_type === 'harvesting').length;
+            const maintenanceTasks = completed.filter(s => ['weeding', 'pruning', 'mulching', 'fertilizing', 'cleaning', 'pests', 'trellising'].includes(s.task_type)).length;
+
+            const waterManaged = 450 + (wateringTasks * 250) + (completed.length * 40);
+            const co2Offset = (45.0 + (plantingTasks * 18.0) + (maintenanceTasks * 6.0)).toFixed(1);
+            const organicYield = (20.0 + (harvestTasks * 12.0) + (plantingTasks * 4.0)).toFixed(1);
+            const completionRate = schedulesList.length > 0 ? Math.round((completed.length / schedulesList.length) * 100) : 100;
+            const streakDays = 7 + Math.min(completed.length, 14);
+
+            html += `
+            <!-- Garden Stewardship & Environmental Impact Component -->
+            <div class="stewardship-card mb-4">
+                <div class="stewardship-card-header">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stewardship-icon-squircle">
+                                ${lucideIcon('sprout', 22)}
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <span class="badge rounded-pill" style="background:#EBF3E8;color:#2D5A27;border:1px solid #BDDAB8;font-size:0.7rem;font-weight:700;">
+                                        Tier ${tierLevel} • ${tierName}
+                                    </span>
+                                    <span class="badge rounded-pill" style="background:#FEF3E2;color:#8A4700;border:1px solid #F6D7A8;font-size:0.7rem;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+                                        ${lucideIcon('flame', 12)} ${streakDays}-Day Care Streak
+                                    </span>
+                                    <span class="badge rounded-pill" style="background:#EBF3F8;color:#204E6E;border:1px solid #C4DCEB;font-size:0.7rem;font-weight:700;display:inline-flex;align-items:center;gap:3px;">
+                                        ${lucideIcon('check-circle', 12)} ${completed.length} of ${schedulesList.length} Tasks Logged
+                                    </span>
+                                </div>
+                                <h3 class="fs-6 fw-bold mb-0 text-dark" style="color:var(--drive-text-main, #3E2B1E) !important;">
+                                    Landowner Stewardship &amp; Impact
+                                </h3>
+                                <span class="text-secondary" style="font-size:0.78rem;">
+                                    Real-time impact metrics derived directly from scheduled garden care and maintenance.
                                 </span>
                             </div>
-                            <h4 class="fw-bold text-dark m-0 fs-6">${isLandownerUser() ? 'Landowner' : 'Gardener'} Eco Progress</h4>
-                            <span class="text-secondary" style="font-size:0.75rem;">
-                                <strong>${completed.length}</strong> of <strong>${schedulesList.length}</strong> tasks completed • <strong>+${totalTaskXP} XP</strong> earned from schedule tasks
+                        </div>
+
+                        <!-- Stewardship Points Progress -->
+                        <div class="flex-shrink-0" style="min-width: 210px;">
+                            <div class="d-flex justify-content-between text-secondary mb-1" style="font-size: 0.75rem; font-weight:600;">
+                                <span>Stewardship Score</span>
+                                <span style="color:#2D5A27;font-weight:700;">${currentTotalPts.toLocaleString()} / ${tierNextPts.toLocaleString()} pts</span>
+                            </div>
+                            <div class="progress rounded-pill overflow-hidden" style="height: 8px; background: #EFE8DE;">
+                                <div class="progress-bar rounded-pill" role="progressbar" 
+                                     style="width: ${progressPct}%; background: #7FA668;"></div>
+                            </div>
+                            <span class="d-block mt-1 text-end text-muted" style="font-size: 0.7rem;">
+                                +${ptsNeeded} pts to next tier
                             </span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="min-w-[210px] flex-shrink-0">
-                        <div class="d-flex justify-content-between small fw-semibold text-secondary mb-1" style="font-size:0.75rem;">
-                            <span>Level Progress</span>
-                            <span class="text-emerald-700 font-bold">${levelProgressXP} / ${levelGoalXP} XP</span>
+                <!-- 4 Impact Stat Boxes -->
+                <div class="p-3 p-md-3.5" style="background: var(--drive-surface, #FFFDF9);">
+                    <div class="row g-2.5">
+                        <div class="col-6 col-md-3">
+                            <div class="stewardship-stat-box h-100 d-flex align-items-center gap-2.5">
+                                <div class="stewardship-stat-icon" style="background:#EBF3E8;color:#2D5A27;">
+                                    ${lucideIcon('leaf', 18)}
+                                </div>
+                                <div>
+                                    <span class="text-secondary d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing:0.4px;">CO₂ Absorbed</span>
+                                    <h4 class="fw-bold mb-0 text-dark fs-6">${co2Offset} <span class="fw-normal text-muted" style="font-size:0.75rem;">kg</span></h4>
+                                    <span class="fw-semibold text-emerald-700" style="font-size:0.65rem;">≈ ${Math.max(1, Math.round(co2Offset * 0.04))} trees</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="progress rounded-pill bg-slate-100 overflow-hidden" style="height: 8px;">
-                            <div class="progress-bar bg-emerald-500 rounded-pill transition-all" role="progressbar" style="width: ${progressPct}%;"></div>
+
+                        <div class="col-6 col-md-3">
+                            <div class="stewardship-stat-box h-100 d-flex align-items-center gap-2.5">
+                                <div class="stewardship-stat-icon" style="background:#E8F3F8;color:#204E6E;">
+                                    ${lucideIcon('droplets', 18)}
+                                </div>
+                                <div>
+                                    <span class="text-secondary d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing:0.4px;">Water Managed</span>
+                                    <h4 class="fw-bold mb-0 text-dark fs-6">${waterManaged.toLocaleString()} <span class="fw-normal text-muted" style="font-size:0.75rem;">L</span></h4>
+                                    <span class="fw-semibold" style="color:#204E6E;font-size:0.65rem;">Drip &amp; hydration</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between mt-1 text-muted" style="font-size:0.68rem;">
-                            <span>Total XP: ${currentTotalXP}</span>
-                            <span>+${levelGoalXP - levelProgressXP} XP to Level ${userLevel + 1}</span>
+
+                        <div class="col-6 col-md-3">
+                            <div class="stewardship-stat-box h-100 d-flex align-items-center gap-2.5">
+                                <div class="stewardship-stat-icon" style="background:#F7ECE8;color:#783424;">
+                                    ${lucideIcon('sprout', 18)}
+                                </div>
+                                <div>
+                                    <span class="text-secondary d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing:0.4px;">Local Harvest</span>
+                                    <h4 class="fw-bold mb-0 text-dark fs-6">${organicYield} <span class="fw-normal text-muted" style="font-size:0.75rem;">kg</span></h4>
+                                    <span class="fw-semibold" style="color:#783424;font-size:0.65rem;">Zero food miles</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <div class="stewardship-stat-box h-100 d-flex align-items-center gap-2.5">
+                                <div class="stewardship-stat-icon" style="background:#FAF2E8;color:#7B4518;">
+                                    ${lucideIcon('calendar-check', 18)}
+                                </div>
+                                <div>
+                                    <span class="text-secondary d-block text-uppercase fw-semibold" style="font-size: 0.65rem; letter-spacing:0.4px;">Care Reliability</span>
+                                    <h4 class="fw-bold mb-0 text-dark fs-6">${completionRate}%</h4>
+                                    <span class="fw-semibold" style="color:#7B4518;font-size:0.65rem;">${completed.length} of ${Math.max(1, schedulesList.length)} done</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        `;
-
-        if (active.length) {
-            html += `<div class="task-section-label">
-                        ${lucideIcon('calendar-check', 15)}
-                        Active Tasks <span class="task-count-badge">${active.length}</span>
-                     </div>
-                     <div class="task-quest-grid">${active.map(renderCard).join('')}</div>`;
+            `;
         }
 
-        if (completed.length) {
+        // ── Filter chip bar ──
+        const allTypes = [...new Set(schedulesList.map(s => s.task_type))];
+        const filterChips = [
+            { key: 'all', label: 'All Tasks', icon: 'list', count: schedulesList.length }
+        ].concat(allTypes.map(t => ({
+            key: t,
+            label: TYPE_CONFIG[t]?.label || t,
+            icon: 'tag',
+            count: schedulesList.filter(s => s.task_type === t).length
+        })));
+
+        html += `<div class="task-filter-bar mb-3" role="tablist" aria-label="Filter by task type">`;
+        filterChips.forEach(chip => {
+            const isActive = currentTaskFilter === chip.key;
+            html += `<button type="button"
+                        class="task-filter-chip${isActive ? ' active' : ''}"
+                        onclick="setTaskCategoryFilter('${chip.key}')"
+                        role="tab" aria-selected="${isActive}">
+                        ${chip.label} <span class="chip-count">${chip.count}</span>
+                    </button>`;
+        });
+        html += `</div>`;
+
+        // Apply category filter
+        const filteredActive   = currentTaskFilter === 'all' ? active   : active.filter(s => s.task_type === currentTaskFilter);
+        const filteredDone     = currentTaskFilter === 'all' ? completed : completed.filter(s => s.task_type === currentTaskFilter);
+
+        if (filteredActive.length) {
+            html += `<div class="task-section-label">
+                        ${lucideIcon('calendar-check', 15)}
+                        Active Tasks <span class="task-count-badge">${filteredActive.length}</span>
+                     </div>
+                     <div class="task-quest-grid">${filteredActive.map(renderCard).join('')}</div>`;
+        }
+
+        if (filteredDone.length) {
             html += `<div class="task-section-label task-section-label--done" style="margin-top:2rem;">
                         ${lucideIcon('check-circle-2', 15)}
-                        Completed <span class="task-count-badge task-count-badge--done">${completed.length}</span>
+                        Completed <span class="task-count-badge task-count-badge--done">${filteredDone.length}</span>
                      </div>
-                     <div class="task-quest-grid task-quest-grid--done">${completed.map(renderCard).join('')}</div>`;
+                     <div class="task-quest-grid task-quest-grid--done">${filteredDone.map(renderCard).join('')}</div>`;
+        }
+
+        if (filteredActive.length === 0 && filteredDone.length === 0) {
+            html += `<div class="task-empty-state">
+                        ${lucideIcon('filter-x', 36)}
+                        <h3>No tasks match this filter</h3>
+                        <p>Try selecting a different category above.</p>
+                     </div>`;
         }
 
         schedulesContainer.innerHTML = html;
@@ -530,11 +672,11 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const payload = {
-                action:      'create_schedule',
-                title:       document.getElementById('title').value,
-                task_type:   document.getElementById('task_type').value,
-                start_time:  document.getElementById('start_time').value,
-                end_time:    document.getElementById('end_time').value,
+                action: 'create_schedule',
+                title: document.getElementById('title').value,
+                task_type: document.getElementById('task_type').value,
+                start_time: document.getElementById('start_time').value,
+                end_time: document.getElementById('end_time').value,
                 description: document.getElementById('description').value
             };
 
@@ -589,7 +731,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="p-3 rounded-4 mb-3" style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <span class="fw-bold text-dark small" id="complete_land_title">Plot A</span>
-                                <span class="badge rounded-pill" style="background:#FEE7AA;color:#4A3528;border:1px solid #785D4D;font-weight:800;" id="complete_xp_badge">+100 XP</span>
+                                <span class="badge rounded-pill" style="background:#FEE7AA;color:#4A3528;border:1px solid #785D4D;font-weight:800;" id="complete_xp_badge">+100 pts</span>
                             </div>
                             <h6 class="fw-bold text-dark mb-1" id="complete_task_title">Task Title</h6>
                             <p class="text-muted mb-0 small" id="complete_task_desc">Task instructions...</p>
@@ -689,7 +831,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="p-3 rounded-4 mb-3" style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
                             <div class="d-flex align-items-center justify-content-between mb-1.5">
                                 <span class="fw-bold text-dark" id="view_land_title">Plot A</span>
-                                <span class="badge rounded-pill" style="background:#FEE7AA;color:#4A3528;border:1px solid #785D4D;font-weight:800;" id="view_xp_badge">+100 XP</span>
+                                <span class="badge rounded-pill" style="background:#FEE7AA;color:#4A3528;border:1px solid #785D4D;font-weight:800;" id="view_xp_badge">+100 pts</span>
                             </div>
                             <div class="d-flex align-items-center gap-2 text-muted small mb-1">
                                 <i class="bi bi-person-fill text-secondary"></i> <span id="view_gardener_name">Gardener</span>
@@ -840,7 +982,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('complete_quest_id').value = id;
         document.getElementById('complete_task_title').textContent = sched.title;
         document.getElementById('complete_land_title').textContent = `${sched.land_title} • Assigned to: ${sched.gardener || 'Unassigned'}`;
-        document.getElementById('complete_xp_badge').textContent = `+${sched.xp || 100} XP`;
+        document.getElementById('complete_xp_badge').textContent = `+${sched.points || sched.xp || 100} pts`;
         document.getElementById('complete_task_desc').textContent = sched.description || 'Complete the scheduled garden activities.';
         document.getElementById('completeNotes').value = '';
 
@@ -902,7 +1044,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById('view_quest_title').textContent = sched.title;
         document.getElementById('view_land_title').textContent = sched.land_title;
-        document.getElementById('view_xp_badge').textContent = `+${sched.xp || 100} XP`;
+        document.getElementById('view_xp_badge').textContent = `+${sched.points || sched.xp || 100} pts`;
         document.getElementById('view_gardener_name').textContent = sched.gardener || 'Unassigned';
         document.getElementById('view_time_label').textContent = `${formatDate(sched.start_time)}`;
         document.getElementById('view_task_desc').textContent = sched.description || 'No description.';
@@ -1004,8 +1146,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
 
-                const earnedXp = res.data?.xp || 100;
-                showTaskToast(res.message || `🎉 Task completed! +${earnedXp} XP added to your Eco Level!`);
+                const earnedPts = res.gamification?.earned_points || res.data?.points || res.data?.xp || 50;
+                showTaskToast(res.message || `Task verified and completed! +${earnedPts} Stewardship Points recorded.`);
                 await loadSchedules();
             } else {
                 alert("Error: " + (res.message || "Failed to complete task."));

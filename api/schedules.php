@@ -263,18 +263,21 @@ if ($method === 'POST') {
 
         if ($found) {
             $completed_all = array_filter($_SESSION['mock_schedules'], fn($s) => ($s['status'] ?? '') === 'completed');
-            $total_xp = array_sum(array_column($completed_all, 'xp'));
-            $earned_xp = $updatedItem['xp'] ?? 100;
+            $total_pts = 0;
+            foreach ($completed_all as $cs) {
+                $total_pts += isset($cs['points']) ? intval($cs['points']) : (isset($cs['xp']) ? intval($cs['xp']) : 50);
+            }
+            $earned_pts = isset($updatedItem['points']) ? intval($updatedItem['points']) : (isset($updatedItem['xp']) ? intval($updatedItem['xp']) : 50);
 
             echo json_encode([
                 'status' => 'success',
                 'message' => ($role === 'landowner') 
-                    ? "Task verified and marked completed! +{$earned_xp} XP earned." 
-                    : "Task completed and proof submitted successfully! +{$earned_xp} XP earned.",
+                    ? "Task verified and marked complete! +{$earned_pts} Stewardship Points recorded." 
+                    : "Task completed and proof submitted successfully! +{$earned_pts} Stewardship Points recorded.",
                 'data' => $updatedItem,
                 'gamification' => [
-                    'earned_xp' => $earned_xp,
-                    'total_xp' => $total_xp,
+                    'earned_points' => $earned_pts,
+                    'total_points' => $total_pts,
                     'completed_count' => count($completed_all)
                 ]
             ]);

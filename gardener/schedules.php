@@ -1,13 +1,18 @@
 <?php
 $base_path = '../';
 $page_title = "My Schedule";
-include '../includes/header.php';
-include '../includes/navbar.php';
-include '../includes/sidebar.php';
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+$_SESSION['active_role'] = 'gardener';
+if (!isset($_SESSION['user_name'])) {
+    $_SESSION['user_name'] = 'Mary Gardener';
+}
+
+include '../includes/header.php';
+include '../includes/navbar.php';
+include '../includes/sidebar.php';
 
 // Initialize mock schedules if not already set in session
 if (!isset($_SESSION['mock_schedules']) || empty($_SESSION['mock_schedules'])) {
@@ -49,17 +54,10 @@ if (isset($_GET['complete_id'])) {
 }
 ?>
 
-<main class="workspace-surface">
-    <!-- Toolbar/Title Bar -->
-    <div class="toolbar border-bottom">
-        <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Schedules</h1>
-
-        </div>
-    </div>
+<main class="workspace-surface d-flex flex-column h-100 overflow-hidden">
 
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll">
+    <div class="workspace-scroll flex-grow-1 p-3 p-md-4">
         <!-- Schedules Dynamic Container -->
         <div id="schedulesContainer"></div>
     </div>

@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let landsList = [];
     let plotsList = [];
     let selectedLandId = null;
+    let currentFilter = 'all';
     const _leafletMapsOwner = {};
 
     // DOM Elements
@@ -26,6 +27,48 @@ document.addEventListener("DOMContentLoaded", function () {
         return images[id] || 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=400';
     }
 
+    function setupFilters() {
+        const filterBtns = document.querySelectorAll('.land-filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const filter = this.getAttribute('data-filter') || 'all';
+                currentFilter = filter;
+
+                filterBtns.forEach(b => {
+                    const isActive = (b.getAttribute('data-filter') || 'all') === filter;
+                    b.classList.toggle('active', isActive);
+                    if (isActive) {
+                        b.classList.remove('text-secondary');
+                    } else {
+                        b.classList.add('text-secondary');
+                    }
+                });
+
+                renderLands();
+            });
+        });
+    }
+
+    function updateFilterCounts() {
+        const allCount = landsList.length;
+        const pendingCount = landsList.filter(l => l.status === 'pending').length;
+        const approvedCount = landsList.filter(l => l.status === 'approved').length;
+
+        const countAll = document.getElementById('countAll');
+        const countPending = document.getElementById('countPending');
+        const countApproved = document.getElementById('countApproved');
+        const mCountAll = document.getElementById('mCountAll');
+        const mCountPending = document.getElementById('mCountPending');
+        const mCountApproved = document.getElementById('mCountApproved');
+
+        if (countAll) countAll.textContent = allCount;
+        if (mCountAll) mCountAll.textContent = allCount;
+        if (countPending) countPending.textContent = pendingCount;
+        if (mCountPending) mCountPending.textContent = pendingCount;
+        if (countApproved) countApproved.textContent = approvedCount;
+        if (mCountApproved) mCountApproved.textContent = approvedCount;
+    }
+
     // Load lands & plots
     async function loadData() {
         try {
@@ -35,6 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 landsList = res.data.lands;
                 plotsList = res.data.plots;
 
+                updateFilterCounts();
                 renderLands();
 
                 // Check URL parameter for land selection (e.g. ?id=2)
@@ -60,17 +104,33 @@ document.addEventListener("DOMContentLoaded", function () {
     function renderLands() {
         if (!landsContainer) return;
 
-        if (landsList.length === 0) {
+        // Clean up previously created Leaflet map instances
+        Object.keys(_leafletMapsOwner).forEach(key => {
+            try {
+                if (_leafletMapsOwner[key]) {
+                    _leafletMapsOwner[key].remove();
+                }
+            } catch (e) {}
+            delete _leafletMapsOwner[key];
+        });
+
+        const filteredList = landsList.filter(land => {
+            if (currentFilter === 'pending') return land.status === 'pending';
+            if (currentFilter === 'approved') return land.status === 'approved';
+            return true;
+        });
+
+        if (filteredList.length === 0) {
             landsContainer.innerHTML = `
                 <div class="col-12 text-center py-5 text-muted bg-white border rounded-4">
                     <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
-                    <span>No registered properties found.</span>
+                    <span>No ${currentFilter === 'all' ? 'registered' : currentFilter} properties found.</span>
                 </div>
             `;
             return;
         }
 
-        landsContainer.innerHTML = landsList.map(land => {
+        landsContainer.innerHTML = filteredList.map(land => {
             const landPlots = plotsList.filter(p => p.land_id == land.id);
             const totalCount = landPlots.length;
             const availableCount = landPlots.filter(p => p.status === 'available').length;
@@ -194,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setTimeout(() => {
             if (typeof L === 'undefined') return;
 
-            landsList.forEach(land => {
+            filteredList.forEach(land => {
                 const mapId = `map-preview-owner-${land.id}`;
                 const el = document.getElementById(mapId);
                 if (!el || el._leaflet_id) return;
@@ -786,5 +846,6 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Initial load
+    setupFilters();
     loadData();
 });

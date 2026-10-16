@@ -3,76 +3,96 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-$error_message = '';
+$error_message   = '';
 $success_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register') {
-    $name = trim($_POST['name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $name             = trim($_POST['name'] ?? '');
+    $email            = strtolower(trim($_POST['email'] ?? ''));
+    $password         = trim($_POST['password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
-    $role = trim($_POST['role'] ?? 'gardener');
-    $phone = trim($_POST['phone'] ?? '');
+    $role             = in_array($_POST['role'] ?? '', ['gardener', 'landowner']) ? $_POST['role'] : 'gardener';
+    $phone            = trim($_POST['phone'] ?? '');
 
+    // ── Validation ─────────────────────────────────────────────────────────
     if (empty($name) || empty($email) || empty($password)) {
         $error_message = 'Please fill in all required fields.';
-    } elseif ($password !== $confirm_password) {
-        $error_message = 'Passwords do not match. Please check and try again.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = 'Please enter a valid email address.';
+    } elseif (strlen($password) < 6) {
+        $error_message = 'Password must be at least 6 characters.';
+    } elseif ($password !== $confirm_password) {
+        $error_message = 'Passwords do not match. Please check and try again.';
     } else {
-        // Initialize session mock users if empty
-        if (!isset($_SESSION['mock_users']) || !is_array($_SESSION['mock_users'])) {
-            $_SESSION['mock_users'] = [
-                ['id' => 1, 'name' => 'System Administrator', 'email' => 'admin@garden.com', 'role' => 'admin', 'phone' => '09170000000', 'status' => 'active'],
-                ['id' => 2, 'name' => 'John Landowner', 'email' => 'landowner@garden.com', 'role' => 'landowner', 'phone' => '09171112222', 'status' => 'active'],
-                ['id' => 3, 'name' => 'Mary Gardener', 'email' => 'gardener@garden.com', 'role' => 'gardener', 'phone' => '09173334444', 'status' => 'active']
-            ];
-        }
+        // ── Real DB registration ────────────────────────────────────────────
+        try {
+            require_once __DIR__ . '/includes/db.php';
 
-        // Check if email exists
-        $exists = false;
-        foreach ($_SESSION['mock_users'] as $u) {
-            if (strtolower($u['email']) === strtolower($email)) {
-                $exists = true;
-                break;
-            }
-        }
-
-        if ($exists) {
-            $error_message = 'An account with this email address already exists. Please sign in instead.';
-        } else {
-            $new_user_id = count($_SESSION['mock_users']) + 1;
-            $new_user = [
-                'id' => $new_user_id,
-                'name' => $name,
-                'email' => $email,
-                'role' => $role,
-                'phone' => $phone,
-                'status' => 'active'
-            ];
-
-            $_SESSION['mock_users'][] = $new_user;
-
-            // Auto log in newly registered user
-            $_SESSION['active_role'] = $role;
-            $_SESSION['user_name'] = $name;
-            $_SESSION['user_id'] = $new_user_id;
-
-            // Redirect to appropriate dashboard
-            if ($role === 'landowner') {
-                header("Location: landowner/dashboard.php");
-                exit;
-            } elseif ($role === 'admin') {
-                header("Location: admin/dashboard.php");
-                exit;
+            // Check for duplicate email
+            $check = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $check->execute([$email]);
+            if ($check->fetch()) {
+                $error_message = 'An account with this email address already exists. Please sign in instead.';
             } else {
-                header("Location: gardener/dashboard.php");
+                $hashed = password_hash($password, PASSWORD_BCRYPT);
+                $insert = $pdo->prepare(
+                    "INSERT INTO users (name, email, password, role, phone, status) VALUES (?, ?, ?, ?, ?, 'active')"
+                );
+                $insert->execute([$name, $email, $hashed, $role, $phone]);
+                $new_id = (int)$pdo->lastInsertId();
+
+                $_SESSION['user_id']     = $new_id;
+                $_SESSION['user_name']   = $name;
+                $_SESSION['user_email']  = $email;
+                $_SESSION['active_role'] = $role;
+
+                $redirect = match($role) {
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
+                };
+                header("Location: $redirect");
+                exit;
+            }
+        } catch (\PDOException $e) {
+            // ── Fallback: session-based mock when DB is unavailable ─────────
+            if (!isset($_SESSION['mock_users']) || !is_array($_SESSION['mock_users'])) {
+                $_SESSION['mock_users'] = [
+                    ['id' => 1, 'name' => 'System Administrator', 'email' => 'admin@garden.com',     'role' => 'admin',     'phone' => '09170000000', 'status' => 'active'],
+                    ['id' => 2, 'name' => 'John Landowner',       'email' => 'landowner@garden.com', 'role' => 'landowner', 'phone' => '09171112222', 'status' => 'active'],
+                    ['id' => 3, 'name' => 'Mary Gardener',        'email' => 'gardener@garden.com',  'role' => 'gardener',  'phone' => '09173334444', 'status' => 'active'],
+                ];
+            }
+
+            $exists = false;
+            foreach ($_SESSION['mock_users'] as $u) {
+                if (strtolower($u['email']) === $email) { $exists = true; break; }
+            }
+
+            if ($exists) {
+                $error_message = 'An account with this email address already exists. Please sign in instead.';
+            } else {
+                $new_id   = count($_SESSION['mock_users']) + 1;
+                $new_user = ['id' => $new_id, 'name' => $name, 'email' => $email, 'role' => $role, 'phone' => $phone, 'status' => 'active'];
+                $_SESSION['mock_users'][] = $new_user;
+
+                $_SESSION['user_id']     = $new_id;
+                $_SESSION['user_name']   = $name;
+                $_SESSION['user_email']  = $email;
+                $_SESSION['active_role'] = $role;
+
+                $redirect = match($role) {
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
+                };
+                header("Location: $redirect");
                 exit;
             }
         }
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

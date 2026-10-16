@@ -365,6 +365,7 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 
 /* Mobile: Disable Sidebar, Collapsible Toggle, and Backdrop */
 @media (max-width: 767.98px) {
+
     #mainSidebar,
     #sidebarBackdrop,
     #sidebarToggleBtn {
@@ -2449,106 +2450,83 @@ header,
    Game-Like Task Quest Cards
    ========================================================================== */
 
-/* ── Section labels ─────────────────────────────────────────────────────── */
-.task-section-label {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: var(--drive-text-sub);
-    margin-bottom: 1rem;
-}
-.task-section-label--done {
-    color: #22c55e;
-}
-.task-count-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--drive-primary);
-    color: #fff;
-    border-radius: 99px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-}
-.task-count-badge--done {
-    background: #22c55e;
-}
 
-/* ── Quest grid ─────────────────────────────────────────────────────────── */
+
+/* ── Task Grid ─────────────────────────────────────────────────────────── */
 .task-quest-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.15rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
 }
+
 .task-quest-grid--done {
-    opacity: 0.72;
+    opacity: 0.82;
 }
 
 /* ── Card shell (Cats & Soup Aesthetic) ─── */
 .task-quest-card {
     position: relative;
-    background: #FFFDF9 !important;
+    background: #ffffff !important;
     border-radius: 22px !important;
-    border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
-    box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D) !important;
+    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    box-shadow: 0 3px 0 var(--cs-cocoa, #785D4D) !important;
     overflow: hidden;
     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     cursor: pointer;
-}
-.task-quest-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 var(--cs-cocoa, #785D4D) !important;
-}
-.task-quest-card:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
-}
-.task-quest-card--done {
-    filter: saturate(0.65);
-    opacity: 0.8;
+    display: flex;
+    flex-direction: column;
 }
 
-/* ── Completed ribbon (removed in favor of aligned badge) ──────────────── */
+.task-quest-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--cs-cocoa, #785D4D) !important;
+}
+
+.task-quest-card:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
+}
+
+.task-quest-card--done {
+    filter: saturate(0.7);
+    opacity: 0.85;
+}
 
 /* ── Card header band ───────────────────────────────────────────────────── */
 .task-card-header-band {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.85rem;
-    padding: 1.1rem 1.1rem 0;
+    padding: 1rem 1.1rem 0;
 }
 
 /* ── Icon bubble (Pastel Squircle Container with Cocoa Border) ────────── */
 .task-icon-bubble {
     flex-shrink: 0;
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     background: #BBD6B8 !important;
-    border: 2px solid var(--cs-cocoa, #785D4D) !important;
+    border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
     box-shadow: 0 2px 0 var(--cs-cocoa, #785D4D) !important;
     overflow: hidden;
 }
+
 .task-icon-bubble .task-icon-img {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     transition: transform 0.2s ease;
 }
+
 .task-quest-card:hover .task-icon-img {
-    transform: scale(1.08);
+    transform: scale(1.1);
 }
 
 /* ── Title block ────────────────────────────────────────────────────────── */
@@ -2556,6 +2534,7 @@ header,
     flex: 1;
     min-width: 0;
 }
+
 .task-type-label {
     font-size: 0.65rem;
     font-weight: 800;
@@ -2563,16 +2542,20 @@ header,
     text-transform: uppercase;
     color: var(--drive-text-sub, #6B5446);
     margin-bottom: 2px;
+    display: block;
 }
+
 .task-card-title {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     font-weight: 800;
     color: var(--drive-text-main, #3E2B1E);
     margin: 0;
-    line-height: 1.3;
-    white-space: nowrap;
+    line-height: 1.32;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
 }
 
 /* ── Badges & Cats & Soup Gear Slots ───────────────────────────── */
@@ -2581,6 +2564,7 @@ header,
     align-items: center;
     gap: 2px;
 }
+
 .cats-slot-circle {
     width: 32px;
     height: 32px;
@@ -2594,6 +2578,7 @@ header,
     flex-shrink: 0;
     transition: transform 0.15s ease, border-color 0.15s ease;
 }
+
 .cats-slot-circle:hover {
     transform: scale(1.1);
     border-color: #785D4D !important;
@@ -2606,24 +2591,107 @@ header,
     flex-shrink: 0;
     margin-left: auto;
 }
+
+.task-stewardship-badge,
 .task-xp-badge {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    background: #FEE7AA !important;
-    color: #4A3528 !important;
-    border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
-    box-shadow: 0 1.5px 0 var(--cs-cocoa, #785D4D) !important;
+    gap: 4px;
+    background: #EBF3E8 !important;
+    color: #2D5A27 !important;
+    border: 1.5px solid #BDDAB8 !important;
+    box-shadow: 0 1.5px 0 #BDDAB8 !important;
     font-size: 0.68rem;
-    font-weight: 800;
+    font-weight: 700;
     border-radius: 99px;
     padding: 3px 9px;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
 }
+
+.task-stewardship-badge [data-lucide],
 .task-xp-badge [data-lucide] {
-    color: #E28C00 !important;
-    stroke: #E28C00 !important;
+    color: #4C8C40 !important;
+    stroke: #4C8C40 !important;
 }
+
+/* ── Garden Stewardship & Realistic Impact Component ── */
+.stewardship-card {
+    background: var(--drive-surface, #FFFDF9);
+    border: 1.5px solid var(--drive-border-subtle, #DFCFC2);
+    border-radius: var(--drive-radius-md, 18px);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(62, 43, 30, 0.04);
+}
+
+.stewardship-card-header {
+    background: #FAF5ED;
+    border-bottom: 1.5px solid var(--drive-border-subtle, #DFCFC2);
+    padding: 1.15rem 1.25rem;
+}
+
+.stewardship-icon-squircle {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: #E8F2E6;
+    color: #2D5A27;
+    border: 1.5px solid #BDDAB8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stewardship-stat-box {
+    background: #FFFFFF;
+    border: 1.5px solid var(--drive-border-subtle, #DFCFC2);
+    border-radius: var(--drive-radius-sm, 12px);
+    padding: 0.85rem 1rem;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stewardship-stat-box:hover {
+    border-color: var(--drive-primary, #7FA668);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.stewardship-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stewardship-badge-item {
+    background: #FFFFFF;
+    border: 1.5px solid var(--drive-border-subtle, #DFCFC2);
+    border-radius: var(--drive-radius-sm, 12px);
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    transition: all 0.15s ease;
+}
+
+.stewardship-badge-item.unlocked {
+    background: #F9FBF8;
+    border-color: #BDDAB8;
+}
+
+.stewardship-badge-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
 .task-status-pill {
     display: inline-flex;
     align-items: center;
@@ -2636,10 +2704,12 @@ header,
     border: 1.5px solid var(--cs-cocoa, #785D4D) !important;
     box-shadow: 0 1.5px 0 var(--cs-cocoa, #785D4D) !important;
 }
+
 .task-status-pill--completed {
     background: #DCFCE7 !important;
     color: #15803D !important;
 }
+
 .task-status-pill--completed [data-lucide] {
     stroke: #15803D !important;
 }
@@ -2672,6 +2742,7 @@ header,
     gap: 6px;
     margin: 0 1.1rem 0.75rem;
 }
+
 .task-meta-chip {
     display: inline-flex;
     align-items: center;
@@ -2688,9 +2759,11 @@ header,
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .task-meta-chip [data-lucide] {
     flex-shrink: 0;
 }
+
 .task-meta-chip--empty {
     color: var(--drive-text-muted);
     opacity: 0.7;
@@ -2707,6 +2780,7 @@ header,
     margin-top: 0.25rem;
     background: #FAF7F2;
 }
+
 .task-card-footer-info {
     display: flex;
     align-items: center;
@@ -2715,9 +2789,11 @@ header,
     font-weight: 700;
     color: var(--drive-text-sub, #6B5446);
 }
+
 .task-card-footer-info [data-lucide] {
     color: var(--drive-text-sub, #6B5446);
 }
+
 .task-action-btn {
     display: inline-flex;
     align-items: center;
@@ -2734,15 +2810,18 @@ header,
     cursor: pointer;
     transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
 }
+
 .task-action-btn:hover {
     background: #6E9557 !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 0 #523E31 !important;
 }
+
 .task-action-btn:active {
     transform: translateY(2px);
     box-shadow: 0 1px 0 #523E31 !important;
 }
+
 .task-action-btn [data-lucide] {
     color: inherit !important;
     stroke: currentColor !important;
@@ -2754,6 +2833,7 @@ header,
     border: 2px solid #523E31 !important;
     box-shadow: 0 3px 0 #523E31 !important;
 }
+
 .task-action-btn--complete:hover {
     background: #6E9557 !important;
     color: #FFFDF9 !important;
@@ -2766,11 +2846,13 @@ header,
     border: 2px solid #785D4D !important;
     box-shadow: 0 3px 0 #785D4D !important;
 }
+
 .task-action-btn--view:hover {
     background: #EDE2D4 !important;
     color: #3E2B1E !important;
     box-shadow: 0 4px 0 #785D4D !important;
 }
+
 .task-action-btn--view:active {
     box-shadow: 0 1px 0 #785D4D !important;
 }
@@ -2778,6 +2860,7 @@ header,
 .quest-dropzone {
     transition: all 0.2s ease;
 }
+
 .quest-dropzone:hover {
     background: #F7EFE6 !important;
     border-color: #785D4D !important;
@@ -2794,20 +2877,115 @@ header,
     color: var(--drive-text-muted);
     text-align: center;
 }
+
 .task-empty-state [data-lucide] {
     color: var(--drive-primary) !important;
     stroke: var(--drive-primary) !important;
     opacity: 0.6;
 }
+
 .task-empty-state h3 {
     font-size: 1.15rem;
     font-weight: 800;
     color: var(--drive-text-main);
     margin: 0;
 }
+
 .task-empty-state p {
     font-size: 0.85rem;
     margin: 0;
+}
+
+/* ── Section labels ─────────────────────────────────────────────────────── */
+.task-section-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--drive-text-main, #3E2B1E);
+    letter-spacing: 0.3px;
+    margin-bottom: 0.75rem;
+}
+
+.task-section-label [data-lucide] {
+    color: var(--drive-primary, #7FA668);
+    stroke: var(--drive-primary, #7FA668);
+}
+
+.task-section-label--done [data-lucide] {
+    color: #22c55e;
+    stroke: #22c55e;
+}
+
+.task-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #EBF3E8;
+    color: #2D5A27;
+    border: 1.5px solid #BDDAB8;
+    border-radius: 99px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 1px 8px;
+    min-width: 24px;
+}
+
+.task-count-badge--done {
+    background: #DCFCE7;
+    color: #15803D;
+    border-color: #86efac;
+}
+
+/* ── Filter chip bar ────────────────────────────────────────────────────── */
+.task-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1rem;
+}
+
+.task-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #F7EFE6;
+    border: 1.5px solid #DFCFC2;
+    border-radius: 99px;
+    padding: 5px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--drive-text-sub, #6B5446);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.task-filter-chip:hover {
+    background: #EDE2D4;
+    border-color: #C4B5A5;
+    color: var(--drive-text-main, #3E2B1E);
+}
+
+.task-filter-chip.active {
+    background: #7FA668 !important;
+    border-color: #523E31 !important;
+    color: #FFFDF9 !important;
+    box-shadow: 0 2px 0 #523E31 !important;
+}
+
+.task-filter-chip .chip-count {
+    background: rgba(0, 0, 0, 0.08);
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.task-filter-chip.active .chip-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #FFFDF9;
 }
 
 /* ── Mobile tweaks ──────────────────────────────────────────────────────── */
@@ -2815,9 +2993,11 @@ header,
     .task-quest-grid {
         grid-template-columns: 1fr;
     }
+
     .task-card-header-band {
         flex-wrap: wrap;
     }
+
     .task-card-badges {
         flex-direction: row;
         align-items: center;
@@ -2825,8 +3005,18 @@ header,
         justify-content: flex-start;
         margin-top: 0.25rem;
     }
+
     .task-card-title {
         white-space: normal;
+    }
+
+    .task-filter-bar {
+        gap: 5px;
+    }
+
+    .task-filter-chip {
+        font-size: 0.68rem;
+        padding: 4px 10px;
     }
 }
 
@@ -2843,16 +3033,19 @@ header,
     background: transparent;
     transition: all 0.15s ease;
 }
+
 .request-filter-btn:hover {
     color: var(--drive-text-main);
     background: #F4EFE6;
 }
+
 .request-filter-btn.active {
     background: #7FA668 !important;
     color: #FFFDF9 !important;
     border: 2px solid #523E31 !important;
     box-shadow: 0 2.5px 0 #523E31 !important;
 }
+
 .request-filter-btn.active .badge {
     background: rgba(255, 255, 255, 0.3) !important;
     color: #ffffff !important;
@@ -2897,6 +3090,7 @@ header,
     border-bottom: 1.5px dashed #DFCFC2 !important;
     transition: background-color 0.15s ease;
 }
+
 .request-table-row:hover {
     background-color: #FAF5ED !important;
 }
@@ -2910,6 +3104,7 @@ header,
     box-shadow: 0 3px 0 rgba(120, 93, 77, 0.15) !important;
     transition: transform 0.15s ease, border-color 0.15s ease;
 }
+
 .request-mobile-card:active {
     transform: scale(0.99);
 }
@@ -2921,6 +3116,7 @@ header,
     border-radius: 99px !important;
     font-weight: 700 !important;
 }
+
 .request-badge-approved {
     background-color: #D5ECC2 !important;
     color: #2B5718 !important;
@@ -2928,6 +3124,7 @@ header,
     border-radius: 99px !important;
     font-weight: 700 !important;
 }
+
 .request-badge-rejected {
     background-color: #FBD7D1 !important;
     color: #8C2B1D !important;
@@ -2948,6 +3145,7 @@ header,
     cursor: pointer;
     transition: all 0.15s ease;
 }
+
 .quick-reason-chip:hover {
     border-color: #785D4D;
     color: #3E2B1E;
@@ -2972,9 +3170,11 @@ header,
     cursor: pointer !important;
     line-height: 1 !important;
 }
+
 .request-action-btn:hover {
     transform: translateY(-1px) !important;
 }
+
 .request-action-btn:active {
     transform: translateY(1.5px) !important;
 }
@@ -2986,12 +3186,14 @@ header,
     border: 2px solid #785D4D !important;
     box-shadow: 0 2.5px 0 #785D4D !important;
 }
+
 .request-btn-view:hover {
     background: #EDE2D4 !important;
     background-color: #EDE2D4 !important;
     box-shadow: 0 3.5px 0 #785D4D !important;
     color: #3E2B1E !important;
 }
+
 .request-btn-view:active {
     box-shadow: 0 1px 0 #785D4D !important;
 }
@@ -3003,12 +3205,14 @@ header,
     border: 2px solid #523E31 !important;
     box-shadow: 0 2.5px 0 #523E31 !important;
 }
+
 .request-btn-reject:hover {
     background: #D4614A !important;
     background-color: #D4614A !important;
     box-shadow: 0 3.5px 0 #523E31 !important;
     color: #FFFDF9 !important;
 }
+
 .request-btn-reject:active {
     box-shadow: 0 1px 0 #523E31 !important;
 }
@@ -3020,12 +3224,14 @@ header,
     border: 2px solid #523E31 !important;
     box-shadow: 0 2.5px 0 #523E31 !important;
 }
+
 .request-btn-approve:hover {
     background: #6E9557 !important;
     background-color: #6E9557 !important;
     box-shadow: 0 3.5px 0 #523E31 !important;
     color: #FFFDF9 !important;
 }
+
 .request-btn-approve:active {
     box-shadow: 0 1px 0 #523E31 !important;
 }
@@ -3033,7 +3239,177 @@ header,
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
+
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+}
+
+/* ─── Gardener Request Logs Card List ──────────────────────────────────────── */
+.gardener-requests-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.gardener-request-card {
+    background: #FFFDF9 !important;
+    border: 1.5px solid #DFCFC2 !important;
+    border-radius: 18px !important;
+    padding: 0.9rem 1.15rem;
+    box-shadow: 0 2px 6px rgba(62, 43, 30, 0.04);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.gardener-request-card:hover {
+    transform: translateY(-2px);
+    border-color: #BDDAB8 !important;
+    box-shadow: 0 6px 18px rgba(62, 43, 30, 0.08);
+}
+
+.gardener-request-icon-wrap {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(45, 90, 39, 0.12);
+    border: 1.5px solid #BDDAB8;
+    background: #EBF5E9;
+}
+
+.gardener-request-icon-wrap svg,
+.gardener-request-icon-wrap img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.gardener-request-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.gardener-request-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #3E2B1E;
+    line-height: 1.25;
+}
+
+.gardener-request-purpose {
+    font-size: 0.78rem;
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gardener-request-meta-pills {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.gardener-request-meta-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.gardener-request-meta-pills .badge {
+    flex-shrink: 0;
+}
+
+.requests-filter-scroll-wrapper {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.requests-filter-scroll {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    padding: 3px 2px 6px 2px;
+    cursor: grab;
+}
+
+.requests-filter-scroll:active {
+    cursor: grabbing;
+}
+
+.requests-filter-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.request-filter-chip {
+    background: #FFFDF9;
+    border: 1.5px solid #DFCFC2;
+    color: #5C4033;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+    user-select: none;
+    transition: all 0.15s ease;
+}
+
+.request-filter-chip:hover {
+    background: #F7EFE6;
+    border-color: #785D4D;
+    color: #3E2B1E;
+}
+
+.request-filter-chip.active {
+    background: #2D5A27 !important;
+    border-color: #2D5A27 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(45, 90, 39, 0.2);
+}
+
+.request-filter-chip.active .badge {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+@media (max-width: 767.98px) {
+    .gardener-request-card {
+        padding: 0.75rem 0.85rem;
+        gap: 0.75rem;
+        border-radius: 16px !important;
+    }
+
+    .gardener-request-icon-wrap {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        border-radius: 12px;
+    }
+
+    .gardener-request-title {
+        font-size: 0.85rem;
+    }
+
+    .request-filter-chip {
+        font-size: 0.72rem;
+        padding: 0.25rem 0.65rem !important;
+    }
 }

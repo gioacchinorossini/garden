@@ -30,20 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 ?>
 
 <main class="workspace-surface">
-    <!-- Toolbar (Title and actions, borderless) -->
-    <div class="toolbar justify-content-between align-items-center">
-        <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Landowner Profile & Eco Impact</h1>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-drive-secondary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
-                data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
-                <span>Edit Profile</span>
-            </button>
-        </div>
-    </div>
-
     <!-- Workspace Scrollable Area -->
     <div class="workspace-scroll">
         <?php if (isset($success_msg)): ?>
@@ -55,44 +41,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <?php endif; ?>
 
         <!-- Landowner Profile Card -->
-        <div class="card border rounded-4 overflow-hidden mb-4 bg-white shadow-xs" style="border-color: var(--drive-border) !important;">
+        <h2 class="fs-6 fw-semibold text-secondary mb-3 mt-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
+            Profile Information
+        </h2>
+        <div class="card border rounded-4 overflow-hidden mb-4 bg-white shadow-xs"
+            style="border-color: var(--drive-border) !important;">
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4">
                     <!-- Avatar -->
                     <div class="position-relative">
-                        <div class="w-24 h-24 rounded-full bg-drive-primary text-white d-flex align-items-center justify-content-center fw-bold fs-2 shadow-sm border-4 border-white">
+                        <div
+                            class="w-24 h-24 rounded-full bg-drive-primary text-white d-flex align-items-center justify-content-center fw-bold fs-2 shadow-sm border-4 border-white">
                             <?php echo strtoupper(substr($_SESSION['user_name'], 0, 1)); ?>
                         </div>
-                        <span class="position-absolute bottom-0 end-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white" title="Landowner">
+                        <span
+                            class="position-absolute bottom-0 end-0 bg-emerald-500 text-white rounded-full p-1 border-2 border-white"
+                            title="Landowner">
                             <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                         </span>
                     </div>
 
                     <!-- Profile Info -->
                     <div class="flex-grow-1 text-center text-md-start">
-                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
+                        <div
+                            class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mb-2">
                             <div>
-                                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
-                                    <h2 class="fs-4 fw-bold text-dark mb-0"><?php echo htmlspecialchars($_SESSION['user_name']); ?></h2>
-                                    <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Landowner</span>
+                                <div
+                                    class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                                    <h2 class="fs-4 fw-bold text-dark mb-0">
+                                        <?php echo htmlspecialchars($_SESSION['user_name']); ?>
+                                    </h2>
+                                    <span
+                                        class="badge rounded-pill bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1">Landowner</span>
                                 </div>
-                                <p class="text-secondary text-xs mb-0 mt-1 d-flex align-items-center justify-content-center justify-content-md-start gap-1">
+                                <p
+                                    class="text-secondary text-xs mb-0 mt-1 d-flex align-items-center justify-content-center justify-content-md-start gap-1">
                                     <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
                                     <?php echo htmlspecialchars($user_address); ?>
                                 </p>
                             </div>
 
-                            <button class="btn btn-sm btn-drive-primary rounded-pill px-3 py-1.5 text-xs font-semibold d-flex align-items-center gap-1.5"
-                                data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
-                                Profile Settings
-                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <button
+                                    class="btn btn-drive-secondary btn-sm px-3 d-flex align-items-center gap-2 rounded-pill"
+                                    data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                    <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
+                                    <span>Edit Profile</span>
+                                </button>
+                            </div>
                         </div>
 
                         <p class="text-dark text-xs mb-3 max-w-2xl"><?php echo htmlspecialchars($user_bio); ?></p>
 
                         <!-- Quick Details -->
-                        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-4 pt-3 border-top text-xs text-secondary">
+                        <div
+                            class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 pt-3 border-top text-xs text-secondary">
                             <div class="d-flex align-items-center gap-1.5">
                                 <i data-lucide="mail" style="width: 14px; height: 14px;" class="text-primary"></i>
                                 <span><?php echo htmlspecialchars($user_email); ?></span>
@@ -114,30 +117,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <div class="bg-light border-top p-3 px-4">
                 <div class="row text-center g-3">
                     <div class="col-4 border-end">
-                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Registered Properties</span>
+                        <span
+                            class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Registered
+                            Properties</span>
                         <span class="fs-5 fw-bold text-dark">3</span>
                     </div>
                     <div class="col-4 border-end">
-                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Total Land Area</span>
-                        <span class="fs-5 fw-bold text-primary">835.5 <span class="fs-6 font-normal text-muted">m²</span></span>
+                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Total
+                            Land Area</span>
+                        <span class="fs-5 fw-bold text-primary">835.5 <span
+                                class="fs-6 font-normal text-muted">m²</span></span>
                     </div>
                     <div class="col-4">
-                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Active Plots Leased</span>
-                        <span class="fs-5 fw-bold text-emerald-600">8 <span class="fs-6 font-normal text-muted">/ 12</span></span>
+                        <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Active
+                            Plots Leased</span>
+                        <span class="fs-5 fw-bold text-emerald-600">8 <span class="fs-6 font-normal text-muted">/
+                                12</span></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Gamified Environmental Contribution Tracker Section -->
+        <!-- Garden Stewardship & Environmental Contribution Section -->
         <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
-            Environmental Contribution & Eco Badges
+            Environmental Impact
         </h2>
 
         <?php
-        // Landowner custom eco metrics override
+        // Landowner stewardship overrides (reflects platform-wide land management activity)
         $eco_level_override = 4;
-        $eco_xp_override = 880;
+        $eco_tier_name_override = 'Master Grower';
+        $eco_xp_override = 1020;
+        $eco_max_xp_override = 1200;
         $co2_offset_override = 412.5;
         $water_saved_override = 3850;
         $organic_yield_override = 185.0;
@@ -150,7 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <h2 class="fs-6 fw-semibold text-secondary m-0" style="letter-spacing: 0.5px; text-transform: uppercase;">
                 Registered Land Portfolio
             </h2>
-            <a href="lands.php" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1 text-xs fw-semibold">
+            <a href="lands.php"
+                class="text-decoration-none text-primary d-inline-flex align-items-center gap-1 text-xs fw-semibold">
                 Manage All Lands <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
             </a>
         </div>
@@ -161,11 +173,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="drive-card h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Approved</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="leaf" class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> +180kg CO₂</span>
+                            <span
+                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Approved</span>
+                            <span class="text-xs text-secondary font-semibold"><i data-lucide="leaf"
+                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> +180kg
+                                CO₂</span>
                         </div>
                         <h3 class="fs-6 fw-bold text-dark mb-1">Sunnyvale Gardening Lot</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>124 Green Ave, Sunnyvale</p>
+                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
+                                style="width: 12px; height: 12px;"></i>124 Green Ave, Sunnyvale</p>
                         <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">Land Area:</span>
@@ -193,11 +209,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="drive-card h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Approved</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="leaf" class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> +155kg CO₂</span>
+                            <span
+                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Approved</span>
+                            <span class="text-xs text-secondary font-semibold"><i data-lucide="leaf"
+                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> +155kg
+                                CO₂</span>
                         </div>
                         <h3 class="fs-6 fw-bold text-dark mb-1">Downtown Rooftop Garden</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>45 Main St, Business District</p>
+                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
+                                style="width: 12px; height: 12px;"></i>45 Main St, Business District</p>
                         <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">Land Area:</span>
@@ -225,11 +245,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="drive-card h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span class="badge rounded-pill bg-amber-100 text-amber-800 text-[10px] font-semibold">Pending Review</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="clock" class="text-amber-500 inline me-1" style="width: 12px; height: 12px;"></i> Verification</span>
+                            <span
+                                class="badge rounded-pill bg-amber-100 text-amber-800 text-[10px] font-semibold">Pending
+                                Review</span>
+                            <span class="text-xs text-secondary font-semibold"><i data-lucide="clock"
+                                    class="text-amber-500 inline me-1" style="width: 12px; height: 12px;"></i>
+                                Verification</span>
                         </div>
                         <h3 class="fs-6 fw-bold text-dark mb-1">Riverdale Acres</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>Riverside Dr, Block B</p>
+                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
+                                style="width: 12px; height: 12px;"></i>Riverside Dr, Block B</p>
                         <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">Land Area:</span>
@@ -291,11 +316,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </div>
                     <div class="mb-3">
                         <label class="form-label text-secondary text-xs font-semibold">BIOGRAPHY / ECO MISSION</label>
-                        <textarea name="user_bio" class="form-control drive-form-control text-xs" rows="3"><?php echo htmlspecialchars($user_bio); ?></textarea>
+                        <textarea name="user_bio" class="form-control drive-form-control text-xs"
+                            rows="3"><?php echo htmlspecialchars($user_bio); ?></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-top bg-light px-4 py-3">
-                    <button type="button" class="btn btn-sm btn-drive-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-drive-secondary rounded-pill px-3"
+                        data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-drive-primary rounded-pill px-4">Save Changes</button>
                 </div>
             </form>

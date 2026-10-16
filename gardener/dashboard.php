@@ -110,8 +110,7 @@ unset($land);
                 </span>
                 <input type="text" id="desktopMapSearchInput"
                     class="form-control bg-light border-start-0 border-end-0 py-1.5 text-xs focus-ring-none"
-                    placeholder="Search gardens, crops, places, or addresses..."
-                    autocomplete="off"
+                    placeholder="Search gardens, crops, places, or addresses..." autocomplete="off"
                     oninput="handleGardenerUnifiedSearch(this.value)"
                     onkeydown="if(event.key==='Enter'){event.preventDefault();handleGardenerUnifiedSearchEnter(this.value);}">
                 <button type="button" id="desktopMapSearchClear"
@@ -133,7 +132,8 @@ unset($land);
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
-            <a href="browse.php" class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill text-nowrap">
+            <a href="browse.php"
+                class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill text-nowrap">
                 <i data-lucide="compass" style="width:15px;height:15px;"></i> Browse All Lands
             </a>
         </div>
@@ -225,8 +225,10 @@ unset($land);
                             <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between active"
                                 href="#"
                                 onclick="filterGardenerMapLands('all', this, 'All (<?php echo count($lands_data); ?>)'); return false;">
-                                <span class="d-flex align-items-center gap-2"><i class="bi bi-grid-fill text-muted"></i>All Gardens</span>
-                                <span class="badge bg-secondary-subtle text-secondary rounded-pill"><?php echo count($lands_data); ?></span>
+                                <span class="d-flex align-items-center gap-2"><i
+                                        class="bi bi-grid-fill text-muted"></i>All Gardens</span>
+                                <span
+                                    class="badge bg-secondary-subtle text-secondary rounded-pill"><?php echo count($lands_data); ?></span>
                             </a>
                         </li>
                         <li>
@@ -234,14 +236,17 @@ unset($land);
                         </li>
                         <li>
                             <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between"
-                                href="#" onclick="filterGardenerMapLands('available', this, 'Available Plots'); return false;">
-                                <span class="d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success"></i>Available Plots</span>
+                                href="#"
+                                onclick="filterGardenerMapLands('available', this, 'Available Plots'); return false;">
+                                <span class="d-flex align-items-center gap-2"><i
+                                        class="bi bi-check-circle-fill text-success"></i>Available Plots</span>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item rounded-3 py-1.5 px-3 d-flex align-items-center justify-content-between"
                                 href="#" onclick="filterGardenerMapLands('my', this, 'My Leased'); return false;">
-                                <span class="d-flex align-items-center gap-2"><i class="bi bi-heart-fill text-warning"></i>My Leased</span>
+                                <span class="d-flex align-items-center gap-2"><i
+                                        class="bi bi-heart-fill text-warning"></i>My Leased</span>
                             </a>
                         </li>
                     </ul>
@@ -397,14 +402,28 @@ unset($land);
                         </p>
                     </div>
                     <div class="d-flex align-items-center gap-1.5 ms-2 flex-shrink-0">
-                        <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(-1)" title="Previous Garden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(-1)"
+                            title="Previous Garden">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="m15 18-6-6 6-6" />
+                            </svg>
                         </button>
                         <button type="button" class="sheet-nav-btn" onclick="navigateGardenCard(1)" title="Next Garden">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
                         </button>
                         <button type="button" class="sheet-nav-btn ms-1" onclick="closeLandCardSheet()" title="Close">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="#0f172a" stroke-width="2.8" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -1644,68 +1663,70 @@ unset($land);
                 gardenerMap.invalidateSize();
             }
         }
+    }
+
     // Close dropdowns when clicking outside
     document.addEventListener('click', function (e) {
-        // Garden search suggestions
-        const gardenBox = document.getElementById('desktopGardenerSearchSuggestions');
-        const gardenInput = document.getElementById('desktopMapSearchInput');
-        if (gardenBox && gardenInput && !gardenInput.closest('.position-relative')?.contains(e.target)) {
-            gardenBox.style.display = 'none';
-        }
-        // Place search results
-        const placeResults = document.getElementById('gardenerDesktopPlaceResults');
-        const placeWrapper = document.getElementById('gardenerPlaceSearchWrapper');
-        if (placeResults && placeWrapper && !placeWrapper.contains(e.target)) {
-            placeResults.style.display = 'none';
-        }
-    });
+            // Garden search suggestions
+            const gardenBox = document.getElementById('desktopGardenerSearchSuggestions');
+            const gardenInput = document.getElementById('desktopMapSearchInput');
+            if (gardenBox && gardenInput && !gardenInput.closest('.position-relative')?.contains(e.target)) {
+                gardenBox.style.display = 'none';
+            }
+            // Place search results
+            const placeResults = document.getElementById('gardenerDesktopPlaceResults');
+            const placeWrapper = document.getElementById('gardenerPlaceSearchWrapper');
+            if (placeResults && placeWrapper && !placeWrapper.contains(e.target)) {
+                placeResults.style.display = 'none';
+            }
+        });
 
-    // ─── Desktop Place Search (Nominatim Geocoding) ─────────────────────────
-    let _gardenerPlaceDebounce = null;
+        // ─── Desktop Place Search (Nominatim Geocoding) ─────────────────────────
+        let _gardenerPlaceDebounce = null;
 
-    function handleGardenerDesktopPlaceInput(val) {
-        const clearBtn = document.getElementById('gardenerPlaceClearBtn');
-        if (clearBtn) clearBtn.classList.toggle('d-none', !val.trim());
-        clearTimeout(_gardenerPlaceDebounce);
-        const query = val.trim();
-        if (query.length < 2) {
-            const box = document.getElementById('gardenerDesktopPlaceResults');
-            if (box) { box.innerHTML = ''; box.style.display = 'none'; }
-            return;
-        }
-        const coord = query.match(/^([-+]?\d+(\.\d+)?)[,\s]+([-+]?\d+(\.\d+)?)$/);
-        if (coord) {
-            const lat = parseFloat(coord[1]), lng = parseFloat(coord[3]);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                flyGardenerMapToPlace(lat, lng, query);
+        function handleGardenerDesktopPlaceInput(val) {
+            const clearBtn = document.getElementById('gardenerPlaceClearBtn');
+            if (clearBtn) clearBtn.classList.toggle('d-none', !val.trim());
+            clearTimeout(_gardenerPlaceDebounce);
+            const query = val.trim();
+            if (query.length < 2) {
                 const box = document.getElementById('gardenerDesktopPlaceResults');
                 if (box) { box.innerHTML = ''; box.style.display = 'none'; }
                 return;
             }
+            const coord = query.match(/^([-+]?\d+(\.\d+)?)[,\s]+([-+]?\d+(\.\d+)?)$/);
+            if (coord) {
+                const lat = parseFloat(coord[1]), lng = parseFloat(coord[3]);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    flyGardenerMapToPlace(lat, lng, query);
+                    const box = document.getElementById('gardenerDesktopPlaceResults');
+                    if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+                    return;
+                }
+            }
+            _gardenerPlaceDebounce = setTimeout(() => performGardenerPlaceSearch(query, false), 400);
         }
-        _gardenerPlaceDebounce = setTimeout(() => performGardenerPlaceSearch(query, false), 400);
-    }
 
-    async function performGardenerPlaceSearch(query, selectFirst) {
-        if (!query || query.trim().length < 2) return;
-        const box = document.getElementById('gardenerDesktopPlaceResults');
-        if (!box) return;
-        box.innerHTML = `<div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div>`;
-        box.style.display = 'block';
-        try {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&addressdetails=1`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            if (!data || data.length === 0) {
-                box.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
-                return;
-            }
-            if (selectFirst) {
-                chooseGardenerPlaceResult(data[0]);
-                return;
-            }
-            box.innerHTML = data.map((item, idx) => `
+        async function performGardenerPlaceSearch(query, selectFirst) {
+            if (!query || query.trim().length < 2) return;
+            const box = document.getElementById('gardenerDesktopPlaceResults');
+            if (!box) return;
+            box.innerHTML = `<div class="p-3 text-center text-muted text-xs"><span class="spinner-border spinner-border-sm me-1 text-success"></span> Searching places...</div>`;
+            box.style.display = 'block';
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=6&addressdetails=1`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    box.innerHTML = `<div class="p-3 text-center text-muted text-xs"><i class="bi bi-geo-alt me-1 text-danger"></i> No matching places found.</div>`;
+                    return;
+                }
+                if (selectFirst) {
+                    chooseGardenerPlaceResult(data[0]);
+                    return;
+                }
+                box.innerHTML = data.map((item, idx) => `
                 <div class="px-3 py-2 border-bottom d-flex align-items-start gap-2 gardener-place-item" style="cursor:pointer;transition:background .15s" data-idx="${idx}" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
                     <i class="bi bi-geo-alt text-success mt-1 flex-shrink-0"></i>
                     <div class="overflow-hidden">
@@ -1714,63 +1735,63 @@ unset($land);
                     </div>
                 </div>
             `).join('');
-            box.querySelectorAll('.gardener-place-item').forEach((el, idx) => {
-                el.addEventListener('click', () => chooseGardenerPlaceResult(data[idx]));
+                box.querySelectorAll('.gardener-place-item').forEach((el, idx) => {
+                    el.addEventListener('click', () => chooseGardenerPlaceResult(data[idx]));
+                });
+            } catch (e) {
+                box.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+            }
+        }
+
+        function chooseGardenerPlaceResult(item) {
+            const box = document.getElementById('gardenerDesktopPlaceResults');
+            if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+            const input = document.getElementById('gardenerDesktopPlaceInput');
+            if (input) input.value = item.display_name;
+            const clearBtn = document.getElementById('gardenerPlaceClearBtn');
+            if (clearBtn) clearBtn.classList.remove('d-none');
+            flyGardenerMapToPlace(parseFloat(item.lat), parseFloat(item.lon), item.display_name);
+        }
+
+        function flyGardenerMapToPlace(lat, lng, label) {
+            if (!gardenerMap || isNaN(lat) || isNaN(lng)) return;
+            gardenerMap.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
+            if (window._gardenerPlaceMarker) {
+                window._gardenerPlaceMarker.remove();
+            }
+            const icon = L.divIcon({
+                className: '',
+                html: `<div style="width:18px;height:18px;background:#198754;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
             });
-        } catch (e) {
-            box.innerHTML = `<div class="p-3 text-center text-danger text-xs"><i class="bi bi-exclamation-triangle me-1"></i> Unable to connect to location service.</div>`;
+            window._gardenerPlaceMarker = L.marker([lat, lng], { icon })
+                .addTo(gardenerMap)
+                .bindPopup(`<div style="font-size:0.8rem;"><b>📍 ${escapeHtml(label)}</b></div>`, { maxWidth: 280 })
+                .openPopup();
         }
-    }
 
-    function chooseGardenerPlaceResult(item) {
-        const box = document.getElementById('gardenerDesktopPlaceResults');
-        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
-        const input = document.getElementById('gardenerDesktopPlaceInput');
-        if (input) input.value = item.display_name;
-        const clearBtn = document.getElementById('gardenerPlaceClearBtn');
-        if (clearBtn) clearBtn.classList.remove('d-none');
-        flyGardenerMapToPlace(parseFloat(item.lat), parseFloat(item.lon), item.display_name);
-    }
-
-    function flyGardenerMapToPlace(lat, lng, label) {
-        if (!gardenerMap || isNaN(lat) || isNaN(lng)) return;
-        gardenerMap.flyTo([lat, lng], 15, { animate: true, duration: 1.2 });
-        if (window._gardenerPlaceMarker) {
-            window._gardenerPlaceMarker.remove();
+        function clearGardenerPlaceSearch() {
+            const input = document.getElementById('gardenerDesktopPlaceInput');
+            if (input) input.value = '';
+            const clearBtn = document.getElementById('gardenerPlaceClearBtn');
+            if (clearBtn) clearBtn.classList.add('d-none');
+            const box = document.getElementById('gardenerDesktopPlaceResults');
+            if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+            if (window._gardenerPlaceMarker) {
+                window._gardenerPlaceMarker.remove();
+                window._gardenerPlaceMarker = null;
+            }
         }
-        const icon = L.divIcon({
-            className: '',
-            html: `<div style="width:18px;height:18px;background:#198754;border:2.5px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
-            iconSize: [18, 18],
-            iconAnchor: [9, 9]
-        });
-        window._gardenerPlaceMarker = L.marker([lat, lng], { icon })
-            .addTo(gardenerMap)
-            .bindPopup(`<div style="font-size:0.8rem;"><b>📍 ${escapeHtml(label)}</b></div>`, { maxWidth: 280 })
-            .openPopup();
-    }
 
-    function clearGardenerPlaceSearch() {
-        const input = document.getElementById('gardenerDesktopPlaceInput');
-        if (input) input.value = '';
-        const clearBtn = document.getElementById('gardenerPlaceClearBtn');
-        if (clearBtn) clearBtn.classList.add('d-none');
-        const box = document.getElementById('gardenerDesktopPlaceResults');
-        if (box) { box.innerHTML = ''; box.style.display = 'none'; }
-        if (window._gardenerPlaceMarker) {
-            window._gardenerPlaceMarker.remove();
-            window._gardenerPlaceMarker = null;
+        function useMyLocationGardener() {
+            if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
+            navigator.geolocation.getCurrentPosition(
+                pos => flyGardenerMapToPlace(pos.coords.latitude, pos.coords.longitude, 'My Location'),
+                err => alert('Unable to get your location: ' + err.message),
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
         }
-    }
-
-    function useMyLocationGardener() {
-        if (!navigator.geolocation) { alert('Geolocation is not supported by your browser.'); return; }
-        navigator.geolocation.getCurrentPosition(
-            pos => flyGardenerMapToPlace(pos.coords.latitude, pos.coords.longitude, 'My Location'),
-            err => alert('Unable to get your location: ' + err.message),
-            { enableHighAccuracy: true, timeout: 8000 }
-        );
-    }
 </script>
 
 <script src="<?php echo $base_path; ?>assets/js/sheet_slider.js"></script>

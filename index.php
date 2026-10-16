@@ -3,38 +3,88 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check for simple demo login
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'login') {
-        $email = trim($_POST['email']);
-        $password = trim($_POST['password']);
+$login_error = '';
 
-        // Simple authentication routing for demo
-        if ($email === 'admin@garden.com') {
-            $_SESSION['active_role'] = 'admin';
-            $_SESSION['user_name'] = 'System Administrator';
-            $_SESSION['user_id'] = 1;
-            header("Location: admin/dashboard.php");
-            exit;
-        } elseif ($email === 'landowner@garden.com') {
-            $_SESSION['active_role'] = 'landowner';
-            $_SESSION['user_name'] = 'John Landowner';
-            $_SESSION['user_id'] = 2;
-            header("Location: landowner/dashboard.php");
-            exit;
-        } elseif ($email === 'gardener@garden.com') {
-            $_SESSION['active_role'] = 'gardener';
-            $_SESSION['user_name'] = 'Mary Gardener';
-            $_SESSION['user_id'] = 3;
-            header("Location: gardener/dashboard.php");
-            exit;
-        } else {
-            // Default check (fallback to admin for demo)
-            $_SESSION['active_role'] = 'admin';
-            $_SESSION['user_name'] = 'Demo User';
-            $_SESSION['user_id'] = 1;
-            header("Location: admin/dashboard.php");
-            exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
+    $email    = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
+
+    if (empty($email) || empty($password)) {
+        $login_error = 'Please enter your email and password.';
+    } else {
+        // ── Real DB authentication ─────────────────────────────────────────
+        $authenticated = false;
+        try {
+            require_once __DIR__ . '/includes/db.php';
+            $stmt = $pdo->prepare("SELECT id, name, email, password, role FROM users WHERE email = ? AND status = 'active' LIMIT 1");
+            $stmt->execute([strtolower($email)]);
+            $user = $stmt->fetch();
+
+            if ($user && password_verify($password, $user['password'])) {
+                $_SESSION['user_id']     = $user['id'];
+                $_SESSION['user_name']   = $user['name'];
+                $_SESSION['user_email']  = $user['email'];
+                $_SESSION['active_role'] = $user['role'];
+                $authenticated = true;
+
+                $redirect = match($user['role']) {
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
+                };
+                header("Location: $redirect");
+                exit;
+            } else {
+                // Fallback for hardcoded demo accounts if not matched in DB
+                $demo_accounts = [
+                    'admin@garden.com'     => ['role' => 'admin',     'name' => 'System Administrator', 'id' => 1],
+                    'landowner@garden.com' => ['role' => 'landowner', 'name' => 'John Landowner',        'id' => 2],
+                    'gardener@garden.com'  => ['role' => 'gardener',  'name' => 'Mary Gardener',         'id' => 3],
+                ];
+                $key = strtolower($email);
+                if (isset($demo_accounts[$key]) && $password === 'password123') {
+                    $acc = $demo_accounts[$key];
+                    $_SESSION['user_id']     = $acc['id'];
+                    $_SESSION['user_name']   = $acc['name'];
+                    $_SESSION['user_email']  = $key;
+                    $_SESSION['active_role'] = $acc['role'];
+
+                    $redirect = match($acc['role']) {
+                        'admin'     => 'admin/dashboard.php',
+                        'landowner' => 'landowner/dashboard.php',
+                        default     => 'gardener/dashboard.php',
+                    };
+                    header("Location: $redirect");
+                    exit;
+                }
+                $login_error = 'Invalid email or password. Please try again.';
+            }
+        } catch (\PDOException $e) {
+            // ── Fallback: hardcoded demo accounts when DB is unavailable ──
+            $demo_accounts = [
+                'admin@garden.com'     => ['role' => 'admin',     'name' => 'System Administrator', 'id' => 1],
+                'landowner@garden.com' => ['role' => 'landowner', 'name' => 'John Landowner',        'id' => 2],
+                'gardener@garden.com'  => ['role' => 'gardener',  'name' => 'Mary Gardener',         'id' => 3],
+            ];
+
+            $key = strtolower($email);
+            if (isset($demo_accounts[$key]) && $password === 'password123') {
+                $acc = $demo_accounts[$key];
+                $_SESSION['user_id']     = $acc['id'];
+                $_SESSION['user_name']   = $acc['name'];
+                $_SESSION['user_email']  = $key;
+                $_SESSION['active_role'] = $acc['role'];
+
+                $redirect = match($acc['role']) {
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
+                };
+                header("Location: $redirect");
+                exit;
+            } else {
+                $login_error = 'Invalid email or password.';
+            }
         }
     }
 }
@@ -109,6 +159,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         <!-- Sign-in Form -->
         <form id="signinForm" action="index.php" method="POST" class="needs-validation m-0" novalidate>
             <input type="hidden" name="action" value="login">
+
+            <?php if (!empty($login_error)): ?>
+            <div class="alert alert-danger rounded-2xl text-xs py-3 px-4 mb-4 d-flex align-items-center gap-2 border-0 shadow-xs">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 fs-6"></i>
+                <span><?php echo htmlspecialchars($login_error); ?></span>
+            </div>
+            <?php endif; ?>
 
             <div class="mb-4">
                 <label for="email"

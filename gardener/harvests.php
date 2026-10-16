@@ -8,15 +8,16 @@ include '../includes/sidebar.php';
 
 <main class="workspace-surface flex-1 flex flex-col overflow-hidden h-full">
     <!-- Toolbar/Title Bar -->
-    <div class="h-14 border-b border-drive-border px-6 flex items-center justify-between flex-shrink-0 bg-white">
+    <div class="h-14 px-6 flex items-center justify-between flex-shrink-0 bg-white">
         <div>
             <h1 class="text-sm font-bold text-drive-text-main flex items-center gap-2">
                 <i data-lucide="shopping-bag" style="color: #1a73e8; width: 18px; height: 18px;"></i> Harvest Log
             </h1>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Table vs Grid Toggler -->
-            <div class="flex items-center gap-1 border border-drive-border rounded-full p-0.5 bg-drive-canvas">
+            <!-- Table vs Grid Toggler (hidden on mobile) -->
+            <div
+                class="d-none d-sm-flex items-center gap-1 border border-drive-border rounded-full p-0.5 bg-drive-canvas">
                 <button id="listViewBtn" onclick="switchView('list')"
                     class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all bg-white text-drive-primary ">
                     <i data-lucide="list" style="width: 14px; height: 14px;"></i> List
@@ -37,6 +38,7 @@ include '../includes/sidebar.php';
 
     <!-- Workspace Scrollable Area -->
     <div class="flex-1 p-6 overflow-y-auto bg-white">
+
         <!-- Alert Placement -->
         <div id="alertPlaceholder"></div>
 
@@ -102,7 +104,8 @@ include '../includes/sidebar.php';
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                         <div class="md:col-span-2">
                             <label for="crop_name"
-                                class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">CROP NAME</label>
+                                class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">CROP
+                                NAME</label>
                             <input type="text"
                                 class="w-full bg-white border border-drive-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-drive-primary"
                                 id="crop_name" name="crop_name" required placeholder="e.g. Organic Tomatoes">

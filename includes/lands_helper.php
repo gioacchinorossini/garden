@@ -93,7 +93,12 @@ function get_all_plots($pdo) {
  */
 function get_all_requests($pdo) {
     try {
-        $stmt = $pdo->query("SELECT * FROM `requests` ORDER BY `id` DESC");
+        $stmt = $pdo->query("
+            SELECT r.*, l.latitude, l.longitude, l.address as land_address
+            FROM `requests` r
+            LEFT JOIN `lands` l ON r.land_id = l.id
+            ORDER BY r.id DESC
+        ");
         $db_requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $formatted = [];
@@ -111,7 +116,10 @@ function get_all_requests($pdo) {
                 'email' => $r['email'] ?? 'gardener@example.com',
                 'phone' => $r['phone'] ?? '+63 912 345 6789',
                 'notes' => $r['response_notes'] ?? '',
-                'requested_at' => $r['created_at'] ?? ''
+                'requested_at' => $r['created_at'] ?? '',
+                'latitude' => (float)($r['latitude'] ?? 0),
+                'longitude' => (float)($r['longitude'] ?? 0),
+                'land_address' => $r['land_address'] ?? ''
             ];
         }
         return $formatted;
