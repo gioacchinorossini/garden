@@ -3,7 +3,7 @@
   "appName": "garden",
   "webDir": "www",
   "server": {
-    "url": "http://20.0.0.21/garden/index.php#",
+    "url": "https://lagged-visible-confound.ngrok-free.dev/garden/landowner/dashboard.php",
     "cleartext": true
   }
 }

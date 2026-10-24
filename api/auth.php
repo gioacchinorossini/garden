@@ -15,6 +15,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 define('API_REQUEST', true);
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/mail_helper.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
@@ -120,12 +121,61 @@ if ($method === 'POST') {
         }
     }
 
+    if ($action === 'send_code') {
+        $email = strtolower(trim($input['email'] ?? ''));
+
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Valid email address is required.']);
+            exit;
+        }
+
+        try {
+            $check = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $check->execute([$email]);
+            if ($check->fetch()) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Email is already registered.']);
+                exit;
+            }
+
+            $code = generate_verification_code();
+            $mailResult = send_verification_email($email, $code);
+
+            if (!$mailResult['success']) {
+                http_response_code(500);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => $mailResult['error'] ?: 'Could not send verification email.'
+                ]);
+                exit;
+            }
+
+            $_SESSION['email_verification'] = [
+                'email' => $email,
+                'code' => $code,
+                'expires_at' => time() + 900
+            ];
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Verification code sent to ' . $email
+            ]);
+            exit;
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => 'Error sending code: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
     if ($action === 'register') {
         $name = trim($input['name'] ?? '');
-        $email = trim($input['email'] ?? '');
+        $email = strtolower(trim($input['email'] ?? ''));
         $password = trim($input['password'] ?? '');
         $role = trim($input['role'] ?? 'gardener');
         $phone = trim($input['phone'] ?? '');
+        $verificationCode = trim($input['verification_code'] ?? '');
 
         if (empty($name) || empty($email) || empty($password)) {
             http_response_code(400);
@@ -137,6 +187,29 @@ if ($method === 'POST') {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Invalid email address format.']);
             exit;
+        }
+
+        // Verify email code if verification is active or code provided
+        $verif = $_SESSION['email_verification'] ?? null;
+        if (!empty($verificationCode) || $verif !== null) {
+            if (!$verif || empty($verif['code'])) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Please request a verification code first.']);
+                exit;
+            } elseif (strtolower($verif['email']) !== $email) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Verification code was sent to a different email address.']);
+                exit;
+            } elseif (time() > ($verif['expires_at'] ?? 0)) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Verification code has expired.']);
+                exit;
+            } elseif ((string)$verif['code'] !== $verificationCode) {
+                http_response_code(400);
+                echo json_encode(['status' => 'error', 'message' => 'Invalid verification code.']);
+                exit;
+            }
+            unset($_SESSION['email_verification']);
         }
 
         try {
