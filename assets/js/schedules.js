@@ -5,59 +5,59 @@ document.addEventListener("DOMContentLoaded", function () {
     const MOCK_SCHEDULES = [
         {
             id: 1,
-            title: "Morning Irrigation Round",
-            task_type: "watering",
+            title: "Evening Street Food Rush - Night Market",
+            task_type: "night_market",
             status: "in_progress",
-            land_title: "Plot A – North Rooftop",
-            gardener: "Maria Santos",
-            start_time: (() => { const d = new Date(); d.setHours(6, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setHours(7, 30, 0); return d.toISOString(); })(),
-            description: "Water all raised beds in sections B-1 and B-2. Check drip-line pressure valves before starting.",
-            xp: 120,
-            difficulty: "easy"
-        },
-        {
-            id: 2,
-            title: "Seedling Transplant – Cherry Tomatoes",
-            task_type: "planting",
-            status: "pending",
-            land_title: "Plot B – Greenhouse Bay",
-            gardener: "Juan dela Cruz",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 30, 0); return d.toISOString(); })(),
-            description: "Move cherry tomato seedlings from nursery trays into prepared beds. Spacing: 40 cm apart.",
+            land_title: "Mercato Night Food Park - Stall A-01",
+            gardener: "Maria Street Vendor",
+            start_time: (() => { const d = new Date(); d.setHours(17, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setHours(23, 30, 0); return d.toISOString(); })(),
+            description: "Charcoal grill operation, skewers, isaw, kwek-kwek, and cold gulaman rush service.",
             xp: 250,
             difficulty: "medium"
         },
         {
-            id: 3,
-            title: "Weed Clearing – East Fence Line",
-            task_type: "weeding",
+            id: 2,
+            title: "Morning Stock & Meat Marination",
+            task_type: "prep",
             status: "pending",
-            land_title: "Plot C – East Strip",
+            land_title: "Mercato Night Food Park - Stall A-01",
+            gardener: "Maria Street Vendor",
+            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(11, 30, 0); return d.toISOString(); })(),
+            description: "Marinate pork skewers in calamansi-soy mix, skewer chicken isaw, and prep sauces.",
+            xp: 150,
+            difficulty: "easy"
+        },
+        {
+            id: 3,
+            title: "Weekend Food Park Acoustic Bazaar",
+            task_type: "event",
+            status: "pending",
+            land_title: "Roxas Boulevard Food Hub",
             gardener: null,
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(7, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            description: "Remove aggressive weed growth along the eastern boundary. Bag all cuttings and transport to compost.",
-            xp: 180,
+            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(16, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(23, 0, 0); return d.toISOString(); })(),
+            description: "Full food park weekend activation with live acoustic music, artisan skewers, and dessert carts.",
+            xp: 300,
             difficulty: "medium"
         },
         {
             id: 4,
-            title: "Corn Harvest – Rows 5–12",
-            task_type: "harvesting",
+            title: "Stall Deep Sanitation & Grease Trap Clean",
+            task_type: "cleaning",
             status: "pending",
-            land_title: "Plot D – South Cornfield",
-            gardener: "Ana Reyes",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(5, 30, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            description: "Harvest mature corn ears from rows 5 through 12. Sort by size and transport to market storage.",
-            xp: 400,
-            difficulty: "hard"
+            land_title: "Mercato Night Food Park - Stall A-01",
+            gardener: "Carlos Mendoza",
+            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(8, 0, 0); return d.toISOString(); })(),
+            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(10, 0, 0); return d.toISOString(); })(),
+            description: "Disinfect stainless prep tables, scrape char grates, degrease hood, and clear grease trap.",
+            xp: 180,
+            difficulty: "easy"
         },
         {
             id: 5,
-            title: "Woodchip & Straw Mulching",
+            title: "Coolers & Ice Supply Restock",
             task_type: "mulching",
             status: "pending",
             land_title: "Plot A – North Rooftop",
@@ -229,7 +229,34 @@ document.addEventListener("DOMContentLoaded", function () {
         },
     };
 
-    // Aliases
+    // Aliases & Street Food Task Types
+    TYPE_CONFIG.night_market = {
+        label: "Night Market Shift",
+        icon: "harvesting.png",
+        color: "#D97443",
+        badgeBg: "#FCEEE7",
+        badgeColor: "#7D320D",
+        accentBg: "#FCF7F3",
+        accentBorder: "#F3CCB9",
+    };
+    TYPE_CONFIG.prep = {
+        label: "Food Prep",
+        icon: "watering.png",
+        color: "#5B8FB9",
+        badgeBg: "#E8F1F5",
+        badgeColor: "#2E5266",
+        accentBg: "#F4F8FA",
+        accentBorder: "#C8DBE5",
+    };
+    TYPE_CONFIG.event = {
+        label: "Food Bazaar Event",
+        icon: "planting.png",
+        color: "#7FA668",
+        badgeBg: "#E5EFE0",
+        badgeColor: "#385723",
+        accentBg: "#F3F8F0",
+        accentBorder: "#C5DCBD",
+    };
     TYPE_CONFIG.checking_pests = TYPE_CONFIG.pests;
     TYPE_CONFIG.pest_control = TYPE_CONFIG.pests;
     TYPE_CONFIG.cleaning_tools = TYPE_CONFIG.cleaning;

@@ -1,6 +1,6 @@
 <?php
 $base_path = '../';
-$page_title = "Landowner Profile & Eco Impact";
+$page_title = "Property Owner Profile";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
@@ -8,15 +8,15 @@ include '../includes/sidebar.php';
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-$_SESSION['active_role'] = 'landowner';
+$_SESSION['active_role'] = 'property_owner';
 if (!isset($_SESSION['user_name'])) {
-    $_SESSION['user_name'] = 'John Landowner';
+    $_SESSION['user_name'] = 'Juan Property Owner';
 }
 
-$user_email = $_SESSION['user_email'] ?? 'john.landowner@example.com';
-$user_phone = $_SESSION['user_phone'] ?? '+63 917 123 4567';
-$user_address = $_SESSION['user_address'] ?? '124 Green Ave, Sunnyvale, Metro Manila';
-$user_bio = $_SESSION['user_bio'] ?? 'Dedicated eco-conscious landowner offering idle urban spaces for sustainable community farming and organic crop cultivation.';
+$user_email = $_SESSION['user_email'] ?? 'owner@streetbites.com';
+$user_phone = $_SESSION['user_phone'] ?? '+63 922 345 6789';
+$user_address = $_SESSION['user_address'] ?? 'Roxas Blvd, Pasay City, Metro Manila';
+$user_bio = $_SESSION['user_bio'] ?? 'Commercial property & food park owner providing organized, well-equipped rental spaces for local street food vendors and food pop-ups.';
 
 // Process mock profile updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {

@@ -1,7 +1,7 @@
 <?php
 $base_path = '../';
 $default_tab = 'requests';
-$page_title = "My Requests & Browse Lands";
+$page_title = "My Stall Applications";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';

@@ -66,55 +66,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $seeds_json = json_encode(array_values($seeds));
 
     try {
+        $amenities_str = !empty($seeds) ? implode(', ', $seeds) : 'Electricity, Water, Seating, Waste Disposal';
         $stmt = $pdo->prepare("
-            INSERT INTO `lands` 
-            (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon, harvest_share_type, landowner_share_percentage, landowner_share_kg)
+            INSERT INTO `properties` 
+            (owner_id, title, space_type, permit_no, permit_document_path, address, latitude, longitude, total_area, amenities, description, status)
             VALUES 
-            (?, ?, '', '', '', '', '', ?, ?, '', 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (?, ?, 'food_park', '', ?, ?, ?, ?, ?, ?, ?, 'pending')
         ");
         $stmt->execute([
             $owner_id,
             $title,
             $title_doc_path,
-            $title_doc_path,
             $address,
             $lat,
             $lng,
             $area,
-            $desc,
-            $seeds_json,
-            $plot_count,
-            $landowner_name,
-            $has_3d,
-            $polygon,
-            $harvest_share_type,
-            $landowner_share_percentage,
-            $landowner_share_kg
+            $amenities_str,
+            $desc
         ]);
         $new_id = (int) $pdo->lastInsertId();
 
-        // Auto-create partition plots in MySQL plots table
-        $plot_area = round($area / $plot_count, 1);
-        $stmtPlot = $pdo->prepare("
-            INSERT INTO `plots` (land_id, plot_number, area_sqm, status, crop, crop_icon, allowed_seeds, farmer_name)
-            VALUES (?, ?, ?, 'available', ?, ?, ?, '')
+        // Auto-create stalls in MySQL stalls table
+        $stall_area = round($area / $plot_count, 1);
+        $stmtStall = $pdo->prepare("
+            INSERT INTO `stalls` (property_id, stall_number, area, rental_rate, rate_period, status)
+            VALUES (?, ?, ?, 350.00, 'daily', 'available')
         ");
 
         for ($i = 1; $i <= $plot_count; $i++) {
-            $crop = !empty($seeds) ? $seeds[($i - 1) % count($seeds)] : 'Vegetables';
-            $stmtPlot->execute([
+            $stmtStall->execute([
                 $new_id,
-                'Plot A-' . $i,
-                $plot_area,
-                $crop,
-                'tomato/tomato.svg',
-                $seeds_json
+                'Stall ' . chr(64 + ceil($i / 10)) . '-' . sprintf('%02d', $i),
+                $stall_area
             ]);
         }
 
-        $success_message = "Land request registered successfully! It is now pending administrative approval and visible across all devices.";
+        $success_message = "Property registered successfully! Stalls have been generated and are pending administrative verification.";
     } catch (\Exception $e) {
-        $error_message = "Failed to register land: " . $e->getMessage();
+        $error_message = "Failed to register property: " . $e->getMessage();
     }
 }
 ?>
@@ -123,7 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <!-- Desktop Toolbar (Title and actions, borderless) -->
     <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Register Land</h1>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Add Property</h1>
+            <p class="text-secondary small mb-0">List a food park, lot, or street food commercial space</p>
         </div>
     </div>
 

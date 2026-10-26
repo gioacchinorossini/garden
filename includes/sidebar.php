@@ -37,27 +37,27 @@ $bp = isset($base_path) ? $base_path : '';
                     <span class="sidebar-text truncate">Reports</span>
                 </a>
 
-            <?php elseif ($role == 'landowner'): ?>
-                <!-- LANDOWNER MENU -->
-                <a href="<?php echo $bp; ?>landowner/dashboard.php" title="Gardens"
+            <?php elseif ($role == 'property_owner' || $role == 'landowner'): ?>
+                <!-- PROPERTY OWNER MENU -->
+                <a href="<?php echo $bp; ?>landowner/dashboard.php" title="Dashboard"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php' || $current_page == 'map.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="map-pin" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Gardens</span>
+                    <i data-lucide="layout-dashboard" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Dashboard</span>
                 </a>
-                <a href="<?php echo $bp; ?>landowner/register.php" title="Register Land"
+                <a href="<?php echo $bp; ?>landowner/register.php" title="Add Property"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'register.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="plus-circle" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Register Land</span>
+                    <span class="sidebar-text truncate">Add Property</span>
                 </a>
-                <a href="<?php echo $bp; ?>landowner/lands.php" title="My Lands"
+                <a href="<?php echo $bp; ?>landowner/lands.php" title="My Properties"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'lands.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="trees" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">My Lands</span>
+                    <i data-lucide="store" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">My Properties</span>
                 </a>
-                <a href="<?php echo $bp; ?>landowner/requests.php" title="Requests"
+                <a href="<?php echo $bp; ?>landowner/requests.php" title="Applications"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'requests.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="file-text" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Requests</span>
+                    <span class="sidebar-text truncate">Applications</span>
                 </a>
                 <a href="<?php echo $bp; ?>landowner/schedules.php" title="Schedules"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'schedules.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
@@ -70,32 +70,45 @@ $bp = isset($base_path) ? $base_path : '';
                     <span class="sidebar-text truncate">My Profile</span>
                 </a>
 
-            <?php elseif ($role == 'gardener'): ?>
-                <!-- GARDENER MENU -->
-                <a href="<?php echo $bp; ?>gardener/dashboard.php" title="Gardens"
+            <?php elseif ($role == 'vendor' || $role == 'gardener'): ?>
+                <!-- STREET VENDOR MENU -->
+                <a href="<?php echo $bp; ?>gardener/dashboard.php" title="Dashboard"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'dashboard.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="trees" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Gardens</span>
+                    <i data-lucide="layout-dashboard" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Dashboard</span>
                 </a>
-                <a href="<?php echo $bp; ?>gardener/browse.php" title="Browse Lands"
+                <a href="<?php echo $bp; ?>gardener/browse.php" title="Browse Stalls"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'browse.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="compass" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Browse Lands</span>
+                    <span class="sidebar-text truncate">Browse Stalls</span>
                 </a>
-                <a href="<?php echo $bp; ?>gardener/requests.php" title="My Requests"
+                <a href="<?php echo $bp; ?>gardener/requests.php" title="My Applications"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'requests.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="send" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">My Requests</span>
+                    <span class="sidebar-text truncate">My Applications</span>
                 </a>
-                <a href="<?php echo $bp; ?>gardener/schedules.php" title="Schedules"
+                <a href="<?php echo $bp; ?>gardener/schedules.php" title="Operating Hours"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'schedules.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="calendar-check" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Schedules</span>
+                    <span class="sidebar-text truncate">Operating Hours</span>
                 </a>
-                <a href="<?php echo $bp; ?>gardener/harvests.php" title="Record Harvest"
+                <a href="<?php echo $bp; ?>gardener/harvests.php" title="Menu & Sales"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'harvests.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
-                    <i data-lucide="shopping-bag" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
-                    <span class="sidebar-text truncate">Record Harvest</span>
+                    <i data-lucide="utensils" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Menu & Sales</span>
+                </a>
+                <a href="<?php echo $bp; ?>gardener/profile.php" title="Vendor Profile"
+                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'profile.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
+                    <i data-lucide="user" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Vendor Profile</span>
+                </a>
+
+            <?php elseif ($role == 'customer'): ?>
+                <!-- CUSTOMER / FOODIE MENU -->
+                <a href="<?php echo $bp; ?>gardener/browse.php" title="Discover Street Food"
+                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'browse.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
+                    <i data-lucide="compass" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Discover Food</span>
                 </a>
                 <a href="<?php echo $bp; ?>gardener/profile.php" title="My Profile"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'profile.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">

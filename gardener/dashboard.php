@@ -1,24 +1,24 @@
 <?php
 $base_path = '../';
-$page_title = "Gardens & Plots Map";
+$page_title = "Find Stalls & Street Food Map";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 
 if (session_status() == PHP_SESSION_NONE)
     session_start();
-$_SESSION['active_role'] = 'gardener';
+$_SESSION['active_role'] = 'vendor';
 if (!isset($_SESSION['user_name']))
-    $_SESSION['user_name'] = 'Mary Gardener';
+    $_SESSION['user_name'] = 'Maria Street Vendor';
 
 require_once '../includes/db.php';
 require_once '../includes/lands_helper.php';
 
-$lands_data = get_all_lands($pdo);
-$plots_data = get_all_plots($pdo);
+$lands_data = get_all_properties($pdo);
+$plots_data = get_all_stalls($pdo);
 
 foreach ($lands_data as &$land) {
-    $lp = array_filter($plots_data, fn($p) => $p['land_id'] == $land['id']);
+    $lp = array_filter($plots_data, fn($p) => ($p['property_id'] ?? $p['land_id'] ?? 0) == $land['id']);
     $land['total_plots'] = count($lp);
     $land['occupied_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'occupied'));
     $land['available_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'available'));
@@ -97,8 +97,8 @@ unset($land);
         class="toolbar border-bottom d-none d-md-flex align-items-center justify-content-between px-4 py-2 bg-white flex-shrink-0">
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <h1 class="fs-5 fw-semibold m-0 text-dark d-flex align-items-center gap-2 text-nowrap">
-                <i data-lucide="map-pin" class="text-success" style="width:20px;height:20px;"></i>
-                Gardens &amp; Plots Map
+                <i data-lucide="store" class="text-amber-500" style="width:20px;height:20px;"></i>
+                Street Food &amp; Stalls Map
             </h1>
         </div>
 
@@ -110,7 +110,7 @@ unset($land);
                 </span>
                 <input type="text" id="desktopMapSearchInput"
                     class="form-control bg-light border-start-0 border-end-0 py-1.5 text-xs focus-ring-none"
-                    placeholder="Search gardens, crops, places, or addresses..." autocomplete="off"
+                    placeholder="Search food parks, stalls, street food, places, or addresses..." autocomplete="off"
                     oninput="handleGardenerUnifiedSearch(this.value)"
                     onkeydown="if(event.key==='Enter'){event.preventDefault();handleGardenerUnifiedSearchEnter(this.value);}">
                 <button type="button" id="desktopMapSearchClear"
@@ -119,7 +119,7 @@ unset($land);
                     <i class="bi bi-x-circle-fill"></i>
                 </button>
                 <button type="button"
-                    class="input-group-text bg-light border-start-0 rounded-end-pill pe-3 text-success border-0"
+                    class="input-group-text bg-light border-start-0 rounded-end-pill pe-3 text-amber-600 border-0"
                     onclick="useMyLocationGardener()" title="Use my GPS location" style="cursor:pointer;">
                     <i class="bi bi-crosshair"></i>
                 </button>
@@ -134,7 +134,7 @@ unset($land);
         <div class="d-flex align-items-center gap-2 flex-shrink-0">
             <a href="browse.php"
                 class="btn btn-drive-primary btn-sm px-4 d-flex align-items-center gap-2 rounded-pill text-nowrap">
-                <i data-lucide="compass" style="width:15px;height:15px;"></i> Browse All Lands
+                <i data-lucide="compass" style="width:15px;height:15px;"></i> Browse Properties
             </a>
         </div>
     </div>
@@ -153,16 +153,16 @@ unset($land);
             <div class="floating-map-header d-md-none">
                 <a href="<?php echo $base_path; ?>gardener/dashboard.php"
                     class="d-flex align-items-center gap-1.5 text-decoration-none flex-shrink-0">
-                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="IdleLand Logo" class="rounded-circle shadow-sm"
+                    <img src="<?php echo $base_path; ?>logo.jpeg" alt="StreetSpot Logo" class="rounded-circle shadow-sm"
                         style="width:28px;height:28px;object-fit:cover;">
                     <span class="fw-bold text-dark font-['Outfit']" style="font-size:0.88rem;line-height:1;">
-                        <span class="text-success">Idle</span>Land
+                        <span class="text-amber-500">Street</span>Spot
                     </span>
                 </a>
                 <div class="vr mx-1 my-auto text-muted opacity-25" style="height:20px;"></div>
                 <i class="bi bi-search text-muted fs-6 ms-0.5"></i>
                 <input type="text" id="mobileMapSearchInput" class="floating-map-search-input"
-                    placeholder="Search gardens, crops, places..." oninput="handleMobileGardenerMapSearch(this.value)"
+                    placeholder="Search food parks, stalls, cuisine..." oninput="handleMobileGardenerMapSearch(this.value)"
                     onkeydown="if(event.key==='Enter'){event.preventDefault();handleMobileGardenerUnifiedSearchEnter(this.value);}"
                     autocomplete="off">
                 <button type="button" id="mobileMapSearchClear" class="floating-map-search-clear"

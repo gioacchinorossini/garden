@@ -1,24 +1,24 @@
 <?php
 $base_path = '../';
-$page_title = "Gardens";
+$page_title = "Properties";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 
 if (session_status() == PHP_SESSION_NONE)
     session_start();
-$_SESSION['active_role'] = 'landowner';
+$_SESSION['active_role'] = 'property_owner';
 if (!isset($_SESSION['user_name']))
-    $_SESSION['user_name'] = 'John Landowner';
+    $_SESSION['user_name'] = 'Juan Property Owner';
 
 require_once '../includes/db.php';
 require_once '../includes/lands_helper.php';
 
-$lands_data = get_all_lands($pdo);
-$plots_data = get_all_plots($pdo);
+$lands_data = get_all_properties($pdo);
+$plots_data = get_all_stalls($pdo);
 
 foreach ($lands_data as &$land) {
-    $lp = array_filter($plots_data, fn($p) => $p['land_id'] == $land['id']);
+    $lp = array_filter($plots_data, fn($p) => ($p['property_id'] ?? $p['land_id'] ?? 0) == $land['id']);
     $land['total_plots'] = count($lp);
     $land['occupied_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'occupied'));
     $land['available_plots'] = count(array_filter($lp, fn($p) => $p['status'] === 'available'));
@@ -27,7 +27,7 @@ unset($land);
 
 $approved_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'approved'));
 $pending_count = count(array_filter($lands_data, fn($l) => $l['status'] === 'pending'));
-$my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') === 'John Landowner'));
+$my_count = count(array_filter($lands_data, fn($l) => ($l['owner_id'] ?? 0) === ($_SESSION['user_id'] ?? 2) || ($l['owner_name'] ?? '') === ($_SESSION['user_name'] ?? 'Juan Property Owner')));
 ?>
 
 <style>

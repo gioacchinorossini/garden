@@ -1,7 +1,7 @@
 <?php
 $base_path = '../';
 $default_tab = 'browse';
-$page_title = "Browse Lands & Requests";
+$page_title = "Browse Properties & Stalls";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';

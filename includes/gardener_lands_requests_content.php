@@ -42,27 +42,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     $gardener_id = $_SESSION['user_id'] ?? 3;
-    $gardener_name = $_SESSION['user_name'] ?? 'Mary Gardener';
+    $gardener_name = $_SESSION['user_name'] ?? 'Maria Street Vendor';
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO `requests` 
-            (gardener_id, gardener_name, land_id, plot_id, land_title, plot_number, purpose, message, requested_duration, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            INSERT INTO `stall_applications` 
+            (vendor_id, property_id, stall_id, food_concept, requested_duration, status)
+            VALUES (?, ?, ?, ?, ?, 'pending')
         ");
         $stmt->execute([
             $gardener_id,
-            $gardener_name,
             $land_id,
-            $plot_id,
-            $land_title,
-            $plot_num,
-            $purpose,
+            ($plot_id > 0 ? $plot_id : null),
             $purpose,
             $duration
         ]);
-        $success_msg = "Plot application submitted successfully! Tracking is available under 'My Requests'.";
-        $active_tab = 'requests'; // Seamlessly show newly submitted request
+        $success_msg = "Stall application submitted successfully! Tracking is available under 'My Applications'.";
+        $active_tab = 'requests';
     } catch (\Exception $e) {
         $error_msg = "Failed to submit request: " . $e->getMessage();
     }
@@ -72,11 +68,11 @@ if (!function_exists('get_land_image_url')) {
     function get_land_image_url($id)
     {
         $images = [
-            1 => 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=400',
-            2 => 'https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&q=80&w=400',
-            3 => 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&q=80&w=400'
+            1 => 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=400',
+            2 => 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=400',
+            3 => 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&q=80&w=400'
         ];
-        return $images[$id] ?? 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=400';
+        return $images[$id] ?? 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=400';
     }
 }
 
@@ -142,13 +138,13 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
     <?php if ($default_tab === 'browse'): ?>
         <div class="toolbar border-bottom d-none d-md-flex">
             <div>
-                <h1 class="fs-5 fw-semibold m-0 text-dark">Available Lands</h1>
+                <h1 class="fs-5 fw-semibold m-0 text-dark">Available Properties & Food Stalls</h1>
             </div>
         </div>
     <?php else: ?>
         <div class="toolbar border-bottom d-none d-md-flex">
             <div>
-                <h1 class="fs-5 fw-semibold m-0 text-dark">Request Log</h1>
+                <h1 class="fs-5 fw-semibold m-0 text-dark">Stall Application Log</h1>
             </div>
         </div>
     <?php endif; ?>
@@ -159,12 +155,12 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
             <button type="button"
                 class="btn btn-sm rounded-pill flex-fill py-1.5 px-3 fw-semibold border-0 tab-switcher-btn <?php echo $active_tab === 'browse' ? 'active-tab shadow-xs' : ''; ?>"
                 id="mobileTabBtnBrowse" onclick="switchGardenerTab('browse')">
-                <i class="bi bi-compass me-1"></i> Browse Lands
+                <i class="bi bi-compass me-1"></i> Browse Properties
             </button>
             <button type="button"
                 class="btn btn-sm rounded-pill flex-fill py-1.5 px-3 fw-semibold border-0 tab-switcher-btn <?php echo $active_tab === 'requests' ? 'active-tab shadow-xs' : ''; ?>"
                 id="mobileTabBtnRequests" onclick="switchGardenerTab('requests')">
-                <i class="bi bi-send me-1"></i> My Requests
+                <i class="bi bi-send me-1"></i> My Applications
                 <span id="requestsCountBadge" class="badge rounded-pill ms-1 d-none" style="font-size: 10px;">0</span>
             </button>
         </div>
@@ -195,8 +191,8 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
             <div class="row g-4">
                 <?php if (empty($approved_lands)): ?>
                     <div class="col-12 text-center py-5 text-muted">
-                        <i class="bi bi-tree fs-1 d-block mb-2"></i>
-                        <span>No approved lands available for community gardening right now.</span>
+                        <i class="bi bi-shop fs-1 d-block mb-2"></i>
+                        <span>No approved food properties or stalls available right now.</span>
                     </div>
                 <?php else: ?>
                     <?php foreach ($approved_lands as $land): ?>
@@ -225,7 +221,7 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                         class="btn btn-sm rounded-pill d-flex align-items-center gap-1 position-absolute"
                                         style="bottom: 10px; left: 10px; z-index: 10; font-size: 11px; padding: 4px 12px; background: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(4px);"
                                         onclick="toggleMediaPreview(<?php echo $land['id']; ?>, this)">
-                                        <i class="bi bi-image text-success"></i>
+                                        <i class="bi bi-image text-amber-600"></i>
                                         <span>View Photo</span>
                                     </button>
 
@@ -233,8 +229,8 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                     <div class="position-absolute d-flex flex-column align-items-end gap-1"
                                         style="top: 12px; right: 12px; z-index: 5;">
                                         <span class="badge"
-                                            style="font-size: 10px; padding: 5px 10px; background: rgba(25,135,84,0.15); color: #0f5132; border: 1px solid rgba(25,135,84,0.25); backdrop-filter: blur(4px);">
-                                            ✓ Approved
+                                            style="font-size: 10px; padding: 5px 10px; background: rgba(217,119,6,0.15); color: #b45309; border: 1px solid rgba(217,119,6,0.25); backdrop-filter: blur(4px);">
+                                            ✓ Verified Property
                                         </span>
                                     </div>
                                 </div>
@@ -246,7 +242,7 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                     </h3>
 
                                     <p class="text-muted mb-2 mt-1" style="font-size: 0.78rem;">
-                                        <i class="bi bi-geo-alt-fill me-1" style="color: var(--drive-primary, #198754);"></i>
+                                        <i class="bi bi-geo-alt-fill me-1 text-danger"></i>
                                         <?php echo htmlspecialchars($land['address']); ?>
                                     </p>
 
@@ -254,23 +250,23 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                     <div class="d-flex gap-2 py-2 mb-2"
                                         style="border-top: 1px solid var(--drive-border, #eee); border-bottom: 1px solid var(--drive-border, #eee);">
                                         <div class="text-center flex-fill">
-                                            <i class="bi bi-tree d-block mb-1 text-success" style="font-size: 1.1rem;"></i>
-                                            <span style="font-size: 0.7rem; color: #6c757d;">Garden</span>
+                                            <i class="bi bi-shop d-block mb-1 text-amber-600" style="font-size: 1.1rem;"></i>
+                                            <span style="font-size: 0.7rem; color: #6c757d;">Food Hub</span>
                                         </div>
                                         <div class="text-center flex-fill">
-                                            <i class="bi bi-grid-3x3-gap d-block mb-1 text-success"
+                                            <i class="bi bi-grid-3x3-gap d-block mb-1 text-primary"
                                                 style="font-size: 1.1rem;"></i>
                                             <span style="font-size: 0.7rem; color: #6c757d;"><?php echo $total_count; ?>
-                                                plots</span>
+                                                stalls</span>
                                         </div>
                                         <div class="text-center flex-fill">
                                             <i class="bi bi-check2-square d-block mb-1 text-success"
                                                 style="font-size: 1.1rem;"></i>
                                             <span style="font-size: 0.7rem; color: #6c757d;"><?php echo $available_count; ?>
-                                                free</span>
+                                                vacant</span>
                                         </div>
                                         <div class="text-center flex-fill">
-                                            <i class="bi bi-rulers d-block mb-1 text-success" style="font-size: 1.1rem;"></i>
+                                            <i class="bi bi-rulers d-block mb-1 text-secondary" style="font-size: 1.1rem;"></i>
                                             <span
                                                 style="font-size: 0.7rem; color: #6c757d;"><?php echo number_format($land['area'], 0); ?>
                                                 m²</span>
@@ -286,31 +282,31 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                         <button class="btn btn-link p-0 mt-1 desc-toggle"
                                             style="font-size: 0.75rem; color: var(--drive-primary, #198754); font-weight: 500; text-decoration: none;"
                                             onclick="toggleDesc(<?php echo $land['id']; ?>, this)">
-                                            Description <i class="bi bi-chevron-down" style="font-size: 0.65rem;"></i>
+                                            Details & Amenities <i class="bi bi-chevron-down" style="font-size: 0.65rem;"></i>
                                         </button>
                                     </div>
 
-                                    <!-- Landowner info -->
+                                    <!-- Property Owner info -->
                                     <div class="d-flex align-items-center gap-2 mb-3"
                                         style="font-size: 0.75rem; color: #6c757d;">
-                                        <div class="rounded-circle bg-success-subtle d-flex align-items-center justify-content-center"
+                                        <div class="rounded-circle bg-amber-100 d-flex align-items-center justify-content-center"
                                             style="width: 24px; height: 24px; min-width:24px;">
-                                            <i class="bi bi-person-fill text-success" style="font-size: 0.7rem;"></i>
+                                            <i class="bi bi-person-fill text-amber-700" style="font-size: 0.7rem;"></i>
                                         </div>
-                                        <span><?php echo htmlspecialchars($land['landowner']); ?></span>
+                                        <span>Property Owner: <?php echo htmlspecialchars($land['landowner']); ?></span>
                                     </div>
 
-                                    <!-- Partitioned Plots -->
+                                    <!-- Partitioned Stalls -->
                                     <?php if (!empty($land_plots)): ?>
                                         <div class="mt-auto">
                                             <p class="fw-semibold text-secondary mb-2"
                                                 style="font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase;">
-                                                Available Plots</p>
+                                                Available Stalls</p>
                                             <div class="row g-2">
                                                 <?php foreach ($land_plots as $plot): ?>
                                                     <div class="col-3">
                                                         <div class="p-2 rounded-3 text-center d-flex flex-column align-items-center justify-content-between"
-                                                            style="font-size: 0.7rem; min-height: 80px; border: 1px solid var(--drive-border, #eee); background: <?php echo $plot['status'] === 'available' ? '#f0fdf6' : '#f8f9fa'; ?>;">
+                                                            style="font-size: 0.7rem; min-height: 80px; border: 1px solid var(--drive-border, #eee); background: <?php echo $plot['status'] === 'available' ? '#fefce8' : '#f8f9fa'; ?>;">
                                                             <span class="fw-semibold text-dark text-truncate w-100"
                                                                 style="font-size: 0.72rem;"><?php echo htmlspecialchars($plot['plot_number']); ?></span>
                                                             <span class="text-muted d-block"
@@ -319,7 +315,7 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                                 <button class="btn btn-drive-primary py-1 px-1 w-100 mt-1"
                                                                     style="font-size: 9px;" data-bs-toggle="modal"
                                                                     data-bs-target="#requestPlotModal<?php echo $plot['id']; ?>">
-                                                                    Request
+                                                                    Apply
                                                                 </button>
                                                             <?php else: ?>
                                                                 <span class="badge rounded-pill mt-1 w-100"
@@ -330,13 +326,13 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                         </div>
                                                     </div>
 
-                                                    <!-- Plot Request Modal -->
+                                                    <!-- Stall Request Modal -->
                                                     <div class="modal fade" id="requestPlotModal<?php echo $plot['id']; ?>"
                                                         tabindex="-1" aria-hidden="true">
                                                         <div class="modal-dialog modal-dialog-centered">
                                                             <div class="modal-content drive-modal-content">
                                                                 <div class="modal-header border-0 pb-0">
-                                                                    <h5 class="modal-title fw-semibold text-dark">Apply for Plot</h5>
+                                                                    <h5 class="modal-title fw-semibold text-dark">Apply for Stall Rental</h5>
                                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                                         aria-label="Close"></button>
                                                                 </div>
@@ -352,9 +348,9 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
 
                                                                         <div class="p-3 bg-light rounded-3 mb-3"
                                                                             style="font-size: 0.8rem;">
-                                                                            <strong>Land:</strong>
+                                                                            <strong>Property:</strong>
                                                                             <?php echo htmlspecialchars($land['title']); ?><br>
-                                                                            <strong>Selected Plot:</strong>
+                                                                            <strong>Selected Stall:</strong>
                                                                             <?php echo htmlspecialchars($plot['plot_number']); ?>
                                                                             (<?php echo $plot['area']; ?> m²)
                                                                         </div>
@@ -362,25 +358,25 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                                         <div class="mb-3">
                                                                             <label for="duration_<?php echo $plot['id']; ?>"
                                                                                 class="form-label text-secondary"
-                                                                                style="font-size: 0.75rem; font-weight:600;">DURATION</label>
+                                                                                style="font-size: 0.75rem; font-weight:600;">LEASE DURATION</label>
                                                                             <select class="form-select drive-form-control w-100"
                                                                                 id="duration_<?php echo $plot['id']; ?>" name="duration"
                                                                                 required>
+                                                                                <option value="1 Month">1 Month</option>
                                                                                 <option value="3 Months">3 Months</option>
                                                                                 <option value="6 Months" selected>6 Months</option>
                                                                                 <option value="1 Year">1 Year</option>
-                                                                                <option value="Indefinite">Indefinite</option>
                                                                             </select>
                                                                         </div>
 
                                                                         <div class="mb-4">
                                                                             <label for="purpose_<?php echo $plot['id']; ?>"
                                                                                 class="form-label text-secondary"
-                                                                                style="font-size: 0.75rem; font-weight:600;">PURPOSE</label>
+                                                                                style="font-size: 0.75rem; font-weight:600;">STREET FOOD CONCEPT & SETUP</label>
                                                                             <textarea class="form-control drive-form-control w-100"
                                                                                 id="purpose_<?php echo $plot['id']; ?>" name="purpose"
                                                                                 rows="3" required
-                                                                                placeholder="Describe your gardening plans (e.g. vegetable patches, herbs, organic composting)..."></textarea>
+                                                                                placeholder="Describe your food offerings, cooking setup (e.g. grill, deep fryer, griddle), and power/water requirements..."></textarea>
                                                                         </div>
 
                                                                         <div class="d-flex justify-content-end gap-2">
@@ -397,10 +393,6 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                 <?php endforeach; ?>
                                             </div>
                                         </div>
-                                    <?php else: ?>
-                                        <p class="text-muted mb-2 mt-auto" style="font-size: 0.78rem;">
-                                            <i class="bi bi-info-circle me-1"></i>No plots partitioned yet.
-                                        </p>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -462,12 +454,12 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                         <img src="../assets/images/land_icon.svg" alt="Land Icon" class="gardener-request-icon-img" width="46" height="46">
                     </div>
                     <div class="min-w-0">
-                        <span class="text-secondary fw-bold text-uppercase d-block" style="font-size: 10px; letter-spacing:0.4px;">TARGET PLOT &amp; LAND</span>
+                        <span class="text-secondary fw-bold text-uppercase d-block" style="font-size: 10px; letter-spacing:0.4px;">PROPERTY &amp; STALL</span>
                         <h6 id="modal_land_title" class="fw-bold text-dark mb-0 text-truncate"></h6>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">PROPOSED PURPOSE</label>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">FOOD CONCEPT &amp; REQUIREMENTS</label>
                     <div class="p-3 bg-light rounded-3 text-secondary" style="font-size:0.85rem;" id="modal_purpose">
                     </div>
                 </div>
@@ -476,7 +468,7 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                     <div id="modal_duration" class="text-dark fw-medium"></div>
                 </div>
                 <div class="mb-3 d-none" id="modal_feedback_section">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">LANDOWNER RESPONSE &amp; GUIDELINES</label>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">PROPERTY OWNER RESPONSE &amp; GUIDELINES</label>
                     <div class="alert alert-info py-2" style="font-size: 0.85rem; border-radius: 8px;"
                         id="modal_feedback"></div>
                 </div>

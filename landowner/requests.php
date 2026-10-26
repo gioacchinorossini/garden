@@ -1,6 +1,6 @@
 <?php
 $base_path = '../';
-$page_title = "Manage Requests";
+$page_title = "Stall Applications";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
@@ -10,15 +10,15 @@ include '../includes/sidebar.php';
     <!-- Desktop Toolbar (Title and actions, borderless) -->
     <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Plot Requests</h1>
-            <p class="text-muted mb-0" style="font-size: 0.78rem;">Review and manage gardener applications for your plots</p>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Stall Applications</h1>
+            <p class="text-muted mb-0" style="font-size: 0.78rem;">Review and manage street food vendor applications for your rental stalls</p>
         </div>
         <div class="d-flex align-items-center gap-3">
             <!-- Search bar -->
-            <div class="position-relative" style="width: 220px;">
+            <div class="position-relative" style="width: 240px;">
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem;"></i>
                 <input type="text" id="requestsSearchInput" class="form-control form-control-sm ps-5 rounded-pill border-light-subtle bg-light"
-                    placeholder="Search gardener, land...">
+                    placeholder="Search vendor, stall...">
             </div>
 
             <!-- Filter tabs -->
@@ -72,9 +72,9 @@ include '../includes/sidebar.php';
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-3 request-table-header"
                 style="font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;">
-                <div style="width: 28%;">GARDENER</div>
-                <div style="width: 28%;">PLOT & PROPERTY</div>
-                <div style="width: 16%;">PURPOSE & DURATION</div>
+                <div style="width: 28%;">STREET VENDOR</div>
+                <div style="width: 28%;">STALL & PROPERTY</div>
+                <div style="width: 16%;">FOOD CONCEPT & TERM</div>
                 <div style="width: 14%;">STATUS</div>
                 <div style="width: 14%;" class="text-end">ACTION</div>
             </div>
@@ -96,9 +96,9 @@ include '../includes/sidebar.php';
         <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-0 pb-0">
                 <div class="d-flex align-items-center gap-2">
-                    <div class="request-avatar bg-success-subtle text-success" id="view_avatar">MG</div>
+                    <div class="request-avatar bg-amber-100 text-amber-800" id="view_avatar">SV</div>
                     <div>
-                        <h5 class="modal-title fw-bold text-dark m-0" id="view_gardener_title">Request Details</h5>
+                        <h5 class="modal-title fw-bold text-dark m-0" id="view_gardener_title">Application Details</h5>
                         <small class="text-muted" id="view_date"></small>
                     </div>
                 </div>
@@ -119,7 +119,7 @@ include '../includes/sidebar.php';
                 <div class="row g-2 mb-3">
                     <div class="col-6">
                         <div class="p-2.5 bg-light rounded-3 border border-light-subtle">
-                            <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">TARGET PLOT</label>
+                            <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">TARGET STALL</label>
                             <div class="text-dark fw-bold small" id="view_plot"></div>
                         </div>
                     </div>
@@ -132,7 +132,7 @@ include '../includes/sidebar.php';
                 </div>
 
                 <div class="mb-3">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">GARDENING PURPOSE / PROPOSAL</label>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">FOOD CONCEPT &amp; PROPOSAL</label>
                     <p class="text-dark bg-light p-3 rounded-3 mb-0 border border-light-subtle" style="font-size: 0.85rem; line-height: 1.5;" id="view_purpose"></p>
                 </div>
 

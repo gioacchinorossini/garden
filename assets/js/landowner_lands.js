@@ -146,8 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const isSelected = selectedLandId == land.id;
             const cardBorderClass = isSelected ? 'border-success shadow-sm' : '';
-
-            const managePlotsBtn = `<button class="btn btn-sm btn-drive-primary rounded-pill px-3" onclick="openManagePlotsModal(${land.id}, '${land.title.replace(/'/g, "\\'")}')">Manage Plots <i class="bi bi-arrow-right ms-1"></i></button>`;
+            const managePlotsBtn = `<button class="btn btn-sm btn-drive-primary rounded-pill px-3" onclick="openManagePlotsModal(${land.id}, '${land.title.replace(/'/g, "\\'")}')">Manage Stalls <i class="bi bi-arrow-right ms-1"></i></button>`;
 
             return `
                 <div class="col-md-6 col-xl-4">
@@ -166,7 +165,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 class="btn btn-sm rounded-pill d-flex align-items-center gap-1 position-absolute"
                                 style="bottom: 10px; left: 10px; z-index: 10; font-size: 11px; padding: 4px 12px; background: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(4px);"
                                 onclick="event.stopPropagation(); toggleMediaPreviewOwner(${land.id}, this)">
-                                <i class="bi bi-image text-success"></i>
+                                <i class="bi bi-image text-amber-600"></i>
                                 <span>View Photo</span>
                             </button>
 
@@ -183,26 +182,26 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </h3>
 
                                 <p class="text-muted mb-2 mt-1" style="font-size: 0.78rem;">
-                                    <i class="bi bi-geo-alt-fill me-1" style="color: var(--drive-primary);"></i>
+                                    <i class="bi bi-geo-alt-fill me-1 text-danger"></i>
                                     ${land.address}
                                 </p>
 
                                 <!-- Feature Chips Row -->
                                 <div class="d-flex gap-3 py-2 mb-2" style="border-top: 1px solid var(--drive-border); border-bottom: 1px solid var(--drive-border);">
                                     <div class="text-center flex-fill">
-                                        <i class="bi bi-tree d-block mb-1" style="font-size: 1.2rem; color: var(--drive-primary);"></i>
-                                        <span style="font-size: 0.7rem; color: #6c757d;">Garden</span>
+                                        <i class="bi bi-shop d-block mb-1 text-amber-600" style="font-size: 1.2rem;"></i>
+                                        <span style="font-size: 0.7rem; color: #6c757d;">Food Hub</span>
                                     </div>
                                     <div class="text-center flex-fill">
-                                        <i class="bi bi-grid-3x3-gap d-block mb-1" style="font-size: 1.2rem; color: var(--drive-primary);"></i>
-                                        <span style="font-size: 0.7rem; color: #6c757d;">${totalCount} plots</span>
+                                        <i class="bi bi-grid-3x3-gap d-block mb-1 text-primary" style="font-size: 1.2rem;"></i>
+                                        <span style="font-size: 0.7rem; color: #6c757d;">${totalCount} stalls</span>
                                     </div>
                                     <div class="text-center flex-fill">
-                                        <i class="bi bi-check2-square d-block mb-1" style="font-size: 1.2rem; color: var(--drive-primary);"></i>
-                                        <span style="font-size: 0.7rem; color: #6c757d;">${availableCount} free</span>
+                                        <i class="bi bi-check2-square d-block mb-1 text-success" style="font-size: 1.2rem;"></i>
+                                        <span style="font-size: 0.7rem; color: #6c757d;">${availableCount} vacant</span>
                                     </div>
                                     <div class="text-center flex-fill">
-                                        <i class="bi bi-rulers d-block mb-1" style="font-size: 1.2rem; color: var(--drive-primary);"></i>
+                                        <i class="bi bi-rulers d-block mb-1 text-secondary" style="font-size: 1.2rem;"></i>
                                         <span style="font-size: 0.7rem; color: #6c757d;">${parseFloat(land.area).toFixed(0)} m²</span>
                                     </div>
                                 </div>
@@ -216,21 +215,19 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <button class="btn btn-link p-0 mt-1 desc-toggle"
                                         style="font-size: 0.75rem; color: var(--drive-primary); font-weight: 500; text-decoration: none;"
                                         onclick="toggleDescOwner(${land.id}, this)">
-                                        Description <i class="bi bi-chevron-down" style="font-size: 0.65rem;"></i>
+                                        Description & Amenities <i class="bi bi-chevron-down" style="font-size: 0.65rem;"></i>
                                     </button>
                                 </div>
 
-
-
                                 <!-- Landowner Info -->
                                 <div class="d-flex align-items-center gap-2 mb-3" style="font-size: 0.75rem; color: #6c757d;">
-                                    <div class="rounded-circle bg-success-subtle d-flex align-items-center justify-content-center"
+                                    <div class="rounded-circle bg-amber-100 d-flex align-items-center justify-content-center"
                                         style="width: 24px; height: 24px; min-width:24px;">
-                                        <i class="bi bi-person-fill text-success" style="font-size: 0.7rem;"></i>
+                                        <i class="bi bi-person-fill text-amber-700" style="font-size: 0.7rem;"></i>
                                     </div>
-                                    <span>${land.landowner || 'John Landowner'}</span>
+                                    <span>Property Owner: ${land.landowner || 'Juan Property Owner'}</span>
                                 </div>
-                            </div>
+                            </div>   </div>
 
                             <!-- Card Footer Actions -->
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top">
@@ -395,17 +392,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return '../assets/crop-icons/tomato/tomato.svg';
     }
 
-    // Render partition plots inside the Manage Plots modal
+    // Render stalls inside the Manage Stalls modal
     function renderPlotsModal(landId) {
         if (!modalPlotsContainer) return;
-        const landPlots = plotsList.filter(plot => plot.land_id == landId);
+        const landPlots = plotsList.filter(plot => (plot.property_id || plot.land_id) == landId);
         modalPlotsContainer.innerHTML = '';
 
         if (landPlots.length === 0) {
             modalPlotsContainer.innerHTML = `
                 <div class="text-center py-5 border rounded-4 bg-white text-muted">
-                    <i class="bi bi-grid-3x3-gap fs-2 d-block mb-2 text-secondary"></i>
-                    <span>No plots configured for this land yet. Click "+ Add Plot" to create one.</span>
+                    <i class="bi bi-shop fs-2 d-block mb-2 text-secondary"></i>
+                    <span>No stalls configured for this property yet. Click "+ Add Stall" to create one.</span>
                 </div>
             `;
             return;
@@ -415,44 +412,47 @@ document.addEventListener("DOMContentLoaded", function () {
         landPlots.forEach(plot => {
             let statusBadge = '';
             if (plot.status === 'available') {
-                statusBadge = '<span class="badge bg-success rounded-pill px-2.5 py-1" style="font-size: 10px;">Available</span>';
+                statusBadge = '<span class="badge bg-success rounded-pill px-2.5 py-1" style="font-size: 10px;">Vacant / Available</span>';
             } else if (plot.status === 'occupied') {
-                statusBadge = '<span class="badge bg-primary rounded-pill px-2.5 py-1" style="font-size: 10px;">Occupied</span>';
+                statusBadge = '<span class="badge bg-primary rounded-pill px-2.5 py-1" style="font-size: 10px;">Leased / Occupied</span>';
             } else {
                 statusBadge = '<span class="badge bg-secondary rounded-pill px-2.5 py-1" style="font-size: 10px;">Under Maintenance</span>';
             }
 
             const allowedCrops = (plot.crops && plot.crops.length > 0)
                 ? plot.crops
-                : (plot.crop ? [plot.crop] : ['Tomato', 'Lettuce']);
+                : (plot.crop ? [plot.crop] : ['Grilled BBQ', 'Street Food']);
 
             let cropsBadgesHtml = allowedCrops.map(c => `
                 <span class="d-inline-flex align-items-center gap-1.5 px-2 py-0.5 rounded-pill bg-white border text-xs text-dark font-medium shadow-2xs" style="font-size: 11px;">
-                    <img src="${getPlotCropIconPath(c)}" alt="${c}" style="width:14px;height:14px;object-fit:contain;">
+                    <i class="bi bi-tag text-amber-600"></i>
                     <span>${c}</span>
                 </span>
             `).join('');
+
+            const rateText = plot.rental_rate ? `₱${Number(plot.rental_rate).toLocaleString()} / ${plot.rate_period || 'month'}` : '₱350 / day';
 
             html += `
                 <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 bg-light hover:bg-white transition-colors">
                     <div>
                         <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-2" style="font-size:0.95rem;">
-                            <span>${plot.plot_number}</span>
+                            <span>${plot.stall_number || plot.plot_number}</span>
                             ${statusBadge}
                         </div>
-                        <div class="text-muted mb-2" style="font-size: 0.78rem;">
-                            <i class="bi bi-rulers me-1"></i>Area: ${parseFloat(plot.area).toFixed(1)} m²
+                        <div class="text-muted mb-2 d-flex align-items-center gap-3" style="font-size: 0.78rem;">
+                            <span><i class="bi bi-rulers me-1"></i>Area: ${parseFloat(plot.area).toFixed(1)} m²</span>
+                            <span class="text-emerald-700 fw-semibold"><i class="bi bi-cash-stack me-1"></i>${rateText}</span>
                         </div>
                         <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                            <span class="text-muted uppercase text-[10px] font-bold me-1">Permitted Crops:</span>
+                            <span class="text-muted uppercase text-[10px] font-bold me-1">Permitted Specialties:</span>
                             ${cropsBadgesHtml}
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button onclick="openEditPlotCropsModal(${plot.id}, '${plot.plot_number.replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 text-xs d-flex align-items-center gap-1 font-semibold">
-                            <i class="bi bi-sprout"></i> Set Permitted Crops
+                        <button onclick="openEditPlotCropsModal(${plot.id}, '${(plot.stall_number || plot.plot_number).replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 text-xs d-flex align-items-center gap-1 font-semibold">
+                            <i class="bi bi-tag"></i> Set Specialties
                         </button>
-                        <button onclick="deletePlot(${plot.id})" class="btn icon-btn-pill btn-sm text-danger" title="Delete Plot">
+                        <button onclick="deletePlot(${plot.id})" class="btn icon-btn-pill btn-sm text-danger" title="Delete Stall">
                             <i class="bi bi-trash fs-6"></i>
                         </button>
                     </div>

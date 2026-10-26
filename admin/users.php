@@ -31,9 +31,11 @@ include '../includes/sidebar.php';
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
                     data-filter="admin">Admins</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
-                    data-filter="landowner">Landowners</button>
+                    data-filter="property_owner">Property Owners</button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
-                    data-filter="gardener">Gardeners</button>
+                    data-filter="vendor">Street Vendors</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn"
+                    data-filter="customer">Customers</button>
             </div>
             <div class="text-muted" id="usersCountText" style="font-size: 0.8rem;">
                 Showing <strong>0</strong> users
@@ -87,8 +89,9 @@ include '../includes/sidebar.php';
                             <label for="add_role" class="form-label text-secondary"
                                 style="font-size: 0.75rem; font-weight:600;">ROLE</label>
                             <select class="form-select drive-form-control w-100" id="add_role" name="role" required>
-                                <option value="gardener">Gardener</option>
-                                <option value="landowner">Landowner</option>
+                                <option value="vendor">Street Vendor</option>
+                                <option value="property_owner">Property Owner</option>
+                                <option value="customer">Customer</option>
                                 <option value="admin">Administrator</option>
                             </select>
                         </div>
@@ -152,8 +155,9 @@ include '../includes/sidebar.php';
                             <label for="edit_role" class="form-label text-secondary"
                                 style="font-size: 0.75rem; font-weight:600;">ROLE</label>
                             <select class="form-select drive-form-control w-100" id="edit_role" name="role" required>
-                                <option value="gardener">Gardener</option>
-                                <option value="landowner">Landowner</option>
+                                <option value="vendor">Street Vendor</option>
+                                <option value="property_owner">Property Owner</option>
+                                <option value="customer">Customer</option>
                                 <option value="admin">Administrator</option>
                             </select>
                         </div>

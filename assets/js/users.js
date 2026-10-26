@@ -36,6 +36,9 @@ document.addEventListener("DOMContentLoaded", function() {
         // Filter list
         const filtered = usersList.filter(user => {
             if (currentFilter === 'all') return true;
+            if (currentFilter === 'property_owner') return user.role === 'property_owner' || user.role === 'landowner' || user.role === 'host';
+            if (currentFilter === 'vendor') return user.role === 'vendor' || user.role === 'gardener';
+            if (currentFilter === 'customer') return user.role === 'customer';
             return user.role === currentFilter;
         });
 
@@ -60,11 +63,13 @@ document.addEventListener("DOMContentLoaded", function() {
             // Badge style for role
             let roleBadge = '';
             if (user.role === 'admin') {
-                roleBadge = `<span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1" style="font-size: 10px;">Admin</span>`;
-            } else if (user.role === 'landowner') {
-                roleBadge = `<span class="badge bg-info-subtle text-info-emphasis rounded-pill px-2 py-1" style="font-size: 10px;">Landowner</span>`;
+                roleBadge = `<span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1" style="font-size: 10px;">Admin</span>`;
+            } else if (user.role === 'property_owner' || user.role === 'landowner' || user.role === 'host') {
+                roleBadge = `<span class="badge bg-info-subtle text-info-emphasis rounded-pill px-2.5 py-1" style="font-size: 10px;">Property Owner</span>`;
+            } else if (user.role === 'vendor' || user.role === 'gardener') {
+                roleBadge = `<span class="badge bg-amber-100 text-amber-800 rounded-pill px-2.5 py-1" style="font-size: 10px;">Street Vendor</span>`;
             } else {
-                roleBadge = `<span class="badge bg-success-subtle text-success rounded-pill px-2 py-1" style="font-size: 10px;">Gardener</span>`;
+                roleBadge = `<span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1" style="font-size: 10px;">Customer</span>`;
             }
 
             // Badge style for status

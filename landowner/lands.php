@@ -1,6 +1,6 @@
 <?php
 $base_path = '../';
-$page_title = "My Lands";
+$page_title = "My Properties";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
@@ -134,8 +134,8 @@ include '../includes/sidebar.php';
     <!-- Desktop Toolbar -->
     <div class="toolbar border-bottom d-none d-md-flex justify-content-between align-items-center px-4 py-2.5 bg-white flex-shrink-0">
         <div style="min-width: 180px;">
-            <h1 class="fs-5 fw-bold m-0 text-dark font-['Outfit']">My Lands</h1>
-            <p class="text-secondary mb-0 small" style="font-size: 0.78rem;">Manage your registered properties & plots</p>
+            <h1 class="fs-5 fw-bold m-0 text-dark font-['Outfit']">My Properties</h1>
+            <p class="text-secondary mb-0 small" style="font-size: 0.78rem;">Manage your food parks, lots & rental stalls</p>
         </div>
 
         <!-- Filter Tabs: All, Pending, Approved centered at top -->
@@ -157,7 +157,7 @@ include '../includes/sidebar.php';
             <a href="register.php"
                 class="btn btn-drive-primary btn-sm px-3.5 d-flex align-items-center gap-2 rounded-pill shadow-xs">
                 <i class="bi bi-plus-lg"></i>
-                <span>Register Land</span>
+                <span>Add Property</span>
             </a>
         </div>
     </div>
@@ -166,13 +166,13 @@ include '../includes/sidebar.php';
     <div class="d-block d-md-none px-3 pt-3 pb-2 bg-white border-bottom flex-shrink-0">
         <div class="d-flex justify-content-between align-items-center mb-2.5">
             <div>
-                <h1 class="fs-6 fw-bold m-0 text-dark font-['Outfit']">My Lands</h1>
-                <p class="text-secondary mb-0" style="font-size: 0.72rem;">Manage properties & plots</p>
+                <h1 class="fs-6 fw-bold m-0 text-dark font-['Outfit']">My Properties</h1>
+                <p class="text-secondary mb-0" style="font-size: 0.72rem;">Manage properties & stalls</p>
             </div>
             <a href="register.php"
                 class="btn btn-drive-primary btn-sm px-3 py-1.5 d-flex align-items-center gap-1.5 rounded-pill text-xs shadow-xs">
                 <i class="bi bi-plus-lg"></i>
-                <span>Register</span>
+                <span>Add Property</span>
             </a>
         </div>
         <!-- Mobile Filter Pills (Centered) -->
@@ -218,8 +218,8 @@ include '../includes/sidebar.php';
             <div class="modal-header border-0 pb-0 d-flex align-items-center justify-content-between">
                 <div>
                     <h5 class="modal-title fw-bold text-dark m-0 d-flex align-items-center gap-2">
-                        <i class="bi bi-grid-3x3-gap text-success"></i>
-                        <span>Manage Partition Plots</span>
+                        <i class="bi bi-shop text-amber-600"></i>
+                        <span>Manage Rental Stalls</span>
                     </h5>
                     <p class="text-muted mb-0 mt-1" style="font-size:0.82rem;">
                         Property: <span id="modalLandTitle" class="fw-bold text-dark"></span>
@@ -229,13 +229,13 @@ include '../includes/sidebar.php';
                     <button
                         class="btn btn-sm btn-drive-primary py-1.5 px-3 d-flex align-items-center gap-1 rounded-pill"
                         onclick="openAddPlotModal()">
-                        <i class="bi bi-plus-lg"></i> Add Plot
+                        <i class="bi bi-plus-lg"></i> Add Stall
                     </button>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <div class="modal-body pt-3">
-                <!-- Plots dynamic list inside modal -->
+                <!-- Stalls dynamic list inside modal -->
                 <div id="modalPlotsContainer"></div>
             </div>
         </div>
@@ -243,27 +243,21 @@ include '../includes/sidebar.php';
 </div>
 
 <?php
-$seedTypes = [
-    ['value' => 'tomato', 'label' => 'Tomato', 'icon' => '../assets/crop-icons/tomato/tomato.svg'],
-    ['value' => 'lettuce', 'label' => 'Lettuce', 'icon' => '../assets/crop-icons/romaine/romaine.svg'],
-    ['value' => 'herbs', 'label' => 'Herbs', 'icon' => '../assets/crop-icons/basil/basil.svg'],
-    ['value' => 'pepper', 'label' => 'Pepper', 'icon' => '../assets/crop-icons/red-bell-pepper/red-bell-pepper.svg'],
-    ['value' => 'carrot', 'label' => 'Carrot', 'icon' => '../assets/crop-icons/carrot/carrot.svg'],
-    ['value' => 'eggplant', 'label' => 'Eggplant', 'icon' => '../assets/crop-icons/eggplant/eggplant.svg'],
-    ['value' => 'cucumber', 'label' => 'Cucumber', 'icon' => '../assets/crop-icons/cucumber/cucumber.svg'],
-    ['value' => 'spinach', 'label' => 'Spinach', 'icon' => '../assets/crop-icons/spinach/spinach.svg'],
-    ['value' => 'beans', 'label' => 'Beans', 'icon' => '../assets/crop-icons/broad-bean/broad-bean.svg'],
-    ['value' => 'squash', 'label' => 'Squash', 'icon' => '../assets/crop-icons/yellow-squash/yellow-squash.svg'],
-    ['value' => 'onion', 'label' => 'Onion', 'icon' => '../assets/crop-icons/red-onion/red-onion.svg'],
-    ['value' => 'corn', 'label' => 'Corn', 'icon' => '../assets/crop-icons/corn/corn.svg'],
-    ['value' => 'garlic', 'label' => 'Garlic', 'icon' => '../assets/crop-icons/garlic/garlic.svg'],
-    ['value' => 'potato', 'label' => 'Potato', 'icon' => '../assets/crop-icons/russet-potato/russet-potato.svg'],
-    ['value' => 'mushroom', 'label' => 'Mushroom', 'icon' => '../assets/crop-icons/generic-mushroom/generic-mushroom.svg'],
-    ['value' => 'peas', 'label' => 'Peas', 'icon' => '../assets/crop-icons/snap-pea/snap-pea.svg'],
+$foodCategories = [
+    ['value' => 'bbq', 'label' => 'Grilled BBQ & Skewers', 'icon' => 'flame'],
+    ['value' => 'fried', 'label' => 'Deep Fried Street Bites', 'icon' => 'utensils'],
+    ['value' => 'takoyaki', 'label' => 'Takoyaki & Asian Street Food', 'icon' => 'soup'],
+    ['value' => 'beverages', 'label' => 'Coolers, Juices & Shakes', 'icon' => 'coffee'],
+    ['value' => 'meals', 'label' => 'Rice Meals & Silog Bowls', 'icon' => 'box'],
+    ['value' => 'desserts', 'label' => 'Desserts, Pastries & Sweets', 'icon' => 'cake'],
+    ['value' => 'noodles', 'label' => 'Noodles, Mami & Ramen', 'icon' => 'soup'],
+    ['value' => 'sandwiches', 'label' => 'Burgers, Wraps & Sandwiches', 'icon' => 'disc'],
+    ['value' => 'halal', 'label' => 'Halal Certified Street Food', 'icon' => 'shield-check'],
+    ['value' => 'snacks', 'label' => 'Finger Foods & Snacks', 'icon' => 'shopping-bag'],
 ];
 ?>
 
-<!-- Single Edit Land Details Modal -->
+<!-- Single Edit Property Details Modal -->
 <div class="modal fade" id="editLandModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
@@ -272,10 +266,10 @@ $seedTypes = [
                 <div>
                     <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2"
                         style="font-size:1.05rem;">
-                        <i class="bi bi-pencil-square text-primary"></i> Edit Land Details
+                        <i class="bi bi-pencil-square text-primary"></i> Edit Property Details
                     </h5>
-                    <p class="text-muted mb-0" style="font-size:0.75rem;">Modify property location, boundaries,
-                        description, and crop permissions.</p>
+                    <p class="text-muted mb-0" style="font-size:0.75rem;">Modify property location, dimensions,
+                        description, and permitted food specialties.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -304,7 +298,7 @@ $seedTypes = [
                             <div class="row mb-3">
                                 <div class="col-md-4">
                                     <label for="edit_area" class="form-label text-secondary"
-                                        style="font-size:0.75rem;font-weight:600;">AREA (m²)</label>
+                                        style="font-size:0.75rem;font-weight:600;">TOTAL AREA (m²)</label>
                                     <input type="number" step="0.1" class="form-control drive-form-control w-100"
                                         id="edit_area" name="area" required placeholder="250">
                                 </div>
@@ -325,30 +319,29 @@ $seedTypes = [
                             <!-- Description -->
                             <div class="mb-3">
                                 <label for="edit_description" class="form-label text-secondary"
-                                    style="font-size:0.75rem;font-weight:600;">DESCRIPTION</label>
+                                    style="font-size:0.75rem;font-weight:600;">DESCRIPTION & AMENITIES</label>
                                 <textarea class="form-control drive-form-control w-100" id="edit_description"
                                     name="description" rows="3"></textarea>
                             </div>
 
-                            <!-- Allowed Seed Types / Permitted Crops -->
+                            <!-- Permitted Food Categories -->
                             <div class="mb-3">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                     <label class="form-label text-secondary m-0"
-                                        style="font-size:0.75rem;font-weight:600;">PERMITTED CROPS</label>
+                                        style="font-size:0.75rem;font-weight:600;">PERMITTED FOOD SPECIALTIES</label>
                                     <button type="button"
                                         class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1 d-flex align-items-center gap-1.5"
                                         data-bs-toggle="modal" data-bs-target="#editPermittedCropsModal"
                                         style="font-size:0.75rem;">
                                         <i class="bi bi-search" style="font-size:12px;"></i>
-                                        <span>Select Crops</span>
+                                        <span>Select Food Types</span>
                                     </button>
                                 </div>
 
                                 <div id="editSelectedCropsSummary"
                                     class="p-3 border rounded-4 bg-white d-flex flex-wrap gap-2 align-items-center"
                                     style="min-height:52px;border-color:var(--drive-border) !important;">
-                                    <span class="text-muted text-xs italic" id="editEmptyCropsNotice">No specific crops
-                                        selected (All crops permitted by default).</span>
+                                    <span class="text-muted text-xs italic" id="editEmptyCropsNotice">All food categories permitted by default.</span>
                                 </div>
                                 <div id="editHiddenSeedInputs"></div>
                             </div>
@@ -361,8 +354,7 @@ $seedTypes = [
                                 <div
                                     class="card-header bg-white border-bottom py-2 d-flex align-items-center justify-content-between">
                                     <span class="fw-semibold text-secondary"
-                                        style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">Location
-                                        Map Picker</span>
+                                        style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">Location Map Picker</span>
                                     <i class="bi bi-geo-alt-fill text-primary"></i>
                                 </div>
                                 <div id="editPickerMap" style="height: 380px; background-color: #e9f2ff;"></div>
@@ -380,19 +372,17 @@ $seedTypes = [
     </div>
 </div>
 
-<!-- Edit Permitted Crops Selection Modal -->
+<!-- Edit Permitted Food Specialties Selection Modal -->
 <div class="modal fade" id="editPermittedCropsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
             <div class="modal-header border-bottom px-4 py-3 bg-white">
                 <div>
                     <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
-                        <img src="../assets/crop-icons/generic-plant/generic-plant.svg" class="w-6 h-6 object-contain"
-                            alt="Crops" style="width:20px;height:20px;">
-                        Select Permitted Crops
+                        <i class="bi bi-tag text-amber-600"></i>
+                        Select Permitted Food Specialties
                     </h5>
-                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the crop types gardeners are
-                        allowed to cultivate on this land.</p>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the street food categories vendors are permitted to sell at this property.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -404,7 +394,7 @@ $seedTypes = [
                             style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px;"></i>
                         <input type="text" id="editCropSearchInput"
                             class="form-control drive-form-control ps-5 py-2 text-xs rounded-pill"
-                            placeholder="Search crop types (e.g., Tomato, Lettuce, Carrot)..."
+                            placeholder="Search food types (e.g. BBQ, Takoyaki, Coolers)..."
                             onkeyup="filterEditCropChips()">
                     </div>
                     <div class="d-flex gap-2 flex-shrink-0">
@@ -416,22 +406,21 @@ $seedTypes = [
                 </div>
 
                 <div class="row g-2 overflow-y-auto" id="editModalCropGrid" style="max-height: 340px;">
-                    <?php foreach ($seedTypes as $seed): ?>
+                    <?php foreach ($foodCategories as $cat): ?>
                         <div class="col-6 col-sm-4 col-md-3 edit-crop-grid-item"
-                            data-name="<?php echo strtolower($seed['label']); ?>">
+                            data-name="<?php echo strtolower($cat['label']); ?>">
                             <div class="edit-modal-crop-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2"
-                                data-value="<?php echo $seed['value']; ?>" data-label="<?php echo $seed['label']; ?>"
-                                data-icon="<?php echo $seed['icon']; ?>"
+                                data-value="<?php echo $cat['value']; ?>" data-label="<?php echo $cat['label']; ?>"
+                                data-icon=""
                                 style="cursor: pointer; transition: all 0.15s; border-color: var(--drive-border) !important; user-select: none;"
-                                onclick="toggleEditCropSelection('<?php echo $seed['value']; ?>', '<?php echo $seed['label']; ?>', '<?php echo $seed['icon']; ?>', this)">
+                                onclick="toggleEditCropSelection('<?php echo $cat['value']; ?>', '<?php echo $cat['label']; ?>', '', this)">
                                 <div class="d-flex align-items-center gap-2 text-truncate">
                                     <div class="w-8 h-8 rounded-circle d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
                                         style="width:32px;height:32px;">
-                                        <img src="<?php echo $seed['icon']; ?>" alt="<?php echo $seed['label']; ?>"
-                                            style="width:20px;height:20px;object-fit:contain;">
+                                        <i class="bi bi-tag text-amber-600"></i>
                                     </div>
                                     <span
-                                        class="fw-semibold text-dark text-xs truncate"><?php echo $seed['label']; ?></span>
+                                        class="fw-semibold text-dark text-xs truncate"><?php echo $cat['label']; ?></span>
                                 </div>
                                 <div class="edit-crop-check-icon text-primary d-none">
                                     <i class="bi bi-check-circle-fill text-primary" style="font-size: 14px;"></i>
@@ -443,8 +432,7 @@ $seedTypes = [
             </div>
 
             <div class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
-                <span class="text-secondary text-xs fw-semibold"><span id="editSelectedCountText">0</span> crops
-                    selected</span>
+                <span class="text-secondary text-xs fw-semibold"><span id="editSelectedCountText">0</span> specialties selected</span>
                 <button type="button" class="btn btn-drive-primary rounded-pill px-4"
                     data-bs-dismiss="modal">Done</button>
             </div>
@@ -452,12 +440,12 @@ $seedTypes = [
     </div>
 </div>
 
-<!-- Add Plot Modal (Single instance) -->
+<!-- Add Stall Modal (Single instance) -->
 <div class="modal fade" id="addPlotModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Add New Plot</h5>
+                <h5 class="modal-title fw-semibold text-dark">Add Rental Stall</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -466,81 +454,88 @@ $seedTypes = [
 
                     <div class="mb-3">
                         <label for="plot_number" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">PLOT NUMBER</label>
+                            style="font-size: 0.75rem; font-weight:600;">STALL NUMBER / CODE</label>
                         <input type="text" class="form-control drive-form-control w-100" id="plot_number"
-                            name="plot_number" required placeholder="Plot C-1">
+                            name="plot_number" required placeholder="e.g. Stall A-01 (Grill Zone)">
                     </div>
-                    <div class="mb-4">
-                        <label for="plot_area" class="form-label text-secondary"
-                            style="font-size: 0.75rem; font-weight:600;">AREA (m²)</label>
-                        <input type="number" step="0.1" class="form-control drive-form-control w-100" id="plot_area"
-                            name="plot_area" required placeholder="25.0">
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <label for="plot_area" class="form-label text-secondary"
+                                style="font-size: 0.75rem; font-weight:600;">STALL AREA (m²)</label>
+                            <input type="number" step="0.1" class="form-control drive-form-control w-100" id="plot_area"
+                                name="plot_area" required placeholder="12.0">
+                        </div>
+                        <div class="col-6">
+                            <label for="rental_rate" class="form-label text-secondary"
+                                style="font-size: 0.75rem; font-weight:600;">RENTAL RATE (₱)</label>
+                            <input type="number" step="10" class="form-control drive-form-control w-100" id="rental_rate"
+                                name="rental_rate" placeholder="350">
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-drive-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-drive-primary">Create Plot</button>
+                        <button type="submit" class="btn btn-drive-primary">Create Stall</button>
                     </div>
                 </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Edit Plot Crops Modal -->
-        <div class="modal fade" id="editPlotCropsModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
-                    <div
-                        class="modal-header border-bottom px-4 py-3 bg-white d-flex align-items-center justify-content-between">
-                        <div>
-                            <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2"
-                                style="font-size:1.05rem;">
-                                <i class="bi bi-sprout text-success"></i> Permitted Crops for <span id="modalPlotTitle"
-                                    class="text-primary"></span>
-                            </h5>
-                            <p class="text-muted mb-0" style="font-size:0.75rem;">Select which crop types gardeners are
-                                allowed to plant in this specific plot grid.</p>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-4 bg-light">
-                        <input type="hidden" id="edit_plot_id" value="">
+<!-- Edit Stall Food Specialties Modal -->
+<div class="modal fade" id="editPlotCropsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
+            <div
+                class="modal-header border-bottom px-4 py-3 bg-white d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2"
+                        style="font-size:1.05rem;">
+                        <i class="bi bi-shop text-amber-600"></i> Permitted Specialties for <span id="modalPlotTitle"
+                            class="text-primary"></span>
+                    </h5>
+                    <p class="text-muted mb-0" style="font-size:0.75rem;">Select which street food specialties are permitted for this stall.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <input type="hidden" id="edit_plot_id" value="">
 
-                        <!-- Crop Grid Picker -->
-                        <div class="row g-2 overflow-y-auto" style="max-height: 340px;" id="plotCropGridPicker">
-                            <?php foreach ($seedTypes as $seed): ?>
-                                <div class="col-6 col-sm-4 col-md-3">
-                                    <div class="plot-crop-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2"
-                                        data-value="<?php echo $seed['value']; ?>"
-                                        data-label="<?php echo $seed['label']; ?>" data-icon="<?php echo $seed['icon']; ?>"
-                                        style="cursor: pointer; transition: all 0.15s; border-color: var(--drive-border) !important; user-select: none;"
-                                        onclick="togglePlotCropSelection('<?php echo $seed['value']; ?>', '<?php echo $seed['label']; ?>', '<?php echo $seed['icon']; ?>', this)">
-                                        <div class="d-flex align-items-center gap-2 text-truncate">
-                                            <div class="w-8 h-8 rounded-circle d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
-                                                style="width:32px;height:32px;">
-                                                <img src="<?php echo $seed['icon']; ?>" alt="<?php echo $seed['label']; ?>"
-                                                    style="width:20px;height:20px;object-fit:contain;">
-                                            </div>
-                                            <span
-                                                class="fw-semibold text-dark text-xs truncate"><?php echo $seed['label']; ?></span>
-                                        </div>
-                                        <div class="plot-crop-check-icon text-primary d-none">
-                                            <i class="bi bi-check-circle-fill text-primary" style="font-size: 14px;"></i>
-                                        </div>
+                <!-- Food Specialties Grid Picker -->
+                <div class="row g-2 overflow-y-auto" style="max-height: 340px;" id="plotCropGridPicker">
+                    <?php foreach ($foodCategories as $cat): ?>
+                        <div class="col-6 col-sm-4 col-md-3">
+                            <div class="plot-crop-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2"
+                                data-value="<?php echo $cat['value']; ?>"
+                                data-label="<?php echo $cat['label']; ?>" data-icon=""
+                                style="cursor: pointer; transition: all 0.15s; border-color: var(--drive-border) !important; user-select: none;"
+                                onclick="togglePlotCropSelection('<?php echo $cat['value']; ?>', '<?php echo $cat['label']; ?>', '', this)">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <div class="w-8 h-8 rounded-circle d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
+                                        style="width:32px;height:32px;">
+                                        <i class="bi bi-tag text-amber-600"></i>
                                     </div>
+                                    <span
+                                        class="fw-semibold text-dark text-xs truncate"><?php echo $cat['label']; ?></span>
                                 </div>
-                            <?php endforeach; ?>
+                                <div class="plot-crop-check-icon text-primary d-none">
+                                    <i class="bi bi-check-circle-fill text-primary" style="font-size: 14px;"></i>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div
-                        class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
-                        <span class="text-secondary text-xs fw-semibold"><span id="plotSelectedCropCount">0</span> crops
-                            permitted for this plot</span>
-                        <button type="button" class="btn btn-drive-primary rounded-pill px-4"
-                            onclick="savePlotCrops()">Save Plot Crops</button>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
+            <div
+                class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
+                <span class="text-secondary text-xs fw-semibold"><span id="plotSelectedCropCount">0</span> specialties permitted for this stall</span>
+                <button type="button" class="btn btn-drive-primary rounded-pill px-4"
+                    onclick="savePlotCrops()">Save Stall Specialties</button>
+            </div>
         </div>
+    </div>
+</div>
 
         <script src="<?php echo $base_path; ?>assets/js/landowner_lands.js"></script>
         <script>
