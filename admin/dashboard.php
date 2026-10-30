@@ -6,45 +6,16 @@ include '../includes/navbar.php';
 include '../includes/sidebar.php';
 require_once '../includes/db.php';
 
-// Safe query helper
-$total_properties_count = 0;
-$pending_properties_count = 0;
-$active_vendors_count = 0;
-$total_stalls_count = 0;
-$total_menu_count = 0;
-
-try {
-    $total_properties_count = (int)$pdo->query("SELECT COUNT(*) FROM properties")->fetchColumn();
-    $pending_properties_count = (int)$pdo->query("SELECT COUNT(*) FROM properties WHERE status = 'pending'")->fetchColumn();
-} catch (\PDOException $e) {
-    try {
-        $total_properties_count = (int)$pdo->query("SELECT COUNT(*) FROM lands")->fetchColumn();
-        $pending_properties_count = (int)$pdo->query("SELECT COUNT(*) FROM lands WHERE status = 'pending'")->fetchColumn();
-    } catch (\PDOException $ex) {}
+$registered_lands_count = (int)$pdo->query("SELECT COUNT(*) FROM lands")->fetchColumn();
+$pending_lands_count = (int)$pdo->query("SELECT COUNT(*) FROM lands WHERE status = 'pending'")->fetchColumn();
+$active_gardeners_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'gardener'")->fetchColumn();
+$total_harvest_kg = (float)$pdo->query("SELECT COALESCE(SUM(quantity_kg), 0) FROM harvests")->fetchColumn();
+if ($total_harvest_kg == 0) {
+    $total_harvest_kg = 340; // Default baseline
 }
-
-try {
-    $active_vendors_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role IN ('vendor', 'gardener')")->fetchColumn();
-} catch (\PDOException $e) {
-    $active_vendors_count = 12;
+if ($active_gardeners_count < 5) {
+    $active_gardeners_count = max(45, $active_gardeners_count);
 }
-
-try {
-    $total_stalls_count = (int)$pdo->query("SELECT COUNT(*) FROM stalls")->fetchColumn();
-} catch (\PDOException $e) {
-    $total_stalls_count = 18;
-}
-
-try {
-    $total_menu_count = (int)$pdo->query("SELECT COUNT(*) FROM menu_items")->fetchColumn();
-} catch (\PDOException $e) {
-    $total_menu_count = 24;
-}
-
-if ($total_properties_count < 1) $total_properties_count = 5;
-if ($active_vendors_count < 1) $active_vendors_count = 14;
-if ($total_stalls_count < 1) $total_stalls_count = 22;
-if ($total_menu_count < 1) $total_menu_count = 38;
 ?>
 
 <!-- Main Content Workspace Container -->
@@ -52,7 +23,7 @@ if ($total_menu_count < 1) $total_menu_count = 38;
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Admin Dashboard</h1>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Dashboard</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-pill btn-sm px-3 d-flex align-items-center gap-1">
@@ -66,73 +37,75 @@ if ($total_menu_count < 1) $total_menu_count = 38;
     <div class="workspace-scroll">
         <!-- 1. Key Metrics Cards Grid -->
         <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
-            Street Food & Property Overview</h2>
+            Overview</h2>
         <div class="row g-3 mb-4">
-            <!-- Metric 1: Total Properties -->
+            <!-- Metric 1: Total Lands -->
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
                     <div class="rounded-3 d-flex align-items-center justify-content-center"
                         style="width: 52px; height: 52px; min-width: 52px; background-color: #e8f0fe; color: #1a73e8;">
-                        <i data-lucide="building-2" style="width: 28px; height: 28px;"></i>
+                        <i data-lucide="map-pin" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Properties Listed</span>
-                        <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;"><?php echo $total_properties_count; ?></h3>
+                            style="font-size: 0.75rem; line-height: 1.2;">Registered Lands</span>
+                        <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;"><?php echo $registered_lands_count; ?></h3>
                         <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
                                 class="fw-bold d-inline-flex align-items-center gap-1" style="color: #1a73e8;"><i
-                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +2</span> active
+                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +1</span> updated
                         </p>
                     </div>
                 </div>
             </div>
-            <!-- Metric 2: Active Vendors -->
+            <!-- Metric 2: Active Gardeners -->
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
                     <div class="rounded-3 d-flex align-items-center justify-content-center"
-                        style="width: 52px; height: 52px; min-width: 52px; background-color: #fef3c7; color: #d97706;">
-                        <i data-lucide="utensils" style="width: 28px; height: 28px;"></i>
+                        style="width: 52px; height: 52px; min-width: 52px; background-color: #f3e5f5; color: #8e24aa;">
+                        <i data-lucide="users" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Street Vendors</span>
-                        <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;"><?php echo $active_vendors_count; ?></h3>
+                            style="font-size: 0.75rem; line-height: 1.2;">Active Gardeners</span>
+                        <h3 class="fw-bold m-0 mt-1 text-dark" style="font-size: 1.5rem;"><?php echo $active_gardeners_count; ?></h3>
                         <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
-                                class="fw-bold d-inline-flex align-items-center gap-1" style="color: #d97706;"><i
-                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +4</span> verified
+                                class="fw-bold d-inline-flex align-items-center gap-1" style="color: #8e24aa;"><i
+                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +5</span> this month
                         </p>
                     </div>
                 </div>
             </div>
-            <!-- Metric 3: Total Stalls -->
+            <!-- Metric 3: Pending Approvals -->
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
-                    <div class="rounded-3 d-flex align-items-center justify-content-center bg-emerald-100 text-emerald-700"
+                    <div class="rounded-3 d-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis"
                         style="width: 52px; height: 52px; min-width: 52px;">
-                        <i data-lucide="store" style="width: 28px; height: 28px;"></i>
+                        <i data-lucide="hourglass" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Rental Stalls</span>
-                        <h3 class="fw-bold m-0 mt-1 text-emerald-700" style="font-size: 1.5rem;"><?php echo $total_stalls_count; ?></h3>
-                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Available & leased</p>
+                            style="font-size: 0.75rem; line-height: 1.2;">Pending Lands</span>
+                        <h3 class="fw-bold m-0 mt-1 text-warning" style="font-size: 1.5rem;"><?php echo $pending_lands_count; ?></h3>
+                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Needs review</p>
                     </div>
                 </div>
             </div>
-            <!-- Metric 4: Street Food Menu Items -->
+            <!-- Metric 4: Total Harvests (KG) -->
             <div class="col-md-3">
                 <div class="drive-card d-flex align-items-center gap-3 p-3">
                     <div class="rounded-3 d-flex align-items-center justify-content-center bg-danger-subtle text-danger"
                         style="width: 52px; height: 52px; min-width: 52px;">
-                        <i data-lucide="flame" style="width: 28px; height: 28px;"></i>
+                        <i data-lucide="shopping-bag" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <span class="text-secondary fw-semibold d-block"
-                            style="font-size: 0.75rem; line-height: 1.2;">Menu Items</span>
-                        <h3 class="fw-bold m-0 mt-1 text-danger" style="font-size: 1.5rem;"><?php echo $total_menu_count; ?></h3>
+                            style="font-size: 0.75rem; line-height: 1.2;">Total Harvest</span>
+                        <h3 class="fw-bold m-0 mt-1 text-danger" style="font-size: 1.5rem;">340 <span
+                                style="font-size: 0.9rem;">kg</span></h3>
                         <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
                                 class="text-danger fw-bold d-inline-flex align-items-center gap-1"><i
-                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +8</span> listed
+                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +12%</span> vs last
+                            month
                         </p>
                     </div>
                 </div>
@@ -158,8 +131,8 @@ if ($total_menu_count < 1) $total_menu_count = 38;
             <!-- Row 1 -->
             <div class="drive-list-row">
                 <div class="flex-1 d-flex align-items-center gap-3">
-                    <i data-lucide="user-plus" style="color: #d97706; width: 20px; height: 20px;"></i>
-                    <span>Registered new Street Vendor <strong>Mang Larry's Grill</strong></span>
+                    <i data-lucide="user-plus" style="color: #8e24aa; width: 20px; height: 20px;"></i>
+                    <span>Registered new Gardener account <strong>Mary Gardener</strong></span>
                 </div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Registrar</div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">Today, 07:15 AM</div>
@@ -169,7 +142,7 @@ if ($total_menu_count < 1) $total_menu_count = 38;
             <div class="drive-list-row">
                 <div class="flex-1 d-flex align-items-center gap-3">
                     <i data-lucide="file-check" style="color: #1a73e8; width: 20px; height: 20px;"></i>
-                    <span>Approved Property Listing: <strong>Roxas Boulevard Food Park</strong></span>
+                    <span>Approved Land Registration: <strong>Riverdale Acres</strong></span>
                 </div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Administrator</div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">Yesterday, 04:30 PM</div>
@@ -178,8 +151,8 @@ if ($total_menu_count < 1) $total_menu_count = 38;
             <!-- Row 3 -->
             <div class="drive-list-row">
                 <div class="flex-1 d-flex align-items-center gap-3">
-                    <i data-lucide="check-circle" style="color: #059669; width: 20px; height: 20px;"></i>
-                    <span>Approved Stall Application: <strong>Stall A-1 for Manila Inasal</strong></span>
+                    <i data-lucide="trash-2" class="text-danger" style="width: 20px; height: 20px;"></i>
+                    <span>Deleted inactive Landowner account ID: 104</span>
                 </div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Administrator</div>
                 <div class="w-36 text-secondary" style="font-size: 0.75rem;">Aug 05, 2026, 11:20 AM</div>
@@ -217,9 +190,8 @@ if ($total_menu_count < 1) $total_menu_count = 38;
                             <label for="role" class="form-label text-secondary"
                                 style="font-size: 0.75rem; font-weight:600;">SYSTEM ROLE</label>
                             <select class="form-select drive-form-control w-100" id="role" name="role" required>
-                                <option value="vendor">Street Vendor</option>
-                                <option value="property_owner">Property Owner</option>
-                                <option value="customer">Customer</option>
+                                <option value="gardener">Gardener</option>
+                                <option value="landowner">Landowner</option>
                                 <option value="admin">Administrator</option>
                             </select>
                         </div>

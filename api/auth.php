@@ -73,20 +73,16 @@ if ($method === 'POST') {
                 if (password_verify($password, $user['password']) || $password === 'password123' || $user['password'] === $password) {
                     $authenticated = true;
                 }
+            } else {
                 // Demo fallback if users table hasn't been seeded yet
-                $demoAccounts = [
-                    'admin@streetbites.com'    => ['id' => 1, 'name' => 'System Administrator', 'role' => 'admin',          'phone' => '09123456789'],
-                    'owner@streetbites.com'    => ['id' => 2, 'name' => 'Juan Property Owner',   'role' => 'property_owner', 'phone' => '09223456789'],
-                    'host@streetbites.com'     => ['id' => 2, 'name' => 'Juan Property Owner',   'role' => 'property_owner', 'phone' => '09223456789'],
-                    'vendor@streetbites.com'   => ['id' => 3, 'name' => 'Maria Street Vendor',  'role' => 'vendor',         'phone' => '09333456789'],
-                    'customer@streetbites.com' => ['id' => 4, 'name' => 'Pedro Customer',       'role' => 'customer',       'phone' => '09443456789'],
-                    'admin@garden.com'         => ['id' => 1, 'name' => 'System Administrator', 'role' => 'admin',          'phone' => '09170000000'],
-                    'landowner@garden.com'     => ['id' => 2, 'name' => 'John Landowner',       'role' => 'property_owner', 'phone' => '09171112222'],
-                    'gardener@garden.com'      => ['id' => 3, 'name' => 'Mary Gardener',        'role' => 'vendor',         'phone' => '09173334444'],
-                ];
-                if (isset($demoAccounts[$email])) {
-                    $item = $demoAccounts[$email];
-                    $user = ['id' => $item['id'], 'name' => $item['name'], 'email' => $email, 'role' => $item['role'], 'phone' => $item['phone'], 'status' => 'active'];
+                if ($email === 'admin@garden.com') {
+                    $user = ['id' => 1, 'name' => 'System Administrator', 'email' => $email, 'role' => 'admin', 'phone' => '09170000000', 'status' => 'active'];
+                    $authenticated = true;
+                } elseif ($email === 'landowner@garden.com') {
+                    $user = ['id' => 2, 'name' => 'John Landowner', 'email' => $email, 'role' => 'landowner', 'phone' => '09171112222', 'status' => 'active'];
+                    $authenticated = true;
+                } elseif ($email === 'gardener@garden.com') {
+                    $user = ['id' => 3, 'name' => 'Mary Gardener', 'email' => $email, 'role' => 'gardener', 'phone' => '09173334444', 'status' => 'active'];
                     $authenticated = true;
                 }
             }
@@ -177,7 +173,7 @@ if ($method === 'POST') {
         $name = trim($input['name'] ?? '');
         $email = strtolower(trim($input['email'] ?? ''));
         $password = trim($input['password'] ?? '');
-        $role = trim($input['role'] ?? 'vendor');
+        $role = trim($input['role'] ?? 'gardener');
         $phone = trim($input['phone'] ?? '');
         $verificationCode = trim($input['verification_code'] ?? '');
 

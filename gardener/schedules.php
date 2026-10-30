@@ -1,42 +1,42 @@
 <?php
 $base_path = '../';
-$page_title = "Operating Hours & Schedules";
+$page_title = "My Schedule";
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-$_SESSION['active_role'] = 'vendor';
+$_SESSION['active_role'] = 'gardener';
 if (!isset($_SESSION['user_name'])) {
-    $_SESSION['user_name'] = 'Maria Street Vendor';
+    $_SESSION['user_name'] = 'Mary Gardener';
 }
 
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
 
-// Initialize operating schedules if not already set in session
+// Initialize mock schedules if not already set in session
 if (!isset($_SESSION['mock_schedules']) || empty($_SESSION['mock_schedules'])) {
     $_SESSION['mock_schedules'] = [
         [
             'id' => 1,
-            'land_title' => 'Mercato Night Food Park - Stall A-01',
-            'gardener' => 'Maria Street Vendor',
-            'title' => 'Evening Food Park Operations',
-            'description' => 'Charcoal grill station open for dinner rush, skewers, isaw, and cold drinks.',
-            'start_time' => date('Y-m-d') . ' 17:00:00',
-            'end_time' => date('Y-m-d') . ' 23:30:00',
-            'task_type' => 'night_market',
+            'land_title' => 'Downtown Rooftop Garden',
+            'gardener' => 'Mary Gardener',
+            'title' => 'Water the tomato plant',
+            'description' => 'Inspect and water all tomato plants in B-1 and B-2. Check soil moisture levels.',
+            'start_time' => '2026-08-08 09:00:00',
+            'end_time' => '2026-08-08 11:30:00',
+            'task_type' => 'watering',
             'status' => 'scheduled'
         ],
         [
             'id' => 2,
-            'land_title' => 'Mercato Night Food Park - Stall A-01',
-            'gardener' => 'Maria Street Vendor',
-            'title' => 'Morning Prep & Stock Replenishment',
-            'description' => 'Marinate fresh pork isaw, prep kwek-kwek batter, and restock ice & gulaman syrup.',
-            'start_time' => date('Y-m-d') . ' 10:00:00',
-            'end_time' => date('Y-m-d') . ' 12:30:00',
-            'task_type' => 'prep',
+            'land_title' => 'Downtown Rooftop Garden',
+            'gardener' => 'Mary Gardener',
+            'title' => 'Tomato Seedling Planting',
+            'description' => 'Transplant tomato seedlings into Plot A-1 and A-2 organic garden compost beds.',
+            'start_time' => '2026-08-09 07:00:00',
+            'end_time' => '2026-08-09 10:00:00',
+            'task_type' => 'planting',
             'status' => 'scheduled'
         ]
     ];

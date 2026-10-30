@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title . " - StreetSpot" : "StreetSpot - Street Food & Vendor Hub"; ?></title>
+    <title><?php echo isset($page_title) ? $page_title . " - Idle Land Gardening" : "Idle Land for Community Gardening System"; ?></title>
     <link rel="icon" type="image/jpeg" href="<?php echo isset($base_path) ? $base_path : ''; ?>logo.jpeg">
     <?php $bp = isset($base_path) ? $base_path : ''; ?>
     <!-- Fonts (Local & Web Fallback) -->

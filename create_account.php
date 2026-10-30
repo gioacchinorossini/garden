@@ -73,7 +73,7 @@ $success_message  = '';
 $name              = '';
 $email             = '';
 $phone             = '';
-$role              = 'vendor';
+$role              = 'gardener';
 $current_step      = 1;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register') {
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $email             = strtolower(trim($_POST['email'] ?? ''));
     $password          = trim($_POST['password'] ?? '');
     $confirm_password  = trim($_POST['confirm_password'] ?? '');
-    $role              = in_array($_POST['role'] ?? '', ['vendor', 'property_owner', 'host', 'customer', 'gardener', 'landowner']) ? $_POST['role'] : 'vendor';
+    $role              = in_array($_POST['role'] ?? '', ['gardener', 'landowner']) ? $_POST['role'] : 'gardener';
     $phone             = trim($_POST['phone'] ?? '');
     $verification_code = trim($_POST['verification_code'] ?? '');
 
@@ -142,10 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $_SESSION['active_role'] = $role;
 
                 $redirect = match($role) {
-                    'admin'                                  => 'admin/dashboard.php',
-                    'property_owner', 'host', 'landowner'   => 'landowner/dashboard.php',
-                    'customer'                               => 'gardener/browse.php',
-                    default                                  => 'gardener/dashboard.php',
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
                 };
                 header("Location: $redirect");
                 exit;
@@ -179,10 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $_SESSION['active_role'] = $role;
 
                 $redirect = match($role) {
-                    'admin'             => 'admin/dashboard.php',
-                    'host', 'landowner' => 'landowner/dashboard.php',
-                    'customer'          => 'gardener/browse.php',
-                    default             => 'gardener/dashboard.php',
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
                 };
                 header("Location: $redirect");
                 exit;
@@ -214,18 +212,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 extend: {
                     colors: {
                         drive: {
-                            canvas: "#fff8f3",
+                            canvas: "#eef5f0",
                             surface: "#ffffff",
-                            "surface-hover": "#fff1e8",
-                            "surface-active": "#ffd8bf",
-                            "surface-selected": "#fff4ec",
-                            primary: "#ea580c",
-                            "primary-hover": "#c2410c",
-                            "primary-text": "#7c2d12",
-                            "text-main": "#1c1917",
-                            "text-sub": "#44403c",
-                            "text-muted": "#78716c",
-                            border: "#e7e5e4",
+                            "surface-hover": "#e3efe7",
+                            "surface-active": "#cbeed6",
+                            "surface-selected": "#e8f7ec",
+                            primary: "#198754",
+                            "primary-hover": "#146c43",
+                            "primary-text": "#0f5132",
+                            "text-main": "#191c1a",
+                            "text-sub": "#404943",
+                            "text-muted": "#707973",
+                            border: "#e1e3e1",
                         }
                     },
                     fontFamily: {
@@ -238,17 +236,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 </head>
 <body class="bg-drive-canvas text-drive-text-main font-sans flex items-center justify-center min-h-screen w-screen m-0 p-4">
 
-<div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[560px] w-full shadow-lg my-6 transition-all duration-300">
-    <!-- StreetSpot Logo -->
+<div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[520px] w-full shadow-lg my-6 transition-all duration-300">
+    <!-- Google-style Logo -->
     <div class="flex justify-center items-center gap-2.5 mb-2">
-        <div class="w-11 h-11 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-xs">
-            <i class="bi bi-shop-window text-2xl"></i>
-        </div>
-        <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Street<span class="text-drive-text-main">Spot</span></span>
+        <img src="logo.jpeg" alt="IdleLand Logo" class="h-11 w-11 object-contain rounded-full shadow-sm">
+        <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Idle<span class="text-drive-text-main">Land</span></span>
     </div>
     
     <h2 class="text-2xl font-semibold text-center text-drive-text-main mb-1" id="pageTitle">Create your Account</h2>
-    <p class="text-center text-drive-text-muted mb-5 text-sm" id="pageSubtitle">Join StreetSpot to manage food parks, sell street food, or discover local favorites</p>
+    <p class="text-center text-drive-text-muted mb-5 text-sm" id="pageSubtitle">Join IdleLand to manage properties or lease urban gardens</p>
 
     <!-- Multi-Step Progress Stepper -->
     <div class="flex items-center justify-center gap-2 mb-6 select-none">
@@ -282,32 +278,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <!-- Role Selector Cards -->
             <div>
                 <label class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">I am joining as a:</label>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div id="roleCardVendor" onclick="selectRole('vendor')" class="<?php echo ($role === 'vendor' || $role === 'gardener') ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3 cursor-pointer transition-all hover:shadow-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div id="roleCardGardener" onclick="selectRole('gardener')" class="<?php echo $role === 'gardener' ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3.5 cursor-pointer transition-all hover:shadow-sm">
                         <div class="flex items-center justify-between mb-1">
-                            <i class="bi bi-fire text-xl text-orange-600"></i>
-                            <i id="checkVendor" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo ($role === 'vendor' || $role === 'gardener') ? '' : 'hidden'; ?>"></i>
+                            <i class="bi bi-flower1 text-xl text-drive-primary"></i>
+                            <i id="checkGardener" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo $role === 'gardener' ? '' : 'hidden'; ?>"></i>
                         </div>
-                        <div class="font-bold text-xs text-drive-text-main">Street Vendor</div>
-                        <div class="text-[10px] text-drive-text-muted leading-tight mt-0.5">Rent stalls & sell food</div>
+                        <div class="font-bold text-xs text-drive-text-main">Gardener</div>
+                        <div class="text-[11px] text-drive-text-muted leading-tight mt-0.5">Lease plots & grow crops</div>
                     </div>
 
-                    <div id="roleCardPropertyOwner" onclick="selectRole('property_owner')" class="<?php echo ($role === 'property_owner' || $role === 'host' || $role === 'landowner') ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm">
+                    <div id="roleCardLandowner" onclick="selectRole('landowner')" class="<?php echo $role === 'landowner' ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3.5 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm">
                         <div class="flex items-center justify-between mb-1">
-                            <i class="bi bi-building-check text-xl text-orange-600"></i>
-                            <i id="checkPropertyOwner" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo ($role === 'property_owner' || $role === 'host' || $role === 'landowner') ? '' : 'hidden'; ?>"></i>
+                            <i class="bi bi-house-door text-xl text-drive-text-sub"></i>
+                            <i id="checkLandowner" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo $role === 'landowner' ? '' : 'hidden'; ?>"></i>
                         </div>
-                        <div class="font-bold text-xs text-drive-text-main">Property Owner</div>
-                        <div class="text-[10px] text-drive-text-muted leading-tight mt-0.5">List properties & stall spaces</div>
-                    </div>
-
-                    <div id="roleCardCustomer" onclick="selectRole('customer')" class="<?php echo $role === 'customer' ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm">
-                        <div class="flex items-center justify-between mb-1">
-                            <i class="bi bi-search-heart text-xl text-orange-600"></i>
-                            <i id="checkCustomer" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo $role === 'customer' ? '' : 'hidden'; ?>"></i>
-                        </div>
-                        <div class="font-bold text-xs text-drive-text-main">Customer</div>
-                        <div class="text-[10px] text-drive-text-muted leading-tight mt-0.5">Explore food & menus</div>
+                        <div class="font-bold text-xs text-drive-text-main">Landowner</div>
+                        <div class="text-[11px] text-drive-text-muted leading-tight mt-0.5">Register idle lands</div>
                     </div>
                 </div>
             </div>
@@ -494,27 +481,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     function selectRole(role) {
         document.getElementById('selectedRoleInput').value = role;
-        const roleMap = {
-            'vendor': { card: 'roleCardVendor', check: 'checkVendor' },
-            'property_owner': { card: 'roleCardPropertyOwner', check: 'checkPropertyOwner' },
-            'customer': { card: 'roleCardCustomer', check: 'checkCustomer' }
-        };
+        const gCard = document.getElementById('roleCardGardener');
+        const lCard = document.getElementById('roleCardLandowner');
+        const gCheck = document.getElementById('checkGardener');
+        const lCheck = document.getElementById('checkLandowner');
 
-        const activeKey = (role === 'host' || role === 'landowner') ? 'property_owner' : ((role === 'gardener') ? 'vendor' : role);
-
-        Object.keys(roleMap).forEach(key => {
-            const card = document.getElementById(roleMap[key].card);
-            const check = document.getElementById(roleMap[key].check);
-            if (card && check) {
-                if (key === activeKey) {
-                    card.className = "border-2 border-drive-primary bg-drive-surface-selected rounded-2xl p-3 cursor-pointer transition-all hover:shadow-sm";
-                    check.classList.remove('hidden');
-                } else {
-                    card.className = "border border-drive-border bg-white rounded-2xl p-3 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm";
-                    check.classList.add('hidden');
-                }
-            }
-        });
+        if (role === 'gardener') {
+            gCard.className = "border-2 border-drive-primary bg-drive-surface-selected rounded-2xl p-3.5 cursor-pointer transition-all hover:shadow-sm";
+            lCard.className = "border border-drive-border bg-white rounded-2xl p-3.5 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm";
+            gCheck.classList.remove('hidden');
+            lCheck.classList.add('hidden');
+        } else {
+            lCard.className = "border-2 border-drive-primary bg-drive-surface-selected rounded-2xl p-3.5 cursor-pointer transition-all hover:shadow-sm";
+            gCard.className = "border border-drive-border bg-white rounded-2xl p-3.5 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm";
+            lCheck.classList.remove('hidden');
+            gCheck.classList.add('hidden');
+        }
     }
 
     function showAlert(message) {
@@ -557,7 +539,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             icon2.className = "w-6 h-6 rounded-full bg-gray-100 text-drive-text-muted flex items-center justify-center text-[11px]";
 
             title.textContent = "Create your Account";
-            sub.textContent   = "Join StreetSpot to manage food parks, sell street food, or discover local favorites";
+            sub.textContent   = "Join IdleLand to manage properties or lease urban gardens";
         } else {
             step1.classList.add('hidden');
             step2.classList.remove('hidden');

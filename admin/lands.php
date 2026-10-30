@@ -1,6 +1,6 @@
 <?php
 $base_path = '../';
-$page_title = "Manage Properties";
+$page_title = "Manage Lands";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
@@ -10,7 +10,7 @@ include '../includes/sidebar.php';
     <!-- Toolbar/Title Bar -->
     <div class="toolbar border-bottom">
         <div>
-            <h1 class="fs-5 fw-semibold m-0 text-dark">Manage Properties</h1>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Manage Lands</h1>
         </div>
         <div class="d-flex align-items-center gap-2">
             <button class="btn btn-outline-secondary rounded-pill btn-sm px-3" onclick="toggleMapSection()">
@@ -26,7 +26,7 @@ include '../includes/sidebar.php';
             <div class="card border rounded-4 overflow-hidden " style="border-color: var(--drive-border) !important;">
                 <div class="card-header bg-light d-flex align-items-center justify-content-between py-2 border-bottom">
                     <span class="fw-semibold text-secondary"
-                        style="font-size: 0.75rem; letter-spacing:0.5px; text-transform:uppercase;">Property Locations Map</span>
+                        style="font-size: 0.75rem; letter-spacing:0.5px; text-transform:uppercase;">Interactive Map</span>
                 </div>
                 <div id="landMap" style="height: 250px; background-color: #e9f2ff;"></div>
             </div>
@@ -43,7 +43,7 @@ include '../includes/sidebar.php';
                     data-filter="approved">Approved</button>
             </div>
             <div class="text-muted" style="font-size: 0.8rem;" id="landsCountText">
-                Showing <strong>0</strong> property listings
+                Showing <strong>0</strong> submissions
             </div>
         </div>
 
@@ -52,10 +52,10 @@ include '../includes/sidebar.php';
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-light border-bottom text-secondary"
                 style="font-size: 0.75rem; font-weight: 600;">
-                <div class="w-25">PROPERTY</div>
-                <div class="w-20">PROPERTY OWNER</div>
-                <div class="w-15">LOT AREA</div>
-                <div class="w-15">GPS COORDINATES</div>
+                <div class="w-25">TITLE</div>
+                <div class="w-20">OWNER</div>
+                <div class="w-15">AREA</div>
+                <div class="w-15">GPS</div>
                 <div class="w-10">STATUS</div>
                 <div class="w-15 text-end">ACTION</div>
             </div>
@@ -131,7 +131,7 @@ include '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content drive-modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-semibold text-dark">Reject Property Listing</h5>
+                <h5 class="modal-title fw-semibold text-dark">Reject Land</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

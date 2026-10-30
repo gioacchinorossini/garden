@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$db = 'streetfood_db';
+$db = 'garden';
 $user = 'root';
 $pass = '';
 $charset = 'utf8mb4';

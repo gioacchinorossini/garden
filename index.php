@@ -28,24 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $authenticated = true;
 
                 $redirect = match($user['role']) {
-                    'admin'                                  => 'admin/dashboard.php',
-                    'property_owner', 'host', 'landowner'   => 'landowner/dashboard.php',
-                    'customer'                               => 'gardener/browse.php',
-                    default                                  => 'gardener/dashboard.php',
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
                 };
                 header("Location: $redirect");
                 exit;
             } else {
                 // Fallback for hardcoded demo accounts if not matched in DB
                 $demo_accounts = [
-                    'admin@streetbites.com'    => ['role' => 'admin',          'name' => 'System Administrator', 'id' => 1],
-                    'owner@streetbites.com'    => ['role' => 'property_owner', 'name' => 'Juan Property Owner',   'id' => 2],
-                    'host@streetbites.com'     => ['role' => 'property_owner', 'name' => 'Juan Property Owner',   'id' => 2],
-                    'vendor@streetbites.com'   => ['role' => 'vendor',         'name' => 'Maria Street Vendor',   'id' => 3],
-                    'customer@streetbites.com' => ['role' => 'customer',       'name' => 'Pedro Foodie Customer', 'id' => 4],
-                    'admin@garden.com'         => ['role' => 'admin',          'name' => 'System Administrator', 'id' => 1],
-                    'landowner@garden.com'     => ['role' => 'property_owner', 'name' => 'John Landowner',        'id' => 2],
-                    'gardener@garden.com'      => ['role' => 'vendor',         'name' => 'Mary Gardener',         'id' => 3],
+                    'admin@garden.com'     => ['role' => 'admin',     'name' => 'System Administrator', 'id' => 1],
+                    'landowner@garden.com' => ['role' => 'landowner', 'name' => 'John Landowner',        'id' => 2],
+                    'gardener@garden.com'  => ['role' => 'gardener',  'name' => 'Mary Gardener',         'id' => 3],
                 ];
                 $key = strtolower($email);
                 if (isset($demo_accounts[$key]) && $password === 'password123') {
@@ -56,10 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $_SESSION['active_role'] = $acc['role'];
 
                     $redirect = match($acc['role']) {
-                        'admin'                                => 'admin/dashboard.php',
-                        'property_owner', 'host', 'landowner' => 'landowner/dashboard.php',
-                        'customer'                             => 'gardener/browse.php',
-                        default                                => 'gardener/dashboard.php',
+                        'admin'     => 'admin/dashboard.php',
+                        'landowner' => 'landowner/dashboard.php',
+                        default     => 'gardener/dashboard.php',
                     };
                     header("Location: $redirect");
                     exit;
@@ -69,14 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } catch (\PDOException $e) {
             // ── Fallback: hardcoded demo accounts when DB is unavailable ──
             $demo_accounts = [
-                'admin@streetbites.com'    => ['role' => 'admin',          'name' => 'System Administrator', 'id' => 1],
-                'owner@streetbites.com'    => ['role' => 'property_owner', 'name' => 'Juan Property Owner',   'id' => 2],
-                'host@streetbites.com'     => ['role' => 'property_owner', 'name' => 'Juan Property Owner',   'id' => 2],
-                'vendor@streetbites.com'   => ['role' => 'vendor',         'name' => 'Maria Street Vendor',   'id' => 3],
-                'customer@streetbites.com' => ['role' => 'customer',       'name' => 'Pedro Foodie Customer', 'id' => 4],
-                'admin@garden.com'         => ['role' => 'admin',          'name' => 'System Administrator', 'id' => 1],
-                'landowner@garden.com'     => ['role' => 'property_owner', 'name' => 'John Landowner',        'id' => 2],
-                'gardener@garden.com'      => ['role' => 'vendor',         'name' => 'Mary Gardener',         'id' => 3],
+                'admin@garden.com'     => ['role' => 'admin',     'name' => 'System Administrator', 'id' => 1],
+                'landowner@garden.com' => ['role' => 'landowner', 'name' => 'John Landowner',        'id' => 2],
+                'gardener@garden.com'  => ['role' => 'gardener',  'name' => 'Mary Gardener',         'id' => 3],
             ];
 
             $key = strtolower($email);
@@ -88,10 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $_SESSION['active_role'] = $acc['role'];
 
                 $redirect = match($acc['role']) {
-                    'admin'                                => 'admin/dashboard.php',
-                    'property_owner', 'host', 'landowner' => 'landowner/dashboard.php',
-                    'customer'                             => 'gardener/browse.php',
-                    default                                => 'gardener/dashboard.php',
+                    'admin'     => 'admin/dashboard.php',
+                    'landowner' => 'landowner/dashboard.php',
+                    default     => 'gardener/dashboard.php',
                 };
                 header("Location: $redirect");
                 exit;
@@ -108,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in - StreetSpot Vendor & Food Hub</title>
+    <title>Sign in - Idle Land Gardening</title>
     <link rel="icon" type="image/jpeg" href="logo.jpeg">
     <!-- Fonts (Local & Web Fallback) -->
     <link rel="stylesheet" href="assets/vendor/fonts/fonts.css">
@@ -128,18 +115,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 extend: {
                     colors: {
                         drive: {
-                            canvas: "#fff8f3",
+                            canvas: "#eef5f0",
                             surface: "#ffffff",
-                            "surface-hover": "#fff1e8",
-                            "surface-active": "#ffd8bf",
-                            "surface-selected": "#fff4ec",
-                            primary: "#ea580c",
-                            "primary-hover": "#c2410c",
-                            "primary-text": "#7c2d12",
-                            "text-main": "#1c1917",
-                            "text-sub": "#44403c",
-                            "text-muted": "#78716c",
-                            border: "#e7e5e4",
+                            "surface-hover": "#e3efe7",
+                            "surface-active": "#cbeed6",
+                            "surface-selected": "#e8f7ec",
+                            primary: "#198754",
+                            "primary-hover": "#146c43",
+                            "primary-text": "#0f5132",
+                            "text-main": "#191c1a",
+                            "text-sub": "#404943",
+                            "text-muted": "#707973",
+                            border: "#e1e3e1",
                         }
                     },
                     borderRadius: {
@@ -158,18 +145,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <body
     class="bg-drive-canvas text-drive-text-main font-sans flex items-center justify-center min-h-screen w-screen m-0 p-4">
 
-    <div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[480px] w-full shadow-lg">
-        <!-- Logo -->
-        <div class="flex justify-center items-center gap-2.5 mb-2">
-            <div class="w-11 h-11 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shadow-xs">
-                <i class="bi bi-shop-window text-2xl"></i>
-            </div>
-            <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Street<span
-                    class="text-drive-text-main">Spot</span></span>
+    <div class="bg-white border border-drive-border rounded-3xl p-8 max-w-[450px] w-full shadow-lg">
+        <!-- Google-style Logo -->
+        <div class="flex justify-center items-center gap-2.5 mb-3">
+            <img src="logo.jpeg" alt="IdleLand Logo" class="h-12 w-12 object-contain rounded-full shadow-sm">
+            <span class="text-3xl font-bold font-['Outfit'] tracking-tight text-drive-primary">Idle<span
+                    class="text-drive-text-main">Land</span></span>
         </div>
 
         <h2 class="text-2xl font-semibold text-center text-drive-text-main mb-1">Sign in</h2>
-        <p class="text-center text-drive-text-muted mb-6 text-sm">Street Food & Vendor Management Platform</p>
+        <p class="text-center text-drive-text-muted mb-6 text-sm">Sign in to your account</p>
 
         <!-- Sign-in Form -->
         <form id="signinForm" action="index.php" method="POST" class="needs-validation m-0" novalidate>
@@ -191,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="invalid-feedback text-xs mt-1">Please enter a valid email address.</div>
             </div>
 
-            <div class="mb-5">
+            <div class="mb-6">
                 <div class="flex justify-between items-center mb-2">
                     <label for="password"
                         class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Password</label>
@@ -205,44 +190,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="invalid-feedback text-xs mt-1">Please enter your password.</div>
             </div>
 
-            <!-- Role Quick Sign-in Grid -->
+            <!-- Role Helper Tabs / Quick 1-Click Sign-in Grid -->
             <div class="p-3.5 bg-drive-canvas border border-drive-border rounded-2xl mb-6">
                 <div class="flex items-center justify-between mb-2.5">
-                    <span class="text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Demo Quick Sign In</span>
-                    <span class="text-[10px] text-drive-text-muted">Pass: password123</span>
+                    <span class="text-[10px] font-bold text-drive-text-sub uppercase tracking-wider">Quick Sign
+                        In</span>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div class="grid grid-cols-3 gap-2">
                     <button type="button"
-                        class="flex flex-col items-center justify-center py-2 px-1.5 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
-                        onclick="quickSignIn('admin@streetbites.com')" title="Administrator">
-                        <div class="w-7 h-7 rounded-full bg-orange-50 text-drive-primary flex items-center justify-center mb-1 group-hover:bg-drive-primary group-hover:text-white transition-colors">
-                            <i class="bi bi-shield-lock-fill text-xs"></i>
+                        class="flex flex-col items-center justify-center py-2.5 px-2 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
+                        onclick="quickSignIn('admin@garden.com')" title="Sign in as Administrator">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-50 text-drive-primary flex items-center justify-center mb-1.5 group-hover:bg-drive-primary group-hover:text-white transition-colors">
+                            <i class="bi bi-shield-lock-fill text-sm"></i>
                         </div>
-                        <span class="text-[11px] font-semibold text-drive-text-main">Admin</span>
+                        <span class="text-xs font-semibold text-drive-text-main">Admin</span>
                     </button>
                     <button type="button"
-                        class="flex flex-col items-center justify-center py-2 px-1.5 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
-                        onclick="quickSignIn('owner@streetbites.com')" title="Property Owner">
-                        <div class="w-7 h-7 rounded-full bg-orange-50 text-drive-primary flex items-center justify-center mb-1 group-hover:bg-drive-primary group-hover:text-white transition-colors">
-                            <i class="bi bi-building-check text-xs"></i>
+                        class="flex flex-col items-center justify-center py-2.5 px-2 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
+                        onclick="quickSignIn('landowner@garden.com')" title="Sign in as Landowner">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-50 text-drive-primary flex items-center justify-center mb-1.5 group-hover:bg-drive-primary group-hover:text-white transition-colors">
+                            <i class="bi bi-house-door-fill text-sm"></i>
                         </div>
-                        <span class="text-[11px] font-semibold text-drive-text-main">Owner</span>
+                        <span class="text-xs font-semibold text-drive-text-main">Landowner</span>
                     </button>
                     <button type="button"
-                        class="flex flex-col items-center justify-center py-2 px-1.5 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
-                        onclick="quickSignIn('vendor@streetbites.com')" title="Street Food Vendor">
-                        <div class="w-7 h-7 rounded-full bg-orange-50 text-drive-primary flex items-center justify-center mb-1 group-hover:bg-drive-primary group-hover:text-white transition-colors">
-                            <i class="bi bi-fire text-xs"></i>
+                        class="flex flex-col items-center justify-center py-2.5 px-2 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
+                        onclick="quickSignIn('gardener@garden.com')" title="Sign in as Gardener">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-50 text-drive-primary flex items-center justify-center mb-1.5 group-hover:bg-drive-primary group-hover:text-white transition-colors">
+                            <i class="bi bi-flower1 text-sm"></i>
                         </div>
-                        <span class="text-[11px] font-semibold text-drive-text-main">Vendor</span>
-                    </button>
-                    <button type="button"
-                        class="flex flex-col items-center justify-center py-2 px-1.5 bg-white hover:bg-drive-surface-hover hover:border-drive-primary border border-drive-border rounded-xl text-center transition-all group shadow-xs active:scale-95 cursor-pointer"
-                        onclick="quickSignIn('customer@streetbites.com')" title="Foodie Customer">
-                        <div class="w-7 h-7 rounded-full bg-orange-50 text-drive-primary flex items-center justify-center mb-1 group-hover:bg-drive-primary group-hover:text-white transition-colors">
-                            <i class="bi bi-search-heart text-xs"></i>
-                        </div>
-                        <span class="text-[11px] font-semibold text-drive-text-main">Customer</span>
+                        <span class="text-xs font-semibold text-drive-text-main">Gardener</span>
                     </button>
                 </div>
             </div>

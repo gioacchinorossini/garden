@@ -1,13 +1,13 @@
 <?php
 $base_path = '../';
-$page_title = "Property Schedules";
+$page_title = "Landowner Schedules";
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-$_SESSION['active_role'] = 'property_owner';
+$_SESSION['active_role'] = 'landowner';
 if (!isset($_SESSION['user_name'])) {
-    $_SESSION['user_name'] = 'Juan Property Owner';
+    $_SESSION['user_name'] = 'John Landowner';
 }
 
 include '../includes/header.php';
@@ -19,15 +19,15 @@ include '../includes/sidebar.php';
     <!-- Desktop & Mobile Toolbar -->
     <div class="toolbar border-bottom d-flex align-items-center justify-content-between px-3 px-md-4 py-2.5 bg-white flex-shrink-0">
         <div class="d-flex align-items-center gap-2 min-w-0">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-orange-100 text-orange-600 p-2 flex-shrink-0" style="width:36px;height:36px;">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success p-2 flex-shrink-0" style="width:36px;height:36px;">
                 <i data-lucide="calendar" style="width:20px;height:20px;"></i>
             </div>
             <div class="min-w-0">
                 <h1 class="fs-6 fw-bold m-0 text-dark font-['Outfit'] text-truncate" style="line-height:1.2;">
-                    Property Schedules & Events
+                    Garden Task Schedules
                 </h1>
                 <p class="text-secondary mb-0 small text-truncate" style="font-size:0.75rem;">
-                    Coordinate night market days, maintenance, and stall operating hours
+                    Coordinate maintenance, irrigation, and stewardship across your lands
                 </p>
             </div>
         </div>
@@ -54,8 +54,8 @@ include '../includes/sidebar.php';
         <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-1">
                 <div>
-                    <span class="badge rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;">PROPERTY OWNER ACTION</span>
-                    <h5 class="modal-title fw-bold text-dark m-0">Schedule Property Event / Shift</h5>
+                    <span class="badge rounded-pill px-2.5 py-1 mb-1 fw-bold text-xs" style="background:#EBF3E8;color:#2D5A27;border:1px solid #BDDAB8;">LANDOWNER ACTION</span>
+                    <h5 class="modal-title fw-bold text-dark m-0">Schedule Garden Task</h5>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -63,22 +63,25 @@ include '../includes/sidebar.php';
                 <form id="addTaskForm">
                     <div class="mb-3">
                         <label for="title" class="form-label text-secondary mb-1"
-                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">EVENT / SHIFT NAME <span class="text-danger">*</span></label>
+                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">TASK NAME <span class="text-danger">*</span></label>
                         <input type="text" class="form-control drive-form-control w-100" id="title" name="title"
-                            required placeholder="e.g. Weekend Street Food Bazaar Rush">
+                            required placeholder="e.g., Morning Irrigation & Soil Moisture Check">
                     </div>
 
                     <div class="mb-3">
                         <label for="task_type" class="form-label text-secondary mb-1"
-                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">CATEGORY <span class="text-danger">*</span></label>
+                            style="font-size: 0.72rem; font-weight:700; letter-spacing:0.5px;">TASK CATEGORY <span class="text-danger">*</span></label>
                         <select class="form-select drive-form-control w-100" id="task_type" name="task_type" required>
-                            <option value="night_market">🔥 Evening Street Food Shift</option>
-                            <option value="prep">🔪 Food Prep & Meat Marination</option>
-                            <option value="event">🎪 Weekend Food Bazaar Event</option>
-                            <option value="cleaning">🧹 Facility & Grease Trap Cleaning</option>
-                            <option value="maintenance">⚡ Power, Gas & Water Maintenance</option>
-                            <option value="pests">🛡️ Sanitation & Pest Inspection</option>
-                            <option value="restock">📦 Beverage & Ice Restock</option>
+                            <option value="watering">💧 Watering / Irrigation</option>
+                            <option value="planting">🌱 Planting / Seedlings</option>
+                            <option value="weeding">🌿 Weeding & Bed Cleanup</option>
+                            <option value="pruning">✂️ Pruning & Tree Care</option>
+                            <option value="mulching">🪵 Mulching & Moisture Retention</option>
+                            <option value="fertilizing">🧪 Organic Compost & Feeding</option>
+                            <option value="trellising">🎋 Trellising & Staking</option>
+                            <option value="harvesting">🌾 Harvesting Crops</option>
+                            <option value="pests">🐛 Pest Scouting & Control</option>
+                            <option value="cleaning">🧹 Tool & Facility Sanitizing</option>
                         </select>
                     </div>
 

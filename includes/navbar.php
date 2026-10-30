@@ -26,7 +26,7 @@ if (!isset($_SESSION['user_id'])) {
 // Handle role switcher action
 if (isset($_GET['switch_role'])) {
     $role = $_GET['switch_role'];
-    if (in_array($role, ['admin', 'property_owner', 'landowner', 'vendor', 'gardener', 'customer'])) {
+    if (in_array($role, ['admin', 'landowner', 'gardener'])) {
         $_SESSION['active_role'] = $role;
         $base = isset($base_path) ? $base_path : '';
         if ($role == 'admin') {
@@ -34,20 +34,15 @@ if (isset($_GET['switch_role'])) {
             $_SESSION['user_name'] = 'System Administrator';
             header("Location: " . $base . "admin/dashboard.php");
             exit;
-        } elseif ($role == 'property_owner' || $role == 'landowner') {
+        } elseif ($role == 'landowner') {
             $_SESSION['user_id'] = 2;
-            $_SESSION['user_name'] = 'Juan Property Owner';
+            $_SESSION['user_name'] = 'John Landowner';
             header("Location: " . $base . "landowner/dashboard.php");
             exit;
-        } elseif ($role == 'vendor' || $role == 'gardener') {
+        } elseif ($role == 'gardener') {
             $_SESSION['user_id'] = 3;
-            $_SESSION['user_name'] = 'Maria Street Vendor';
+            $_SESSION['user_name'] = 'Mary Gardener';
             header("Location: " . $base . "gardener/dashboard.php");
-            exit;
-        } elseif ($role == 'customer') {
-            $_SESSION['user_id'] = 4;
-            $_SESSION['user_name'] = 'Pedro Foodie Customer';
-            header("Location: " . $base . "gardener/browse.php");
             exit;
         }
     }
@@ -62,11 +57,9 @@ if (isset($_GET['switch_role'])) {
             <i class="bi bi-list text-xl leading-none"></i>
         </button>
         <a href="<?php echo $bp; ?>index.php" class="flex items-center gap-2 text-decoration-none flex-shrink-0">
-            <div class="h-7 w-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shadow-xs">
-                <i class="bi bi-shop-window text-base"></i>
-            </div>
+            <img src="<?php echo $bp; ?>logo.jpeg" alt="IdleLand Logo" class="h-7 w-7 object-contain rounded-full shadow-xs">
             <span class="text-lg font-semibold text-drive-text-main font-['Outfit'] tracking-tight hidden md:inline">
-                <span class="text-drive-primary">Street</span>Spot
+                <span class="text-drive-primary">Idle</span>Land
             </span>
         </a>
 
@@ -80,7 +73,7 @@ if (isset($_GET['switch_role'])) {
             </div>
         <?php else: ?>
             <span class="text-base font-semibold text-drive-text-main font-['Outfit'] tracking-tight md:hidden">
-                <span class="text-drive-primary">Street</span>Spot
+                <span class="text-drive-primary">Idle</span>Land
             </span>
         <?php endif; ?>
     </div>
@@ -209,8 +202,8 @@ if (isset($_GET['switch_role'])) {
                     </div>
                 </li>
 
-                <!-- Profile Link (if property owner) -->
-                <?php if ($role === 'property_owner' || $role === 'landowner'): ?>
+                <!-- Profile Link (if landowner) -->
+                <?php if ($role === 'landowner'): ?>
                 <li>
                     <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center gap-2 text-drive-text-sub hover:bg-drive-surface-hover"
                         href="<?php echo $bp; ?>landowner/profile.php">
@@ -241,43 +234,29 @@ if (isset($_GET['switch_role'])) {
                     </a>
                 </li>
 
-                <!-- Property Owner Option -->
+                <!-- Landowner Option -->
                 <li>
-                    <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo ($_SESSION['active_role'] == 'property_owner' || $_SESSION['active_role'] == 'landowner') ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
-                        href="?switch_role=property_owner">
+                    <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo $_SESSION['active_role'] == 'landowner' ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
+                        href="?switch_role=landowner">
                         <span class="flex items-center gap-2">
-                            <i class="bi bi-building-check text-sm"></i>
-                            <span>Property Owner</span>
+                            <i class="bi bi-house text-sm"></i>
+                            <span>Landowner</span>
                         </span>
-                        <?php if ($_SESSION['active_role'] == 'property_owner' || $_SESSION['active_role'] == 'landowner'): ?>
+                        <?php if ($_SESSION['active_role'] == 'landowner'): ?>
                             <i class="bi bi-check2 text-drive-primary font-bold"></i>
                         <?php endif; ?>
                     </a>
                 </li>
 
-                <!-- Street Vendor Option -->
+                <!-- Gardener Option -->
                 <li>
-                    <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo ($_SESSION['active_role'] == 'vendor' || $_SESSION['active_role'] == 'gardener') ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
-                        href="?switch_role=vendor">
+                    <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo $_SESSION['active_role'] == 'gardener' ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
+                        href="?switch_role=gardener">
                         <span class="flex items-center gap-2">
-                            <i class="bi bi-fire text-sm"></i>
-                            <span>Street Vendor</span>
+                            <i class="bi bi-flower1 text-sm"></i>
+                            <span>Gardener</span>
                         </span>
-                        <?php if ($_SESSION['active_role'] == 'vendor' || $_SESSION['active_role'] == 'gardener'): ?>
-                            <i class="bi bi-check2 text-drive-primary font-bold"></i>
-                        <?php endif; ?>
-                    </a>
-                </li>
-
-                <!-- Customer Option -->
-                <li>
-                    <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo $_SESSION['active_role'] == 'customer' ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
-                        href="?switch_role=customer">
-                        <span class="flex items-center gap-2">
-                            <i class="bi bi-search-heart text-sm"></i>
-                            <span>Customer</span>
-                        </span>
-                        <?php if ($_SESSION['active_role'] == 'customer'): ?>
+                        <?php if ($_SESSION['active_role'] == 'gardener'): ?>
                             <i class="bi bi-check2 text-drive-primary font-bold"></i>
                         <?php endif; ?>
                     </a>
