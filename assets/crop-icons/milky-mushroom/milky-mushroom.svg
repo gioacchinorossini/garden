@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: milky-mushroom (Milky mushroom) -->
+
+  <!-- Mushroom stalk -->
+  <path d="M 44 54 L 42 88 C 42 92 58 92 58 88 L 56 54 Z" fill="#CFD8DC"/>
+  <path d="M 46 54 L 44 86 C 44 90 56 90 56 86 L 54 54 Z" fill="#ECEFF1"/>
+  <!-- Cap -->
+  <path d="M 50 16 C 24 16 12 36 12 52 C 12 56 88 56 88 52 C 88 36 76 16 50 16 Z" fill="#5D4037"/>
+  <path d="M 50 18 C 26 18 14 36 14 50 C 20 54 80 54 86 50 C 86 36 74 18 50 18 Z" fill="#8D6E63"/>
+  <circle cx="34" cy="32" r="5" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="56" cy="28" r="4" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="68" cy="40" r="4" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="44" cy="42" r="3" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

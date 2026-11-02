@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: lanzones (Lanzones) -->
+
+  <!-- Twig with cluster of buff-yellow berries -->
+  <path d="M 30 14 Q 50 30 65 50" stroke="#5D4037" stroke-width="3.5" fill="none"/>
+  <!-- Berry 1 (back) -->
+  <circle cx="36" cy="40" r="14" fill="#C7A75C"/>
+  <circle cx="35" cy="39" r="13" fill="#FFE082"/>
+  <!-- Berry 2 -->
+  <circle cx="62" cy="42" r="15" fill="#C7A75C"/>
+  <circle cx="61" cy="41" r="14" fill="#FFE082"/>
+  <!-- Berry 3 -->
+  <circle cx="44" cy="62" r="16" fill="#C7A75C"/>
+  <circle cx="43" cy="60" r="15" fill="#FFE082"/>
+  <!-- Berry 4 -->
+  <circle cx="68" cy="66" r="15" fill="#C7A75C"/>
+  <circle cx="67" cy="65" r="14" fill="#FFE082"/>
+  <!-- Berry 5 (front bottom) -->
+  <circle cx="52" cy="80" r="14" fill="#C7A75C"/>
+  <circle cx="51" cy="79" r="13" fill="#FFE082"/>
+  <!-- Brown tip dots on berries -->
+  <circle cx="35" cy="48" r="1.5" fill="#5D4037"/>
+  <circle cx="61" cy="50" r="1.5" fill="#5D4037"/>
+  <circle cx="43" cy="72" r="1.5" fill="#5D4037"/>
+  <circle cx="67" cy="76" r="1.5" fill="#5D4037"/>
+  <circle cx="51" cy="88" r="1.5" fill="#5D4037"/>
+  <!-- Highlights -->
+  <circle cx="40" cy="56" r="2" fill="#FFFFFF" opacity="0.85"/>
+  <circle cx="64" cy="60" r="2" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

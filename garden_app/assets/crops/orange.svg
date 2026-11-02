@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: orange (Orange) -->
+
+  <!-- Leaf and Stem -->
+  <path d="M 50 20 C 40 8 26 12 24 22 C 34 24 44 22 50 20 Z" fill="#2E7D32"/>
+  <path d="M 50 20 C 50 14 54 8 56 6" stroke="#4E342E" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Shadow & Orange Body -->
+  <circle cx="50" cy="58" r="34" fill="#D84315"/>
+  <circle cx="50" cy="56" r="32" fill="#FF9800"/>
+  <circle cx="48" cy="54" r="28" fill="#FFA726"/>
+  <!-- Citrus peel dots -->
+  <circle cx="42" cy="46" r="1" fill="#FB8C00"/>
+  <circle cx="58" cy="62" r="1" fill="#FB8C00"/>
+  <circle cx="40" cy="68" r="1" fill="#FB8C00"/>
+  <circle cx="54" cy="48" r="1" fill="#FB8C00"/>
+  <!-- Highlight -->
+  <path d="M 68 42 C 74 50 74 62 70 70" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <circle cx="62" cy="36" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

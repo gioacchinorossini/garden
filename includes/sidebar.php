@@ -54,10 +54,20 @@ $bp = isset($base_path) ? $base_path : '';
                     <i data-lucide="trees" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
                     <span class="sidebar-text truncate">My Lands</span>
                 </a>
+                <a href="<?php echo $bp; ?>landowner/plots.php" title="Farm & Plots"
+                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'plots.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
+                    <i data-lucide="grid-3x3" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Farm & Plots</span>
+                </a>
                 <a href="<?php echo $bp; ?>landowner/requests.php" title="Requests"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'requests.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
                     <i data-lucide="file-text" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
                     <span class="sidebar-text truncate">Requests</span>
+                </a>
+                <a href="<?php echo $bp; ?>landowner/reports.php" title="Rental Earnings Report"
+                    class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'reports.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">
+                    <i data-lucide="bar-chart-3" class="flex-shrink-0" style="width: 18px; height: 18px;"></i>
+                    <span class="sidebar-text truncate">Earnings Report</span>
                 </a>
                 <a href="<?php echo $bp; ?>landowner/schedules.php" title="Schedules"
                     class="sidebar-nav-link flex items-center gap-4 px-4 h-10 rounded-full text-sm transition-colors text-decoration-none <?php echo ($current_page == 'schedules.php') ? 'bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover font-medium'; ?>">

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: mango (Mango) -->
+
+  <g id="leaf">
+    <path d="M 52 14 C 40 8 30 18 32 30 C 44 26 50 18 52 14 Z" fill="#2E7D32"/>
+    <path d="M 52 14 C 44 14 36 22 32 30" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+  </g>
+  <g id="stem">
+    <path d="M 50 25 C 50 18 53 14 55 10" stroke="#4E342E" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  </g>
+  <g id="body">
+    <!-- Contour shadow -->
+    <path d="M 48 24 C 28 24 16 42 18 64 C 20 82 38 94 56 94 C 74 94 88 80 86 58 C 84 38 68 24 48 24 Z" fill="#E65100"/>
+    <!-- Main golden body -->
+    <path d="M 48 24 C 29 24 20 42 22 62 C 24 78 40 90 56 90 C 72 90 84 76 82 56 C 80 38 66 24 48 24 Z" fill="#FBC02D"/>
+    <!-- Warm blush gradient/patch -->
+    <path d="M 46 26 C 36 28 28 40 28 56 C 28 72 40 84 52 86 C 40 82 32 70 32 54 C 32 40 38 30 46 26 Z" fill="#FFA000"/>
+    <!-- Characteristic carabao mango tip curve -->
+    <path d="M 56 90 C 62 90 68 86 70 80 C 66 84 60 86 54 86 Z" fill="#F57F17"/>
+    <!-- Glossy highlight arc & dot -->
+    <path d="M 68 38 C 76 48 76 62 72 70" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>
+    <circle cx="60" cy="32" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+  </g>
+
+</svg>

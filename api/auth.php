@@ -73,18 +73,6 @@ if ($method === 'POST') {
                 if (password_verify($password, $user['password']) || $password === 'password123' || $user['password'] === $password) {
                     $authenticated = true;
                 }
-            } else {
-                // Demo fallback if users table hasn't been seeded yet
-                if ($email === 'admin@garden.com') {
-                    $user = ['id' => 1, 'name' => 'System Administrator', 'email' => $email, 'role' => 'admin', 'phone' => '09170000000', 'status' => 'active'];
-                    $authenticated = true;
-                } elseif ($email === 'landowner@garden.com') {
-                    $user = ['id' => 2, 'name' => 'John Landowner', 'email' => $email, 'role' => 'landowner', 'phone' => '09171112222', 'status' => 'active'];
-                    $authenticated = true;
-                } elseif ($email === 'gardener@garden.com') {
-                    $user = ['id' => 3, 'name' => 'Mary Gardener', 'email' => $email, 'role' => 'gardener', 'phone' => '09173334444', 'status' => 'active'];
-                    $authenticated = true;
-                }
             }
 
             if ($authenticated && $user) {

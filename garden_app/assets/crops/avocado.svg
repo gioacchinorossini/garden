@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: avocado (Avocado) -->
+
+  <g id="body">
+    <!-- Dark green pebbled skin contour -->
+    <path d="M 50 14 C 36 14 30 28 28 44 C 24 64 18 74 18 82 C 18 92 32 96 50 96 C 68 96 82 92 82 82 C 82 74 76 64 72 44 C 70 28 64 14 50 14 Z" fill="#1B5E20"/>
+    <!-- Pale lime inner flesh -->
+    <path d="M 50 18 C 38 18 34 30 32 44 C 28 62 22 72 22 80 C 22 88 34 92 50 92 C 66 92 78 88 78 80 C 78 72 72 62 68 44 C 66 30 62 18 50 18 Z" fill="#C5E1A5"/>
+    <path d="M 50 22 C 40 22 36 32 34 44 C 32 60 26 70 26 78 C 26 84 36 88 50 88 C 64 88 74 84 74 78 C 74 70 68 60 66 44 C 64 32 60 22 50 22 Z" fill="#E8F5E9"/>
+    <!-- Brown round Seed -->
+    <circle cx="50" cy="68" r="16" fill="#3E2723"/>
+    <circle cx="48" cy="66" r="15" fill="#5D4037"/>
+    <circle cx="46" cy="64" r="13" fill="#6D4C41"/>
+    <!-- Highlights -->
+    <ellipse cx="43" cy="60" rx="3" ry="4" fill="#8D6E63" opacity="0.8"/>
+    <path d="M 70 40 C 74 52 74 66 70 76" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+  </g>
+
+</svg>

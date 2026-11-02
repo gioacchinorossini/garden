@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
 
-    $gardener_id = $_SESSION['user_id'] ?? 3;
-    $gardener_name = $_SESSION['user_name'] ?? 'Mary Gardener';
+    $gardener_id = $_SESSION['user_id'] ?? null;
+    $gardener_name = $_SESSION['user_name'] ?? 'Gardener';
 
     try {
         $stmt = $pdo->prepare("
@@ -424,6 +424,9 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                         <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="pending" onclick="filterGardenerRequests('pending')">
                             Pending <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis ms-1" id="filterCountPending">0</span>
                         </button>
+                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="offer_sent" onclick="filterGardenerRequests('offer_sent')">
+                            Offers <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis ms-1" id="filterCountOffer">0</span>
+                        </button>
                         <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="approved" onclick="filterGardenerRequests('approved')">
                             Approved <span class="badge rounded-pill bg-success-subtle text-success ms-1" id="filterCountApproved">0</span>
                         </button>
@@ -456,15 +459,18 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                 <h5 class="modal-title fw-bold text-dark">Application Details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-start pt-2">
-                <div class="d-flex align-items-center gap-3 p-3 rounded-4 mb-3" style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
-                    <div class="gardener-request-icon-wrap" style="width:46px;height:46px;min-width:46px;">
-                        <img src="../assets/images/land_icon.svg" alt="Land Icon" class="gardener-request-icon-img" width="46" height="46">
+            <div class="modal-body text-start pt-2" style="max-height: calc(85vh - 100px); overflow-y: auto;">
+                <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-3" style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
+                    <div class="d-flex align-items-center gap-3 min-w-0">
+                        <div class="gardener-request-icon-wrap" style="width:46px;height:46px;min-width:46px;">
+                            <img src="../assets/images/land_icon.svg" alt="Land Icon" class="gardener-request-icon-img" width="46" height="46">
+                        </div>
+                        <div class="min-w-0">
+                            <span class="text-secondary fw-bold text-uppercase d-block" style="font-size: 10px; letter-spacing:0.4px;">TARGET PLOT &amp; LAND</span>
+                            <h6 id="modal_land_title" class="fw-bold text-dark mb-0 text-truncate"></h6>
+                        </div>
                     </div>
-                    <div class="min-w-0">
-                        <span class="text-secondary fw-bold text-uppercase d-block" style="font-size: 10px; letter-spacing:0.4px;">TARGET PLOT &amp; LAND</span>
-                        <h6 id="modal_land_title" class="fw-bold text-dark mb-0 text-truncate"></h6>
-                    </div>
+                    <div id="modal_status_badge" class="flex-shrink-0 ms-2"></div>
                 </div>
                 <div class="mb-3">
                     <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">PROPOSED PURPOSE</label>
@@ -475,10 +481,107 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                     <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">LEASE DURATION</label>
                     <div id="modal_duration" class="text-dark fw-medium"></div>
                 </div>
+
+                <!-- Incoming Rental Offer Section (Panel Feedback: Gardener decides whether to approve offer) -->
+                <div class="mb-3 d-none" id="modal_offer_section">
+                    <div class="p-3 rounded-4 border" style="background:#FFFDF7;border-color:#FCD34D !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;">
+                                <i class="bi bi-tag-fill me-1 text-warning"></i> Incoming Rental Offer
+                            </span>
+                            <span class="text-muted small" style="font-size:11px;">Standard: 50 m² @ ₱110k/yr</span>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-2">
+                            <span class="fs-4 fw-bolder text-dark" id="modal_offer_rate">₱110,000.00</span>
+                            <span class="text-secondary small fw-medium" id="modal_offer_duration">/ Year</span>
+                        </div>
+                        <div class="small text-secondary mb-3 p-2.5 rounded-3 bg-white border border-light-subtle" id="modal_offer_terms">
+                            Standard community gardening lease. Organic vegetables, composting, and water access included.
+                        </div>
+                        <div class="d-flex align-items-center gap-2 pt-1 flex-wrap" id="modal_offer_actions">
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold" id="btnModalDeclineOffer">
+                                <i class="bi bi-x-circle me-1"></i> Decline
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold" id="btnModalToggleCounter" onclick="toggleCounterOfferForm()">
+                                <i class="bi bi-arrow-left-right me-1"></i> Counter-Offer
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-semibold text-white shadow-xs ms-auto" id="btnModalApproveOffer">
+                                <i class="bi bi-check-circle-fill me-1"></i> Approve &amp; Lease
+                            </button>
+                        </div>
+
+                        <!-- Expandable Gardener Counter-Offer Form -->
+                        <div class="mt-3 pt-3 border-top d-none" id="modal_counter_form_container">
+                            <h6 class="fw-bold text-dark text-xs text-uppercase mb-2 d-flex align-items-center gap-1.5">
+                                <i class="bi bi-pencil-square text-primary"></i> Propose Rental Counter-Offer
+                            </h6>
+                            <div class="mb-2.5">
+                                <label class="form-label text-secondary fw-semibold text-xs mb-1">PROPOSED ANNUAL RENT (₱ / YEAR)</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light fw-bold text-dark">₱</span>
+                                    <input type="number" step="500" class="form-control fw-bold text-dark" id="modal_counter_rate_input" placeholder="e.g. 95000" oninput="updateCounterMonthlyCalc()">
+                                    <span class="input-group-text bg-light text-muted" id="modal_counter_monthly_calc">/ Year</span>
+                                </div>
+                            </div>
+                            <div class="mb-2.5">
+                                <label class="form-label text-secondary fw-semibold text-xs mb-1">PROPOSAL NOTES / TERMS (OPTIONAL)</label>
+                                <textarea class="form-control form-control-sm text-xs" id="modal_counter_notes_input" rows="2" placeholder="Explain your proposed rate or rental payment preferences..."></textarea>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 text-xs" onclick="toggleCounterOfferForm(false)">Cancel</button>
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 text-xs fw-semibold" id="btnSubmitCounterOffer" onclick="submitCurrentCounterOffer()">
+                                    <i class="bi bi-send-fill me-1"></i> Send Counter-Offer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Counter-Offer Status Banner (When already counter_offered) -->
+                <div class="mb-3 d-none" id="modal_counter_offered_section">
+                    <div class="p-3 rounded-4 border" style="background:#F0FDF4;border-color:#BBF7D0 !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;">
+                                <i class="bi bi-arrow-left-right me-1 text-success"></i> Counter-Offer Submitted
+                            </span>
+                            <span class="text-muted small" style="font-size:11px;">Awaiting Landowner Response</span>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <span class="fs-4 fw-bolder text-dark" id="modal_counter_rate_display">₱95,000.00</span>
+                            <span class="text-secondary small fw-medium">/ Year</span>
+                            <span class="text-muted small" id="modal_counter_monthly_display">(₱7,916.67/mo)</span>
+                        </div>
+                        <div class="small text-secondary p-2.5 rounded-3 bg-white border border-light-subtle" id="modal_counter_notes_display">
+                            No notes attached.
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-3 d-none" id="modal_feedback_section">
                     <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">LANDOWNER RESPONSE &amp; GUIDELINES</label>
                     <div class="alert alert-info py-2" style="font-size: 0.85rem; border-radius: 8px;"
                         id="modal_feedback"></div>
+                </div>
+                <!-- Land Location Map inside Application Details -->
+                <div class="mb-3" id="modal_map_section">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="text-secondary fw-semibold mb-0" style="font-size: 11px;">LAND LOCATION</label>
+                        <span class="text-muted small" id="modal_map_coords" style="font-size: 0.72rem;"></span>
+                    </div>
+                    <div class="text-secondary small mb-2 d-flex align-items-center gap-1.5" id="modal_land_address_wrap">
+                        <i class="bi bi-geo-alt-fill text-success"></i>
+                        <span id="modal_land_address" class="text-truncate"></span>
+                    </div>
+                    <div class="rounded-4 overflow-hidden border mb-2" style="border-color:#DFCFC2 !important;">
+                        <div id="modalDetailsLeafletMap" style="height: 190px; width: 100%; z-index: 1;"></div>
+                    </div>
+                    <div class="text-end">
+                        <a id="modal_gmaps_link" href="#" target="_blank" rel="noopener"
+                           class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5 text-decoration-none"
+                           style="background:#E8F3F8;color:#204E6E;border:1.5px solid #C4DCEB;font-size:0.75rem;">
+                            <i class="bi bi-box-arrow-up-right"></i> Open in Google Maps
+                        </a>
+                    </div>
                 </div>
                 <div class="d-flex justify-content-end pt-2">
                     <button type="button" class="btn btn-drive-primary rounded-pill px-4" data-bs-dismiss="modal">Close</button>

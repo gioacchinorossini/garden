@@ -25,14 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $exists = true;
         }
     } catch (\Exception $e) {
-        if (isset($_SESSION['mock_users']) && is_array($_SESSION['mock_users'])) {
-            foreach ($_SESSION['mock_users'] as $u) {
-                if (strtolower($u['email']) === $email) {
-                    $exists = true;
-                    break;
-                }
-            }
-        }
+        // DB error handled on submission
     }
 
     if ($exists) {
@@ -150,41 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 exit;
             }
         } catch (\PDOException $e) {
-            // ── Fallback: session-based mock when DB is unavailable ─────────
-            if (!isset($_SESSION['mock_users']) || !is_array($_SESSION['mock_users'])) {
-                $_SESSION['mock_users'] = [
-                    ['id' => 1, 'name' => 'System Administrator', 'email' => 'admin@garden.com',     'role' => 'admin',     'phone' => '09170000000', 'status' => 'active'],
-                    ['id' => 2, 'name' => 'John Landowner',       'email' => 'landowner@garden.com', 'role' => 'landowner', 'phone' => '09171112222', 'status' => 'active'],
-                    ['id' => 3, 'name' => 'Mary Gardener',        'email' => 'gardener@garden.com',  'role' => 'gardener',  'phone' => '09173334444', 'status' => 'active'],
-                ];
-            }
-
-            $exists = false;
-            foreach ($_SESSION['mock_users'] as $u) {
-                if (strtolower($u['email']) === $email) { $exists = true; break; }
-            }
-
-            if ($exists) {
-                $error_message = 'An account with this email address already exists. Please sign in instead.';
-                $current_step  = 1;
-            } else {
-                $new_id   = count($_SESSION['mock_users']) + 1;
-                $new_user = ['id' => $new_id, 'name' => $name, 'email' => $email, 'role' => $role, 'phone' => $phone, 'status' => 'active'];
-                $_SESSION['mock_users'][] = $new_user;
-
-                $_SESSION['user_id']     = $new_id;
-                $_SESSION['user_name']   = $name;
-                $_SESSION['user_email']  = $email;
-                $_SESSION['active_role'] = $role;
-
-                $redirect = match($role) {
-                    'admin'     => 'admin/dashboard.php',
-                    'landowner' => 'landowner/dashboard.php',
-                    default     => 'gardener/dashboard.php',
-                };
-                header("Location: $redirect");
-                exit;
-            }
+            $error_message = 'Database error: Unable to create account right now. Please try again later.';
+            $current_step = 1;
         }
     }
 }
@@ -260,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
 
     <!-- Global Alert Box -->
-    <div id="globalAlert" class="<?php echo !empty($error_message) ? '' : 'hidden'; ?> alert alert-danger rounded-2xl text-xs py-3 px-4 mb-4 d-flex align-items-center gap-2 border-0 shadow-xs">
+    <div id="globalAlert" class="<?php echo !empty($error_message) ? 'flex' : 'hidden'; ?> alert alert-danger rounded-2xl text-xs py-3 px-4 mb-4 items-center gap-2 border-0 shadow-xs">
         <i class="bi bi-exclamation-triangle-fill flex-shrink-0 fs-6"></i>
         <span id="globalAlertText"><?php echo htmlspecialchars($error_message); ?></span>
     </div>
@@ -280,17 +240,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <label class="block text-[10px] font-bold text-drive-text-sub uppercase tracking-wider mb-2">I am joining as a:</label>
                 <div class="grid grid-cols-2 gap-3">
                     <div id="roleCardGardener" onclick="selectRole('gardener')" class="<?php echo $role === 'gardener' ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3.5 cursor-pointer transition-all hover:shadow-sm">
-                        <div class="flex items-center justify-between mb-1">
-                            <i class="bi bi-flower1 text-xl text-drive-primary"></i>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <img src="assets/images/roles/gardener-64px.png" alt="Gardener" class="w-8 h-8 object-contain">
                             <i id="checkGardener" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo $role === 'gardener' ? '' : 'hidden'; ?>"></i>
                         </div>
                         <div class="font-bold text-xs text-drive-text-main">Gardener</div>
-                        <div class="text-[11px] text-drive-text-muted leading-tight mt-0.5">Lease plots & grow crops</div>
+                        <div class="text-[11px] text-drive-text-muted leading-tight mt-0.5">Lease plots &amp; grow crops</div>
                     </div>
 
                     <div id="roleCardLandowner" onclick="selectRole('landowner')" class="<?php echo $role === 'landowner' ? 'border-2 border-drive-primary bg-drive-surface-selected' : 'border border-drive-border bg-white'; ?> rounded-2xl p-3.5 cursor-pointer transition-all hover:border-drive-primary hover:shadow-sm">
-                        <div class="flex items-center justify-between mb-1">
-                            <i class="bi bi-house-door text-xl text-drive-text-sub"></i>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <img src="assets/images/roles/landowner-64px.png" alt="Landowner" class="w-8 h-8 object-contain">
                             <i id="checkLandowner" class="bi bi-check-circle-fill text-drive-primary text-sm <?php echo $role === 'landowner' ? '' : 'hidden'; ?>"></i>
                         </div>
                         <div class="font-bold text-xs text-drive-text-main">Landowner</div>
@@ -504,10 +464,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         const alertText = document.getElementById('globalAlertText');
         alertText.textContent = message;
         alertBox.classList.remove('hidden');
+        alertBox.classList.add('flex');
     }
 
     function hideAlert() {
         const alertBox = document.getElementById('globalAlert');
+        alertBox.classList.remove('flex');
         alertBox.classList.add('hidden');
     }
 

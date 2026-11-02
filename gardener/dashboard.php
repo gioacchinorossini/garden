@@ -9,7 +9,7 @@ if (session_status() == PHP_SESSION_NONE)
     session_start();
 $_SESSION['active_role'] = 'gardener';
 if (!isset($_SESSION['user_name']))
-    $_SESSION['user_name'] = 'Mary Gardener';
+    $_SESSION['user_name'] = 'Gardener';
 
 require_once '../includes/db.php';
 require_once '../includes/lands_helper.php';
@@ -538,6 +538,10 @@ unset($land);
             if (lower.includes(key) || key.includes(lower)) {
                 return CROP_ICON_MAP[key];
             }
+        }
+        const slug = lower.replace(/\(.*?\)/g, '').trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (slug) {
+            return `${slug}/${slug}.svg`;
         }
         return 'generic-plant/generic-plant.svg';
     }

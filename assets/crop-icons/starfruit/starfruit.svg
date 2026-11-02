@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: starfruit (Starfruit) -->
+
+  <!-- Longitudinal 5-star ribbed golden yellow carambola -->
+  <path d="M 50 10 L 52 14 Q 50 50 50 90 L 48 90 Q 48 50 50 10 Z" fill="#E65100"/>
+  <!-- Central ridge and side wings -->
+  <path d="M 50 12 C 34 26 26 50 28 82 C 38 88 46 90 50 90 C 54 90 62 88 72 82 C 74 50 66 26 50 12 Z" fill="#F57F17"/>
+  <!-- Main yellow golden face -->
+  <path d="M 50 14 C 36 28 30 50 32 78 C 38 84 44 86 50 86 C 56 86 62 84 68 78 C 70 50 64 28 50 14 Z" fill="#FDD835"/>
+  <!-- Center prominent star rib -->
+  <path d="M 50 14 C 48 34 48 64 50 86 C 52 64 52 34 50 14 Z" fill="#FFEE58"/>
+  <!-- Orange-amber translucent rib edges -->
+  <path d="M 32 78 C 30 50 36 28 50 14" stroke="#FB8C00" stroke-width="2.5" fill="none"/>
+  <path d="M 68 78 C 70 50 64 28 50 14" stroke="#FB8C00" stroke-width="2.5" fill="none"/>
+  <!-- Highlights -->
+  <path d="M 44 32 C 42 46 42 62 45 74" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <circle cx="56" cy="30" r="2" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

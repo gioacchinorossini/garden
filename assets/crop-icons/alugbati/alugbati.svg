@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: alugbati (Alugbati) -->
+
+  <!-- Heart-shaped succulent leaves on reddish-purple vine stem -->
+  <path d="M 30 94 Q 45 60 65 14" stroke="#880E4F" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Leaf 1 (top) -->
+  <path d="M 65 18 C 65 10 75 8 80 16 C 85 24 75 32 65 30 Z" fill="#2E7D32"/>
+  <!-- Leaf 2 (mid left) -->
+  <path d="M 44 48 C 30 38 18 44 22 56 C 26 68 40 64 44 54 Z" fill="#388E3C"/>
+  <!-- Leaf 3 (mid right) -->
+  <path d="M 52 56 C 66 48 78 52 76 64 C 74 76 60 74 52 62 Z" fill="#43A047"/>
+  <!-- Leaf 4 (lower) -->
+  <path d="M 38 78 C 24 70 14 78 18 90 C 22 98 36 94 38 84 Z" fill="#2E7D32"/>
+  <!-- Red leaf veins -->
+  <path d="M 44 48 Q 28 52 22 56" stroke="#AD1457" stroke-width="1.5" fill="none"/>
+  <path d="M 52 56 Q 68 60 76 64" stroke="#AD1457" stroke-width="1.5" fill="none"/>
+
+</svg>

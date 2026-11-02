@@ -55,8 +55,14 @@ if ($method === 'POST') {
         $stmtPlot->execute([$plot_id]);
         $plot_num = $stmtPlot->fetchColumn() ?: "Plot";
 
-        $gardener_id = $_SESSION['user_id'] ?? 3;
-        $gardener_name = $_SESSION['user_name'] ?? 'Mary Gardener';
+        $gardener_id = $_SESSION['user_id'] ?? null;
+        $gardener_name = $_SESSION['user_name'] ?? '';
+
+        if (!$gardener_id) {
+            http_response_code(401);
+            echo json_encode(['status' => 'error', 'message' => 'Please log in to submit a plot request.']);
+            exit;
+        }
 
         try {
             $stmt = $pdo->prepare("
@@ -96,12 +102,181 @@ if ($method === 'POST') {
         exit;
     }
 
+    if ($action === 'make_rental_offer') {
+        $id = isset($input['id']) ? intval($input['id']) : 0;
+        $rate = isset($input['offered_rental_rate']) ? floatval($input['offered_rental_rate']) : (isset($input['rental_rate']) ? floatval($input['rental_rate']) : 110000.00);
+        $duration = isset($input['rental_duration']) ? htmlspecialchars(trim($input['rental_duration'])) : '1 Year';
+        $terms = isset($input['terms_conditions']) ? htmlspecialchars(trim($input['terms_conditions'])) : (isset($input['terms']) ? htmlspecialchars(trim($input['terms'])) : 'Standard 50 sq. m. community garden lease. Permitted organic crops.');
+
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID.']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE `requests` 
+                SET `status` = 'offer_sent',
+                    `offered_rental_rate` = ?,
+                    `rental_duration` = ?,
+                    `terms_conditions` = ?,
+                    `response_notes` = ?
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$rate, $duration, $terms, $terms, $id]);
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Rental offer of ₱' . number_format($rate, 2) . ' sent to gardener for approval!'
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'counter_offer') {
+        $id = isset($input['id']) ? intval($input['id']) : 0;
+        $counterRate = isset($input['counter_rate']) ? floatval($input['counter_rate']) : 0.0;
+        $counterNotes = isset($input['counter_notes']) ? htmlspecialchars(trim($input['counter_notes'])) : '';
+
+        if (!$id || $counterRate <= 0) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Please propose a valid rental counter-offer amount.']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE `requests` 
+                SET `status` = 'counter_offered',
+                    `counter_rental_rate` = ?,
+                    `counter_notes` = ?,
+                    `counter_at` = NOW()
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$counterRate, $counterNotes, $id]);
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Counter-offer of ₱' . number_format($counterRate, 2) . '/yr submitted to landowner!'
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'accept_counter_offer') {
+        $id = isset($input['id']) ? intval($input['id']) : 0;
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID.']);
+            exit;
+        }
+
+        try {
+            $stmtReq = $pdo->prepare("SELECT plot_id, gardener_name, counter_rental_rate FROM `requests` WHERE id = ?");
+            $stmtReq->execute([$id]);
+            $reqData = $stmtReq->fetch(PDO::FETCH_ASSOC);
+
+            if (!$reqData) {
+                http_response_code(404);
+                echo json_encode(['status' => 'error', 'message' => 'Application not found.']);
+                exit;
+            }
+
+            $finalRate = !empty($reqData['counter_rental_rate']) ? floatval($reqData['counter_rental_rate']) : 110000.00;
+
+            $stmt = $pdo->prepare("
+                UPDATE `requests` 
+                SET `status` = 'approved',
+                    `offered_rental_rate` = ?,
+                    `response_notes` = 'Landowner accepted gardener counter-offer.'
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$finalRate, $id]);
+
+            if (!empty($reqData['plot_id'])) {
+                $pdo->prepare("
+                    UPDATE `plots` 
+                    SET `status` = 'occupied',
+                        `farmer_name` = ?,
+                        `rental_price_per_year` = ?,
+                        `lease_end` = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
+                    WHERE `id` = ?
+                ")->execute([$reqData['gardener_name'], $finalRate, $reqData['plot_id']]);
+            }
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Counter-offer accepted! Lease agreement is now active at ₱' . number_format($finalRate, 2) . '/year.'
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'gardener_decision') {
+        $id = isset($input['id']) ? intval($input['id']) : 0;
+        $decision = isset($input['decision']) ? htmlspecialchars(trim($input['decision'])) : '';
+
+        if (!$id || !in_array($decision, ['approved', 'declined'])) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Invalid decision parameters.']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("
+                UPDATE `requests` 
+                SET `status` = ?
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$decision, $id]);
+
+            // If approved by gardener, activate plot occupancy
+            if ($decision === 'approved') {
+                $stmtReq = $pdo->prepare("SELECT plot_id, gardener_name, offered_rental_rate FROM `requests` WHERE id = ?");
+                $stmtReq->execute([$id]);
+                $reqData = $stmtReq->fetch(PDO::FETCH_ASSOC);
+                if ($reqData && !empty($reqData['plot_id'])) {
+                    $rentRate = !empty($reqData['offered_rental_rate']) ? floatval($reqData['offered_rental_rate']) : 110000.00;
+                    $pdo->prepare("
+                        UPDATE `plots` 
+                        SET `status` = 'occupied', 
+                            `farmer_name` = ?,
+                            `rental_price_per_year` = ?,
+                            `lease_end` = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
+                        WHERE `id` = ?
+                    ")->execute([$reqData['gardener_name'], $rentRate, $reqData['plot_id']]);
+                }
+            }
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => $decision === 'approved' 
+                    ? 'Rental offer accepted! Your plot lease agreement is now active.' 
+                    : 'Rental offer declined.'
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     if ($action === 'update_status') {
         $id = isset($input['id']) ? intval($input['id']) : 0;
         $status = isset($input['status']) ? htmlspecialchars(trim($input['status'])) : '';
         $notes = isset($input['notes']) ? htmlspecialchars(trim($input['notes'])) : '';
 
-        if (!$id || !in_array($status, ['approved', 'rejected'])) {
+        if (!$id || !in_array($status, ['approved', 'rejected', 'offer_sent', 'declined'])) {
             http_response_code(400);
             echo json_encode([
                 'status' => 'error',

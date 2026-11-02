@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: winged-beans (Winged beans) -->
+
+  <!-- 4-cornered bean pod with wavy fringed frilly wings (Sigarilyas) -->
+  <path d="M 50 14 C 50 8 52 6 54 4" stroke="#4E342E" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Center pod column -->
+  <path d="M 46 14 L 46 90 L 54 90 L 54 14 Z" fill="#2E7D32"/>
+  <!-- Wavy frill wings left -->
+  <path d="M 46 16 C 36 18 36 26 46 28 C 36 30 36 38 46 40 C 36 42 36 50 46 52 C 36 54 36 62 46 64 C 36 66 36 74 46 76 C 36 78 36 86 46 88 Z" fill="#4CAF50"/>
+  <!-- Wavy frill wings right -->
+  <path d="M 54 16 C 64 18 64 26 54 28 C 64 30 64 38 54 40 C 64 42 64 50 54 52 C 64 54 64 62 54 64 C 64 66 64 74 54 76 C 64 78 64 86 54 88 Z" fill="#4CAF50"/>
+  <!-- Center vein line & highlight -->
+  <line x1="50" y1="16" x2="50" y2="88" stroke="#81C784" stroke-width="2"/>
+  <path d="M 40 32 C 38 44 38 56 40 68" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.85"/>
+
+</svg>

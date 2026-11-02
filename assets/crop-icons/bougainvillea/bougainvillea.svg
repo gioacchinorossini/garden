@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: bougainvillea (Bougainvillea) -->
+
+  <!-- Trio of papery triangular magenta bracts around tiny center tubes -->
+  <g fill="#C2185B" stroke="#880E4F" stroke-width="1">
+    <!-- Bract 1 (top) -->
+    <path d="M 50 50 C 34 32 36 10 50 6 C 64 10 66 32 50 50 Z"/>
+    <!-- Bract 2 (left) -->
+    <path d="M 50 50 C 32 64 10 66 6 50 C 10 36 32 34 50 50 Z"/>
+    <!-- Bract 3 (right) -->
+    <path d="M 50 50 C 64 68 88 64 94 50 C 90 36 68 34 50 50 Z"/>
+  </g>
+  <!-- Veins in papery bracts -->
+  <line x1="50" y1="50" x2="50" y2="8" stroke="#E91E63" stroke-width="1.5"/>
+  <line x1="50" y1="50" x2="8" y2="50" stroke="#E91E63" stroke-width="1.5"/>
+  <line x1="50" y1="50" x2="92" y2="50" stroke="#E91E63" stroke-width="1.5"/>
+  <!-- Tiny center white/cream flower tubes -->
+  <circle cx="48" cy="46" r="3" fill="#FFFDE7"/> <circle cx="48" cy="46" r="1" fill="#FDD835"/>
+  <circle cx="52" cy="48" r="3" fill="#FFFDE7"/> <circle cx="52" cy="48" r="1" fill="#FDD835"/>
+
+</svg>

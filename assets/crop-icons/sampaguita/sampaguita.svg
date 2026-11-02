@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: sampaguita (Sampaguita) -->
+
+  <!-- Philippine National Flower: 8-petaled white jasmine star with yellow core -->
+  <g id="calyx">
+    <circle cx="50" cy="50" r="14" fill="#66BB6A"/>
+  </g>
+  <g id="petals" fill="#FFFFFF" stroke="#CFD8DC" stroke-width="1">
+    <ellipse cx="50" cy="22" rx="7" ry="16"/>
+    <ellipse cx="50" cy="78" rx="7" ry="16"/>
+    <ellipse cx="22" cy="50" rx="16" ry="7"/>
+    <ellipse cx="78" cy="50" rx="16" ry="7"/>
+    <ellipse cx="30" cy="30" rx="7" ry="16" transform="rotate(-45 30 30)"/>
+    <ellipse cx="70" cy="70" rx="7" ry="16" transform="rotate(-45 70 70)"/>
+    <ellipse cx="70" cy="30" rx="7" ry="16" transform="rotate(45 70 30)"/>
+    <ellipse cx="30" cy="70" rx="7" ry="16" transform="rotate(45 30 70)"/>
+  </g>
+  <!-- Center yellow glow & pistil -->
+  <circle cx="50" cy="50" r="9" fill="#FFF9C4"/>
+  <circle cx="50" cy="50" r="5" fill="#FDD835"/>
+  <circle cx="50" cy="50" r="2.5" fill="#F57F17"/>
+
+</svg>

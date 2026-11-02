@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: pomelo (Pomelo) -->
+
+  <path d="M 50 18 C 50 12 54 8 56 6" stroke="#4E342E" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- Pear-shaped giant citrus -->
+  <path d="M 50 18 C 36 18 32 32 30 46 C 26 64 20 74 20 84 C 20 94 34 96 50 96 C 66 96 80 94 80 84 C 80 74 74 64 70 46 C 68 32 64 18 50 18 Z" fill="#689F38"/>
+  <path d="M 50 20 C 38 20 34 32 32 46 C 28 64 24 74 24 82 C 24 90 36 94 50 94 C 64 94 76 90 76 82 C 76 74 72 64 68 46 C 66 32 62 20 50 20 Z" fill="#AFB42B"/>
+  <path d="M 50 22 C 40 22 36 34 34 46 C 32 58 28 72 30 80 C 36 86 44 88 50 88 C 58 88 66 84 70 78 C 66 64 64 54 64 46 C 64 34 60 22 50 22 Z" fill="#D4E157" opacity="0.7"/>
+  <path d="M 68 46 C 72 58 72 70 68 78" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>
+
+</svg>

@@ -1,139 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    // ─── Mock Data ────────────────────────────────────────────────────────────
-    // ─── Mock Data (Fallback) ──────────────────────────────────────────────────
-    const MOCK_SCHEDULES = [
-        {
-            id: 1,
-            title: "Morning Irrigation Round",
-            task_type: "watering",
-            status: "in_progress",
-            land_title: "Plot A – North Rooftop",
-            gardener: "Maria Santos",
-            start_time: (() => { const d = new Date(); d.setHours(6, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setHours(7, 30, 0); return d.toISOString(); })(),
-            description: "Water all raised beds in sections B-1 and B-2. Check drip-line pressure valves before starting.",
-            xp: 120,
-            difficulty: "easy"
-        },
-        {
-            id: 2,
-            title: "Seedling Transplant – Cherry Tomatoes",
-            task_type: "planting",
-            status: "pending",
-            land_title: "Plot B – Greenhouse Bay",
-            gardener: "Juan dela Cruz",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 30, 0); return d.toISOString(); })(),
-            description: "Move cherry tomato seedlings from nursery trays into prepared beds. Spacing: 40 cm apart.",
-            xp: 250,
-            difficulty: "medium"
-        },
-        {
-            id: 3,
-            title: "Weed Clearing – East Fence Line",
-            task_type: "weeding",
-            status: "pending",
-            land_title: "Plot C – East Strip",
-            gardener: null,
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(7, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            description: "Remove aggressive weed growth along the eastern boundary. Bag all cuttings and transport to compost.",
-            xp: 180,
-            difficulty: "medium"
-        },
-        {
-            id: 4,
-            title: "Corn Harvest – Rows 5–12",
-            task_type: "harvesting",
-            status: "pending",
-            land_title: "Plot D – South Cornfield",
-            gardener: "Ana Reyes",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(5, 30, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            description: "Harvest mature corn ears from rows 5 through 12. Sort by size and transport to market storage.",
-            xp: 400,
-            difficulty: "hard"
-        },
-        {
-            id: 5,
-            title: "Woodchip & Straw Mulching",
-            task_type: "mulching",
-            status: "pending",
-            land_title: "Plot A – North Rooftop",
-            gardener: "Maria Santos",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(11, 0, 0); return d.toISOString(); })(),
-            description: "Spread a 3-inch protective mulch layer around tomato and pepper bases to regulate soil moisture.",
-            xp: 150,
-            difficulty: "easy"
-        },
-        {
-            id: 6,
-            title: "Fruit Tree & Shrub Pruning",
-            task_type: "pruning",
-            status: "pending",
-            land_title: "Plot E – Orchard Row",
-            gardener: null,
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 5); d.setHours(7, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 5); d.setHours(10, 0, 0); return d.toISOString(); })(),
-            description: "Shape and prune young fruit trees. Remove crossing branches and seal cuts with pruning paste.",
-            xp: 220,
-            difficulty: "hard"
-        },
-        {
-            id: 7,
-            title: "Climbing Vine & Trellis Setup",
-            task_type: "trellising",
-            status: "pending",
-            land_title: "Plot B – Greenhouse Bay",
-            gardener: "Carlos Mendoza",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(10, 30, 0); return d.toISOString(); })(),
-            description: "Install wooden lattice trellises for climbing pole bean rows. Secure main vines with garden ties.",
-            xp: 210,
-            difficulty: "medium"
-        },
-        {
-            id: 8,
-            title: "Organic Compost Application",
-            task_type: "fertilizing",
-            status: "completed",
-            land_title: "Plot C – East Strip",
-            gardener: "Juan dela Cruz",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(9, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() - 1); d.setHours(11, 0, 0); return d.toISOString(); })(),
-            description: "Apply compost mix to raised beds in Plot C. Ratio: 2 kg per sq. meter. Work into topsoil.",
-            xp: 300,
-            difficulty: "medium"
-        },
-        {
-            id: 9,
-            title: "Leaf Inspection & Pest Scouting",
-            task_type: "pests",
-            status: "pending",
-            land_title: "Plot D – South Cornfield",
-            gardener: "Ana Reyes",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(8, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 30, 0); return d.toISOString(); })(),
-            description: "Inspect undersides of squash and bean foliage with magnifying glass for aphids or mites. Release ladybugs.",
-            xp: 140,
-            difficulty: "easy"
-        },
-        {
-            id: 10,
-            title: "Tool Sanitization & Maintenance",
-            task_type: "cleaning",
-            status: "completed",
-            land_title: "Plot E – Tool Shed Bay",
-            gardener: "Carlos Mendoza",
-            start_time: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(14, 0, 0); return d.toISOString(); })(),
-            end_time: (() => { const d = new Date(); d.setDate(d.getDate() - 2); d.setHours(15, 30, 0); return d.toISOString(); })(),
-            description: "Clean, disinfect, and sharpen trowels, hoes, and secateurs. Apply protective oil coat to prevent rust.",
-            xp: 100,
-            difficulty: "easy"
-        }
-    ];
+    // ─── Schedules Data ────────────────────────────────────────────────────────
+    const MOCK_SCHEDULES = [];
 
     // ─── 10 Task Types Config (Using tasksicons.png - Flat Solid Colors) ─────
     const TYPE_CONFIG = {
@@ -260,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const BASE_PATH = '../';
     let schedulesList = [];
     let currentTaskFilter = 'all';
+    let taskSearchQuery = '';
 
     window.setTaskCategoryFilter = function(filterKey) {
         currentTaskFilter = filterKey;
@@ -270,6 +139,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const schedulesContainer = document.getElementById('schedulesContainer');
     const addTaskModalEl = document.getElementById('addTaskModal');
     const addTaskForm = document.getElementById('addTaskForm');
+    const desktopTaskSearch = document.getElementById('taskSearchInput');
+    const mobileTaskSearch = document.getElementById('mobileTaskSearchInput');
+
+    if (desktopTaskSearch) {
+        desktopTaskSearch.addEventListener('input', function () {
+            taskSearchQuery = this.value;
+            if (mobileTaskSearch) mobileTaskSearch.value = taskSearchQuery;
+            renderSchedules();
+        });
+    }
+    if (mobileTaskSearch) {
+        mobileTaskSearch.addEventListener('input', function () {
+            taskSearchQuery = this.value;
+            if (desktopTaskSearch) desktopTaskSearch.value = taskSearchQuery;
+            renderSchedules();
+        });
+    }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -426,20 +312,42 @@ document.addEventListener("DOMContentLoaded", function () {
     // ─── Section Renderer ─────────────────────────────────────────────────────
 
     function renderSchedules() {
-        if (schedulesList.length === 0) {
-            schedulesContainer.innerHTML = `
-                <div class="task-empty-state">
-                    ${lucideIcon('sprout', 48)}
-                    <h3>No tasks yet!</h3>
-                    <p>Click <strong>+ Add Task</strong> to schedule your first garden task.</p>
-                </div>`;
+        let displayList = schedulesList;
+        if (taskSearchQuery.trim() !== '') {
+            const q = taskSearchQuery.toLowerCase().trim();
+            displayList = displayList.filter(s =>
+                (s.title && s.title.toLowerCase().includes(q)) ||
+                (s.description && s.description.toLowerCase().includes(q)) ||
+                (s.task_type && (s.task_type.toLowerCase().includes(q) || (TYPE_CONFIG[s.task_type]?.label && TYPE_CONFIG[s.task_type].label.toLowerCase().includes(q)))) ||
+                (s.land_title && s.land_title.toLowerCase().includes(q)) ||
+                (s.plot_number && String(s.plot_number).toLowerCase().includes(q))
+            );
+        }
+
+        if (displayList.length === 0) {
+            if (taskSearchQuery.trim() !== '') {
+                const safeQ = typeof escapeHtml === 'function' ? escapeHtml(taskSearchQuery) : taskSearchQuery;
+                schedulesContainer.innerHTML = `
+                    <div class="task-empty-state">
+                        ${lucideIcon('filter-x', 48)}
+                        <h3>No matching tasks found</h3>
+                        <p>No garden tasks match "<strong>${safeQ}</strong>". Try another keyword.</p>
+                    </div>`;
+            } else {
+                schedulesContainer.innerHTML = `
+                    <div class="task-empty-state">
+                        ${lucideIcon('sprout', 48)}
+                        <h3>No tasks yet!</h3>
+                        <p>Click <strong>+ Add Task</strong> to schedule your first garden task.</p>
+                    </div>`;
+            }
             lucide.createIcons();
             return;
         }
 
         // Group: active first, completed last
-        const active = schedulesList.filter(s => s.status !== 'completed');
-        const completed = schedulesList.filter(s => s.status === 'completed');
+        const active = displayList.filter(s => s.status !== 'completed');
+        const completed = displayList.filter(s => s.status === 'completed');
 
         let html = '';
 
@@ -590,14 +498,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // ── Filter chip bar ──
-        const allTypes = [...new Set(schedulesList.map(s => s.task_type))];
+        const allTypes = [...new Set(displayList.map(s => s.task_type))];
         const filterChips = [
-            { key: 'all', label: 'All Tasks', icon: 'list', count: schedulesList.length }
+            { key: 'all', label: 'All Tasks', icon: 'list', count: displayList.length }
         ].concat(allTypes.map(t => ({
             key: t,
             label: TYPE_CONFIG[t]?.label || t,
             icon: 'tag',
-            count: schedulesList.filter(s => s.task_type === t).length
+            count: displayList.filter(s => s.task_type === t).length
         })));
 
         html += `<div class="task-filter-bar mb-3" role="tablist" aria-label="Filter by task type">`;
@@ -652,15 +560,14 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const response = await fetch('../api/schedules.php');
             const res = await response.json();
-            if (res.status === 'success' && res.data.schedules.length > 0) {
+            if (res.status === 'success' && Array.isArray(res.data.schedules)) {
                 schedulesList = res.data.schedules;
             } else {
-                // Use mock data when API returns nothing
-                schedulesList = MOCK_SCHEDULES;
+                schedulesList = [];
             }
         } catch (err) {
-            console.warn("API unavailable, using mock data:", err);
-            schedulesList = MOCK_SCHEDULES;
+            console.warn("API unavailable:", err);
+            schedulesList = [];
         }
         renderSchedules();
     }
@@ -846,8 +753,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <i class="bi bi-patch-check-fill text-success fs-5"></i>
                                 <div>
-                                    <div class="fw-bold text-dark small" id="view_completed_by">Completed by Mary Gardener</div>
-                                    <div class="text-muted" style="font-size:0.72rem;" id="view_completed_at">Completed on Oct 4, 2026</div>
+                                    <div class="fw-bold text-dark small" id="view_completed_by">Completed</div>
+                                    <div class="text-muted" style="font-size:0.72rem;" id="view_completed_at">Verified</div>
                                 </div>
                             </div>
                             <div id="view_completion_notes_wrap" class="mt-2 pt-2 border-top d-none">

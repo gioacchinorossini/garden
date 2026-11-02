@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: pili (Pili) -->
+
+  <path d="M 50 18 C 50 12 52 8 54 6" stroke="#4E342E" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M 50 18 C 42 10 30 12 28 20 C 38 22 46 22 50 18 Z" fill="#2E7D32"/>
+  <circle cx="50" cy="56" r="32" fill="#B71C1C" />
+  <circle cx="50" cy="54" r="30" fill="#D32F2F" />
+  <circle cx="48" cy="52" r="26" fill="#F44336" />
+  <path d="M 68 40 C 74 48 74 60 70 68" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <circle cx="62" cy="34" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

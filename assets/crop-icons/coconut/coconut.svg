@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: coconut (Coconut) -->
+
+  <!-- Outer shell contour shadow -->
+  <circle cx="50" cy="52" r="38" fill="#3E2723"/>
+  <!-- Brown hairy shell -->
+  <circle cx="50" cy="50" r="36" fill="#6D4C41"/>
+  <circle cx="48" cy="48" r="34" fill="#795548"/>
+  <!-- Husk fiber texture streaks -->
+  <path d="M 30 24 C 24 38 24 64 32 78" stroke="#5D4037" stroke-width="2" fill="none"/>
+  <path d="M 50 14 C 46 34 46 66 52 86" stroke="#5D4037" stroke-width="2" fill="none"/>
+  <path d="M 70 24 C 76 38 76 64 68 78" stroke="#5D4037" stroke-width="2" fill="none"/>
+  <!-- Three germination eyes -->
+  <ellipse cx="44" cy="34" rx="4" ry="5" fill="#3E2723"/>
+  <ellipse cx="56" cy="34" rx="4" ry="5" fill="#3E2723"/>
+  <ellipse cx="50" cy="45" rx="4.5" ry="5" fill="#3E2723"/>
+  <!-- White highlight arc & dots -->
+  <path d="M 28 40 C 24 50 24 60 28 70" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <circle cx="36" cy="28" r="2" fill="#FFFFFF" opacity="0.75"/>
+
+</svg>

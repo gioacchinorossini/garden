@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: gabi-leaves (Gabi leaves) -->
+
+  <!-- Giant heart-shaped elephant ear taro leaves (Talong / Gabi) -->
+  <path d="M 50 94 L 50 56" stroke="#33691E" stroke-width="4" fill="none"/>
+  <!-- Large peltate leaf blade -->
+  <path d="M 50 50 C 30 20 12 28 14 50 C 16 72 38 88 50 90 C 62 88 84 72 86 50 C 88 28 70 20 50 50 Z" fill="#1B5E20"/>
+  <path d="M 50 48 C 32 22 16 30 18 50 C 20 70 40 84 50 86 C 60 84 80 70 82 50 C 84 30 68 22 50 48 Z" fill="#2E7D32"/>
+  <!-- Prominent pale green veins radiating from peltate center -->
+  <circle cx="50" cy="50" r="3" fill="#81C784"/>
+  <path d="M 50 50 L 50 82" stroke="#81C784" stroke-width="2" fill="none"/>
+  <path d="M 50 50 L 26 36" stroke="#81C784" stroke-width="2" fill="none"/>
+  <path d="M 50 50 L 74 36" stroke="#81C784" stroke-width="2" fill="none"/>
+  <path d="M 50 50 L 24 64" stroke="#81C784" stroke-width="1.5" fill="none"/>
+  <path d="M 50 50 L 76 64" stroke="#81C784" stroke-width="1.5" fill="none"/>
+
+</svg>

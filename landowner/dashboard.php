@@ -9,7 +9,7 @@ if (session_status() == PHP_SESSION_NONE)
     session_start();
 $_SESSION['active_role'] = 'landowner';
 if (!isset($_SESSION['user_name']))
-    $_SESSION['user_name'] = 'John Landowner';
+    $_SESSION['user_name'] = 'Landowner';
 
 require_once '../includes/db.php';
 require_once '../includes/lands_helper.php';
@@ -453,7 +453,7 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
 
                 <!-- CTA buttons -->
                 <div class="d-flex gap-2">
-                    <a id="sheetManageBtn" href="lands.php"
+                    <a id="sheetManageBtn" href="plots.php"
                         class="btn btn-drive-primary btn-sm rounded-pill flex-grow-1 d-flex align-items-center justify-content-center gap-1"
                         style="padding:10px;">
                         <i data-lucide="layers" style="width:14px;height:14px;"></i> Manage Plots
@@ -531,6 +531,10 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
             if (lower.includes(key) || key.includes(lower)) {
                 return CROP_ICON_MAP[key];
             }
+        }
+        const slug = lower.replace(/\(.*?\)/g, '').trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (slug) {
+            return `${slug}/${slug}.svg`;
         }
         return 'generic-plant/generic-plant.svg';
     }
@@ -823,7 +827,7 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
         }
 
         document.getElementById('sheetLandDesc').textContent = land.description || '';
-        document.getElementById('sheetManageBtn').href = `lands.php?id=${land.id}`;
+        document.getElementById('sheetManageBtn').href = `plots.php?id=${land.id}`;
 
         // Render Partition Plots Grid in sheet
         const landPlots = plotsData.filter(p => p.land_id == land.id);

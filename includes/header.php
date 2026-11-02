@@ -1,3 +1,9 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+ob_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,6 +77,8 @@
     <script src="<?php echo $bp; ?>assets/vendor/three/OrbitControls.js"></script>
     <!-- Custom Design System Styles -->
     <link rel="stylesheet" href="<?php echo $bp; ?>assets/css/style.css?v=<?php echo time(); ?>">
+    <!-- Tutorial Navigation Onboarding Styles -->
+    <link rel="stylesheet" href="<?php echo $bp; ?>assets/css/tutorial.css?v=<?php echo time(); ?>">
     <script>
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';

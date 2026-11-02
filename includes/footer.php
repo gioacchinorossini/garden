@@ -156,7 +156,7 @@ function get_dock_link_class($page_name, $bottom_page)
                             <?php echo $bottom_role === 'gardener' ? 'Plot Request Approved' : 'New Plot Request'; ?>
                         </p>
                         <p class="text-[11px] text-drive-text-muted mb-1 line-clamp-2 leading-tight">
-                            <?php echo $bottom_role === 'gardener' ? 'Your request for Plot #2 at Sunnyvale was accepted.' : 'Mary Gardener requested Plot #2 at Sunnyvale Garden.'; ?>
+                            <?php echo $bottom_role === 'gardener' ? 'Your plot application was reviewed.' : 'A new plot application has been submitted for review.'; ?>
                         </p>
                         <span class="text-[10px] text-drive-text-muted font-medium">10 mins ago</span>
                     </div>
@@ -223,6 +223,8 @@ function get_dock_link_class($page_name, $bottom_page)
 <?php $base = isset($base_path) ? $base_path : ''; ?>
 <!-- Bootstrap Bundle with Popper JS -->
 <script src="<?php echo $base; ?>assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<!-- Tutorial Navigation Engine for First-Time Landowners & Gardeners -->
+<script src="<?php echo $base; ?>assets/js/tutorial.js?v=<?php echo time(); ?>"></script>
 
 <!-- Initialize Tooltips and Mobile Navigation Toggle -->
 <script>

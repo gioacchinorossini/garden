@@ -1,0 +1,420 @@
+/* ==========================================================================
+   IdleLand Tutorial & Onboarding Navigation System
+   Cats & Soup Game Aesthetic
+   ========================================================================== */
+
+/* ─── SVG Mask Cutout Overlay ─── */
+.idleland-tutorial-svg-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10080;
+    pointer-events: auto;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.idleland-tutorial-svg-overlay.active {
+    opacity: 1;
+}
+
+.idleland-tutorial-path {
+    fill: rgba(45, 34, 27, 0.65);
+}
+
+/* ─── Glowing Cutout Ring in SVG ─── */
+.tutorial-cutout-ring {
+    stroke: #7FA668;
+    stroke-width: 3.5;
+    fill: none;
+    pointer-events: none;
+    filter: drop-shadow(0 0 10px rgba(127, 166, 104, 0.75));
+    animation: tutorialRingPulse 2s infinite ease-in-out;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes tutorialRingPulse {
+    0%, 100% {
+        stroke: #7FA668;
+        stroke-width: 3.5;
+        filter: drop-shadow(0 0 8px rgba(127, 166, 104, 0.65));
+    }
+    50% {
+        stroke: #A8D192;
+        stroke-width: 4.5;
+        filter: drop-shadow(0 0 18px rgba(127, 166, 104, 0.95));
+    }
+}
+
+/* ─── Elevating Spotlight Element & Parent Navbars ─── */
+.idleland-nav-elevated {
+    z-index: 10086 !important;
+}
+
+.idleland-tutorial-elevated {
+    z-index: 10088 !important;
+    box-shadow: 0 0 0 3.5px #7FA668, 0 0 18px rgba(127, 166, 104, 0.6) !important;
+    transition: box-shadow 0.25s ease !important;
+}
+
+/* ─── Tutorial Card Dialog ─── */
+.idleland-tutorial-card {
+    position: fixed;
+    z-index: 10095;
+    width: 92%;
+    max-width: 440px;
+    background: #FFFDF9;
+    border: 2.5px solid #523E31;
+    border-radius: 26px;
+    box-shadow: 0 8px 0 #523E31, 0 20px 40px rgba(82, 62, 49, 0.32);
+    padding: 1.4rem 1.5rem 1.25rem;
+    color: #3E2B1E;
+    font-family: 'Quicksand', 'Outfit', sans-serif;
+    transform-origin: center center;
+    animation: tutorialCardPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transition: top 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                left 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                bottom 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.25s ease;
+}
+
+@keyframes tutorialCardPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(6px);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.02) translateY(-2px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ─── Header & Badges ─── */
+.tutorial-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+
+.tutorial-step-counter {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #8C7362;
+    background: #F4EFE6;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    border: 1px solid #DFCFC2;
+}
+
+.tutorial-close-btn {
+    background: #F7EFE6;
+    border: 1.5px solid #523E31;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #523E31;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #523E31;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.tutorial-close-btn:hover {
+    background: #EAE1D2;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 #523E31;
+}
+
+.tutorial-close-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 #523E31;
+}
+
+/* ─── Card Body ─── */
+.tutorial-body-content {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.tutorial-icon-squircle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 16px;
+    background: #F7EFE6;
+    border: 2px solid #523E31;
+    box-shadow: 0 2.5px 0 #523E31;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.tutorial-icon-squircle img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.tutorial-text-block {
+    flex: 1;
+    min-width: 0;
+}
+
+.tutorial-title {
+    font-family: 'Outfit', 'Quicksand', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #3E2B1E;
+    line-height: 1.25;
+    margin-bottom: 0.2rem;
+}
+
+.tutorial-subtitle {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #7FA668;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.tutorial-desc {
+    font-size: 0.82rem;
+    color: #5A4334;
+    line-height: 1.45;
+    margin-bottom: 0;
+}
+
+/* ─── Action Link (Jump to Page) ─── */
+.tutorial-jump-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #2D5A27;
+    background: #EBF3E8;
+    border: 1px dashed #BDDAB8;
+    padding: 3px 8px;
+    border-radius: 8px;
+    text-decoration: none !important;
+    margin-top: 0.45rem;
+    transition: all 0.15s ease;
+}
+
+.tutorial-jump-link:hover {
+    background: #DFECC7;
+    color: #1F3F1B;
+    border-style: solid;
+}
+
+/* ─── Progress Dots ─── */
+.tutorial-progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.tutorial-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: #DFCFC2;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tutorial-dot.active {
+    width: 24px;
+    background: #7FA668;
+    box-shadow: 0 1px 3px rgba(127, 166, 104, 0.4);
+}
+
+.tutorial-dot.passed {
+    background: #A9CCA0;
+}
+
+/* ─── Footer Controls ─── */
+.tutorial-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-top: 1.5px dashed #DFCFC2;
+    padding-top: 0.8rem;
+}
+
+.tutorial-skip-link {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #8C7362;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    transition: color 0.15s ease;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.tutorial-skip-link:hover {
+    color: #3E2B1E;
+}
+
+.tutorial-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tutorial-btn {
+    border-radius: 9999px !important;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 6px 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 2px solid #523E31 !important;
+}
+
+.tutorial-btn--prev {
+    background: #FFFDF9 !important;
+    color: #523E31 !important;
+    box-shadow: 0 2.5px 0 #523E31;
+}
+
+.tutorial-btn--prev:hover {
+    background: #F4EFE6 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3.5px 0 #523E31;
+}
+
+.tutorial-btn--prev:active {
+    transform: translateY(1.5px);
+    box-shadow: 0 1px 0 #523E31;
+}
+
+.tutorial-btn--next,
+.tutorial-btn--finish {
+    background: #7FA668 !important;
+    color: #FFFDF9 !important;
+    box-shadow: 0 3px 0 #523E31;
+}
+
+.tutorial-btn--next:hover,
+.tutorial-btn--finish:hover {
+    background: #6E9557 !important;
+    transform: translateY(-1.5px);
+    box-shadow: 0 4.5px 0 #523E31;
+}
+
+.tutorial-btn--next:active,
+.tutorial-btn--finish:active {
+    transform: translateY(1.5px);
+    box-shadow: 0 1px 0 #523E31;
+}
+
+/* ─── Pointer Arrow ─── */
+.tutorial-card-arrow {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #FFFDF9;
+    border: 2.5px solid #523E31;
+    transform: rotate(45deg);
+    display: none;
+}
+
+.idleland-tutorial-card[data-placement="right"] .tutorial-card-arrow {
+    display: block;
+    left: -9px;
+    top: 50%;
+    margin-top: -8px;
+    border-top: none;
+    border-right: none;
+}
+
+.idleland-tutorial-card[data-placement="left"] .tutorial-card-arrow {
+    display: block;
+    right: -9px;
+    top: 50%;
+    margin-top: -8px;
+    border-bottom: none;
+    border-left: none;
+}
+
+.idleland-tutorial-card[data-placement="top"] .tutorial-card-arrow {
+    display: block;
+    bottom: -9px;
+    left: 50%;
+    margin-left: -8px;
+    border-top: none;
+    border-left: none;
+}
+
+.idleland-tutorial-card[data-placement="bottom"] .tutorial-card-arrow {
+    display: block;
+    top: -9px;
+    left: 50%;
+    margin-left: -8px;
+    border-bottom: none;
+    border-right: none;
+}
+
+/* ─── Mobile Responsiveness ─── */
+@media (max-width: 767.98px) {
+    .idleland-tutorial-card {
+        width: calc(100vw - 20px);
+        max-width: 100%;
+        left: 10px !important;
+        right: 10px !important;
+        padding: 1.2rem 1.15rem 1rem;
+        border-radius: 22px;
+    }
+
+    .idleland-tutorial-card.tutorial-centered {
+        bottom: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+
+    .tutorial-card-arrow {
+        display: none !important;
+    }
+
+    .tutorial-title {
+        font-size: 0.98rem;
+    }
+
+    .tutorial-desc {
+        font-size: 0.77rem;
+    }
+
+    .tutorial-icon-squircle {
+        width: 42px;
+        height: 42px;
+        min-width: 42px;
+        border-radius: 14px;
+    }
+}

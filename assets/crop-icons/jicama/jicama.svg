@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: jicama (Jicama) -->
+
+  <!-- Singkamas: Turnip-shaped golden-buff tuber with root tip -->
+  <path d="M 50 16 L 50 6" stroke="#558B2F" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Tuber body -->
+  <path d="M 50 18 C 30 18 18 36 18 56 C 18 74 36 88 50 94 C 64 88 82 74 82 56 C 82 36 70 18 50 18 Z" fill="#8D6E63"/>
+  <path d="M 50 20 C 32 20 20 38 20 56 C 20 72 38 86 50 92 C 62 86 80 72 80 56 C 80 38 68 20 50 20 Z" fill="#D7CCC8"/>
+  <path d="M 50 22 C 34 22 24 38 24 56 C 24 70 40 82 50 88 C 60 82 76 70 76 56 C 76 38 66 22 50 22 Z" fill="#F5F5F5"/>
+  <!-- Root tail -->
+  <path d="M 50 92 Q 52 96 50 98" stroke="#8D6E63" stroke-width="2.5" fill="none"/>
+  <path d="M 68 40 C 74 50 74 64 70 72" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.9"/>
+
+</svg>

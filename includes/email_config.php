@@ -10,18 +10,18 @@
 
 return [
     // Driver: 'smtp' (recommended for Windows / XAMPP) or 'mail' (PHP mail() function)
-    'driver'      => 'smtp',
+    'driver' => 'smtp',
 
     // SMTP Server (Default: Gmail SMTP)
-    'smtp_host'   => 'smtp.gmail.com',
-    'smtp_port'   => 587,
+    'smtp_host' => 'smtp.gmail.com',
+    'smtp_port' => 587,
     'smtp_secure' => 'tls', // 'tls' for 587, 'ssl' for 465
 
     // SMTP Credentials
-    'smtp_user'   => '', // Enter your SMTP email address here
-    'smtp_pass'   => '', // Enter your SMTP / App password here
+    'smtp_user' => 'longnoxian5@gmail.com', // Enter your SMTP email address here
+    'smtp_pass' => 'irum btlv ymnr xjoe', // Enter your SMTP / App password here
 
     // Sender Information
-    'from_email'  => 'noreply@idleland.local',
-    'from_name'   => 'IdleLand Gardening',
+    'from_email' => 'noreply@idleland.local',
+    'from_name' => 'IdleLand Gardening',
 ];

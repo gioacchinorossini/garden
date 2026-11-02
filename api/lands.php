@@ -82,23 +82,43 @@ if ($method === 'POST') {
             ]);
             $new_id = (int)$pdo->lastInsertId();
 
-            // Auto-create partition plots
+            // Auto-create partition plots with base rental prices
             $plot_area = round($area / $plot_count, 1);
             $stmtPlot = $pdo->prepare("
-                INSERT INTO `plots` (land_id, plot_number, area_sqm, status, crop, crop_icon, allowed_seeds, farmer_name)
-                VALUES (?, ?, ?, 'available', ?, ?, ?, '')
+                INSERT INTO `plots` (land_id, plot_number, area_sqm, rental_price_per_year, status, crop, crop_icon, allowed_seeds, farmer_name)
+                VALUES (?, ?, ?, ?, 'available', ?, ?, ?, '')
             ");
 
-            for ($i = 1; $i <= $plot_count; $i++) {
-                $crop = !empty($crops) ? $crops[($i - 1) % count($crops)] : 'Vegetables';
-                $stmtPlot->execute([
-                    $new_id,
-                    'Plot A-' . $i,
-                    $plot_area,
-                    $crop,
-                    'tomato/tomato.svg',
-                    $seeds_json
-                ]);
+            $inputPlots = $input['plots'] ?? null;
+            if (is_array($inputPlots) && count($inputPlots) > 0) {
+                foreach ($inputPlots as $idx => $p) {
+                    $pNum = $p['plot_number'] ?? ('Plot A-' . ($idx + 1));
+                    $pArea = !empty($p['area_sqm']) ? floatval($p['area_sqm']) : $plot_area;
+                    $pRent = !empty($p['rental_price_per_year']) ? floatval($p['rental_price_per_year']) : 110000.00;
+                    $pCrop = $p['crop'] ?? (!empty($crops) ? $crops[$idx % count($crops)] : 'Vegetables');
+                    $stmtPlot->execute([
+                        $new_id,
+                        $pNum,
+                        $pArea,
+                        $pRent,
+                        $pCrop,
+                        'tomato/tomato.svg',
+                        $seeds_json
+                    ]);
+                }
+            } else {
+                for ($i = 1; $i <= $plot_count; $i++) {
+                    $crop = !empty($crops) ? $crops[($i - 1) % count($crops)] : 'Vegetables';
+                    $stmtPlot->execute([
+                        $new_id,
+                        'Plot A-' . $i,
+                        $plot_area,
+                        110000.00,
+                        $crop,
+                        'tomato/tomato.svg',
+                        $seeds_json
+                    ]);
+                }
             }
 
             $newLand = [
@@ -299,6 +319,50 @@ if ($method === 'POST') {
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Plot crop permissions updated successfully!'
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'update_plot') {
+        $plot_id = isset($input['plot_id']) ? intval($input['plot_id']) : 0;
+        $plot_number = isset($input['plot_number']) ? htmlspecialchars(trim($input['plot_number'])) : '';
+        $area = isset($input['area']) ? floatval($input['area']) : (isset($input['area_sqm']) ? floatval($input['area_sqm']) : 0.0);
+        $rental_price = isset($input['rental_price_per_year']) ? floatval($input['rental_price_per_year']) : 110000.00;
+        $status = isset($input['status']) && in_array($input['status'], ['available', 'occupied', 'maintenance']) ? $input['status'] : 'available';
+        $crops = isset($input['crops']) ? (array)$input['crops'] : [];
+        $crop = isset($input['crop']) ? htmlspecialchars(trim($input['crop'])) : (isset($crops[0]) ? htmlspecialchars(trim($crops[0])) : 'Tomato');
+        $crop_icon = isset($input['crop_icon']) ? htmlspecialchars(trim($input['crop_icon'])) : 'tomato/tomato.svg';
+        $farmer_name = isset($input['farmer_name']) ? htmlspecialchars(trim($input['farmer_name'])) : '';
+
+        if (!$plot_id || empty($plot_number) || !$area) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Please provide valid plot ID, number, and area.']);
+            exit;
+        }
+
+        try {
+            $seeds_json = json_encode(array_values($crops));
+            $stmt = $pdo->prepare("
+                UPDATE `plots`
+                SET `plot_number` = ?,
+                    `area_sqm` = ?,
+                    `rental_price_per_year` = ?,
+                    `status` = ?,
+                    `crop` = ?,
+                    `crop_icon` = ?,
+                    `allowed_seeds` = ?,
+                    `farmer_name` = ?
+                WHERE `id` = ?
+            ");
+            $stmt->execute([$plot_number, $area, $rental_price, $status, $crop, $crop_icon, $seeds_json, $farmer_name, $plot_id]);
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Plot details updated successfully!'
             ]);
         } catch (\Exception $e) {
             http_response_code(500);

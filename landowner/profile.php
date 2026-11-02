@@ -9,23 +9,72 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 $_SESSION['active_role'] = 'landowner';
-if (!isset($_SESSION['user_name'])) {
-    $_SESSION['user_name'] = 'John Landowner';
+require_once __DIR__ . '/../includes/db.php';
+
+$owner_id = $_SESSION['user_id'] ?? 2;
+$userRow = null;
+try {
+    $uStmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $uStmt->execute([$owner_id]);
+    $userRow = $uStmt->fetch();
+} catch (\Exception $e) {}
+
+if ($userRow && !isset($_SESSION['user_name'])) {
+    $_SESSION['user_name'] = $userRow['name'];
+} elseif (!isset($_SESSION['user_name'])) {
+    $_SESSION['user_name'] = 'Landowner';
 }
 
-$user_email = $_SESSION['user_email'] ?? 'john.landowner@example.com';
-$user_phone = $_SESSION['user_phone'] ?? '+63 917 123 4567';
-$user_address = $_SESSION['user_address'] ?? '124 Green Ave, Sunnyvale, Metro Manila';
-$user_bio = $_SESSION['user_bio'] ?? 'Dedicated eco-conscious landowner offering idle urban spaces for sustainable community farming and organic crop cultivation.';
+$user_email = $userRow['email'] ?? ($_SESSION['user_email'] ?? '');
+$user_phone = $userRow['phone'] ?? ($_SESSION['user_phone'] ?? '');
+$user_address = $_SESSION['user_address'] ?? '';
+$user_bio = $_SESSION['user_bio'] ?? '';
+$member_since = !empty($userRow['created_at']) ? 'Landowner since ' . date('M Y', strtotime($userRow['created_at'])) : 'Active Landowner';
 
-// Process mock profile updates
+// Process profile updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
-    $_SESSION['user_name'] = htmlspecialchars(trim($_POST['user_name']));
-    $_SESSION['user_email'] = htmlspecialchars(trim($_POST['user_email']));
-    $_SESSION['user_phone'] = htmlspecialchars(trim($_POST['user_phone']));
-    $_SESSION['user_address'] = htmlspecialchars(trim($_POST['user_address']));
-    $_SESSION['user_bio'] = htmlspecialchars(trim($_POST['user_bio']));
+    $newName = htmlspecialchars(trim($_POST['user_name']));
+    $newEmail = htmlspecialchars(trim($_POST['user_email']));
+    $newPhone = htmlspecialchars(trim($_POST['user_phone']));
+    $_SESSION['user_name'] = $newName;
+    $_SESSION['user_email'] = $newEmail;
+    $_SESSION['user_phone'] = $newPhone;
+    $_SESSION['user_address'] = htmlspecialchars(trim($_POST['user_address'] ?? ''));
+    $_SESSION['user_bio'] = htmlspecialchars(trim($_POST['user_bio'] ?? ''));
+    $user_email = $newEmail;
+    $user_phone = $newPhone;
+    $user_address = $_SESSION['user_address'];
+    $user_bio = $_SESSION['user_bio'];
+
+    try {
+        $upStmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
+        $upStmt->execute([$newName, $newEmail, $newPhone, $owner_id]);
+    } catch (\Exception $e) {}
     $success_msg = "Profile updated successfully!";
+}
+
+// Fetch landowner's registered properties and plot metrics
+$owner_lands = [];
+$total_land_area = 0;
+$total_plots = 0;
+$leased_plots = 0;
+try {
+    $stmt = $pdo->prepare("SELECT * FROM lands WHERE owner_id = ? ORDER BY id DESC");
+    $stmt->execute([$owner_id]);
+    $owner_lands = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $total_land_area = array_sum(array_column($owner_lands, 'area_sqm'));
+
+    if (!empty($owner_lands)) {
+        $land_ids = array_column($owner_lands, 'id');
+        $placeholders = implode(',', array_fill(0, count($land_ids), '?'));
+        $pStmt = $pdo->prepare("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'occupied' THEN 1 ELSE 0 END) as leased FROM plots WHERE land_id IN ($placeholders)");
+        $pStmt->execute($land_ids);
+        $plotRow = $pStmt->fetch();
+        $total_plots = (int)($plotRow['total'] ?? 0);
+        $leased_plots = (int)($plotRow['leased'] ?? 0);
+    }
+} catch (\Exception $e) {
+    $owner_lands = [];
 }
 ?>
 
@@ -106,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             </div>
                             <div class="d-flex align-items-center gap-1.5">
                                 <i data-lucide="calendar" style="width: 14px; height: 14px;" class="text-primary"></i>
-                                <span>Landowner since Jan 2025</span>
+                                <span><?php echo htmlspecialchars($member_since); ?></span>
                             </div>
                         </div>
                     </div>
@@ -120,19 +169,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <span
                             class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Registered
                             Properties</span>
-                        <span class="fs-5 fw-bold text-dark">3</span>
+                        <span class="fs-5 fw-bold text-dark"><?php echo count($owner_lands); ?></span>
                     </div>
                     <div class="col-4 border-end">
                         <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Total
                             Land Area</span>
-                        <span class="fs-5 fw-bold text-primary">835.5 <span
+                        <span class="fs-5 fw-bold text-primary"><?php echo number_format($total_land_area, 1); ?> <span
                                 class="fs-6 font-normal text-muted">m²</span></span>
                     </div>
                     <div class="col-4">
                         <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Active
                             Plots Leased</span>
-                        <span class="fs-5 fw-bold text-emerald-600">8 <span class="fs-6 font-normal text-muted">/
-                                12</span></span>
+                        <span class="fs-5 fw-bold text-emerald-600"><?php echo $leased_plots; ?> <span class="fs-6 font-normal text-muted">/
+                                <?php echo $total_plots; ?></span></span>
                     </div>
                 </div>
             </div>
@@ -144,15 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </h2>
 
         <?php
-        // Landowner stewardship overrides (reflects platform-wide land management activity)
-        $eco_level_override = 4;
-        $eco_tier_name_override = 'Master Grower';
-        $eco_xp_override = 1020;
-        $eco_max_xp_override = 1200;
-        $co2_offset_override = 412.5;
-        $water_saved_override = 3850;
-        $organic_yield_override = 185.0;
-        $streak_days_override = 14;
         include '../includes/eco_tracker.php';
         ?>
 
@@ -168,115 +208,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </div>
 
         <div class="row g-3 mb-4">
-            <!-- Property Card 1 -->
-            <div class="col-md-4">
-                <div class="drive-card h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span
-                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Approved</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="leaf"
-                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> +180kg
-                                CO₂</span>
-                        </div>
-                        <h3 class="fs-6 fw-bold text-dark mb-1">Sunnyvale Gardening Lot</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
-                                style="width: 12px; height: 12px;"></i>124 Green Ave, Sunnyvale</p>
-                        <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Land Area:</span>
-                                <span class="fw-semibold text-dark">250 m²</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Permitted Crops:</span>
-                                <span class="fw-semibold text-dark">Root Veg, Tubers</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Active Gardeners:</span>
-                                <span class="fw-semibold text-emerald-600">3 Active</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-top d-flex align-items-center justify-content-between">
-                        <span class="text-xs text-muted">Plot Occupancy: 100%</span>
-                        <a href="lands.php" class="btn btn-sm btn-drive-secondary text-xs">View Details</a>
+            <?php if (empty($owner_lands)): ?>
+                <div class="col-12">
+                    <div class="p-4 border rounded-4 text-center bg-white text-muted">
+                        <i data-lucide="map-pin" class="mx-auto mb-2 text-secondary" style="width: 28px; height: 28px;"></i>
+                        <p class="mb-1 text-dark fw-semibold text-xs">No registered properties yet</p>
+                        <span class="text-xs text-secondary d-block mb-3">Add and manage your urban land lots to start hosting community gardens.</span>
+                        <a href="register.php" class="btn btn-sm btn-drive-primary text-xs">Register Land</a>
                     </div>
                 </div>
-            </div>
-
-            <!-- Property Card 2 -->
-            <div class="col-md-4">
-                <div class="drive-card h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span
-                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Approved</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="leaf"
-                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> +155kg
-                                CO₂</span>
-                        </div>
-                        <h3 class="fs-6 fw-bold text-dark mb-1">Downtown Rooftop Garden</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
-                                style="width: 12px; height: 12px;"></i>45 Main St, Business District</p>
-                        <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Land Area:</span>
-                                <span class="fw-semibold text-dark">85.5 m²</span>
+            <?php else: ?>
+                <?php foreach (array_slice($owner_lands, 0, 6) as $land): ?>
+                    <?php
+                    $crops = json_decode($land['allowed_seeds'] ?? '[]', true);
+                    $cropStr = is_array($crops) && !empty($crops) ? implode(', ', array_slice($crops, 0, 3)) : 'Vegetables';
+                    $isApproved = ($land['status'] === 'approved');
+                    ?>
+                    <div class="col-md-4">
+                        <div class="drive-card h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge rounded-pill <?php echo $isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'; ?> text-[10px] font-semibold">
+                                        <?php echo ucfirst($land['status']); ?>
+                                    </span>
+                                    <span class="text-xs text-secondary font-semibold">
+                                        <i data-lucide="grid" class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i>
+                                        <?php echo intval($land['plot_count'] ?? 4); ?> plots
+                                    </span>
+                                </div>
+                                <h3 class="fs-6 fw-bold text-dark mb-1 text-truncate"><?php echo htmlspecialchars($land['title']); ?></h3>
+                                <p class="text-secondary text-xs mb-3 text-truncate">
+                                    <i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>
+                                    <?php echo htmlspecialchars($land['address']); ?>
+                                </p>
+                                <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Land Area:</span>
+                                        <span class="fw-semibold text-dark"><?php echo number_format($land['area_sqm'] ?? 0); ?> m²</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Permitted Crops:</span>
+                                        <span class="fw-semibold text-dark text-truncate ms-2"><?php echo htmlspecialchars($cropStr); ?></span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Permitted Crops:</span>
-                                <span class="fw-semibold text-dark">Leafy Greens, Herbs</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Active Gardeners:</span>
-                                <span class="fw-semibold text-emerald-600">2 Active</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-top d-flex align-items-center justify-content-between">
-                        <span class="text-xs text-muted">Plot Occupancy: 50%</span>
-                        <a href="lands.php" class="btn btn-sm btn-drive-secondary text-xs">View Details</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Property Card 3 -->
-            <div class="col-md-4">
-                <div class="drive-card h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span
-                                class="badge rounded-pill bg-amber-100 text-amber-800 text-[10px] font-semibold">Pending
-                                Review</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="clock"
-                                    class="text-amber-500 inline me-1" style="width: 12px; height: 12px;"></i>
-                                Verification</span>
-                        </div>
-                        <h3 class="fs-6 fw-bold text-dark mb-1">Riverdale Acres</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
-                                style="width: 12px; height: 12px;"></i>Riverside Dr, Block B</p>
-                        <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Land Area:</span>
-                                <span class="fw-semibold text-dark">500 m²</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Permitted Crops:</span>
-                                <span class="fw-semibold text-dark">Fruits, Legumes</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Active Gardeners:</span>
-                                <span class="fw-semibold text-muted">Pending</span>
+                            <div class="pt-2 border-top d-flex align-items-center justify-content-between">
+                                <span class="text-xs text-muted">Status: <?php echo ucfirst($land['status']); ?></span>
+                                <a href="lands.php" class="btn btn-sm btn-drive-secondary text-xs">View Details</a>
                             </div>
                         </div>
                     </div>
-                    <div class="pt-2 border-top d-flex align-items-center justify-content-between">
-                        <span class="text-xs text-muted">Status: Pending Verification</span>
-                        <a href="lands.php" class="btn btn-sm btn-drive-secondary text-xs">View Status</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>  </div>
     </div>
 </main>
 

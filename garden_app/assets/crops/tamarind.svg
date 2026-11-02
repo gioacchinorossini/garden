@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: tamarind (Tamarind) -->
+
+  <!-- Segmented curved brown pod -->
+  <path d="M 24 16 C 30 14 36 18 36 24" stroke="#4E342E" stroke-width="3.5" fill="none"/>
+  <path d="M 28 22 C 38 20 48 24 56 32 C 64 40 68 52 64 64 C 60 76 68 84 64 92 C 54 96 46 86 44 76 C 42 66 32 54 26 44 C 20 34 20 24 28 22 Z" fill="#4E342E"/>
+  <path d="M 30 24 C 38 22 46 26 54 34 C 60 40 64 50 60 62 C 56 74 64 82 60 88 C 52 90 46 82 44 74 C 40 64 30 52 26 42 C 22 34 24 26 30 24 Z" fill="#795548"/>
+  <!-- Segment bulge constriction lines -->
+  <path d="M 38 32 C 40 38 36 44 32 46" stroke="#3E2723" stroke-width="2" fill="none"/>
+  <path d="M 48 46 C 52 52 48 60 42 62" stroke="#3E2723" stroke-width="2" fill="none"/>
+  <path d="M 54 64 C 58 70 54 76 48 78" stroke="#3E2723" stroke-width="2" fill="none"/>
+  <!-- Highlight -->
+  <path d="M 48 32 C 54 40 54 48 50 56" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.75"/>
+
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: banana-blossom (Banana blossom) -->
+
+  <!-- Puso ng saging: Teardrop purplish-maroon layered blossom heart -->
+  <path d="M 50 16 L 50 6" stroke="#33691E" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M 50 16 C 36 16 26 32 26 52 C 26 72 40 88 50 96 C 60 88 74 72 74 52 C 74 32 64 16 50 16 Z" fill="#311B92"/>
+  <path d="M 50 18 C 38 18 28 34 28 52 C 28 70 42 86 50 94 C 58 86 72 70 72 52 C 72 34 62 18 50 18 Z" fill="#4A148C"/>
+  <!-- Overlapping petal bract layers -->
+  <path d="M 34 32 C 44 42 56 42 66 32" stroke="#6A1B9A" stroke-width="2.5" fill="none"/>
+  <path d="M 30 48 C 42 60 58 60 70 48" stroke="#6A1B9A" stroke-width="2.5" fill="none"/>
+  <path d="M 34 66 C 44 76 56 76 66 66" stroke="#6A1B9A" stroke-width="2.5" fill="none"/>
+  <path d="M 64 38 C 68 48 68 62 64 72" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+
+</svg>

@@ -615,6 +615,24 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
     transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
+/* Ensure padding-left helper classes work on form controls (e.g. search bars with left icons) */
+.form-control.ps-5,
+.drive-form-control.ps-5,
+input.ps-5,
+#taskSearchInput,
+#mobileTaskSearchInput,
+#landsSearchInput,
+#mobileSearchInput,
+#requestsSearchInput {
+    padding-left: 2.5rem !important;
+}
+
+.form-control.ps-4,
+.drive-form-control.ps-4,
+input.ps-4 {
+    padding-left: 2rem !important;
+}
+
 .drive-form-control:focus,
 .form-control:focus,
 .form-select:focus {
@@ -798,6 +816,35 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 }
 
 .btn-outline-danger:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 0 #523E31 !important;
+}
+
+.btn-outline-success {
+    background: #FFFDF9 !important;
+    background-color: #FFFDF9 !important;
+    color: #4A6E35 !important;
+    border-radius: 99px !important;
+    padding: 0.55rem 1.4rem !important;
+    font-weight: 700 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 3px 0 #523E31 !important;
+    letter-spacing: 0.2px !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-outline-success:hover {
+    background: #E8F2E4 !important;
+    background-color: #E8F2E4 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 0 #523E31 !important;
+    color: #385627 !important;
+}
+
+.btn-outline-success:active {
     transform: translateY(2px) !important;
     box-shadow: 0 1px 0 #523E31 !important;
 }
@@ -3023,32 +3070,88 @@ header,
 /* ==========================================================================
    Landowner Plot Requests - Cats & Soup Game Table & Mobile Card System
    ========================================================================== */
-.request-filter-btn {
+/* ─── Shared Filter Pill Track & Buttons (Lands & Requests Pages) ─── */
+.filter-pill-track {
+    background: #F4EFE6 !important;
+    border: 1.5px solid var(--drive-border-subtle, #DFCFC2) !important;
+    border-radius: 9999px !important;
+    padding: 3px 4px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    overflow: visible !important;
+}
+
+.request-filter-btn,
+.land-filter-btn {
     border: 2px solid transparent !important;
     font-size: 0.78rem;
     font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 99px !important;
-    color: var(--drive-text-sub);
+    padding: 5px 13px;
+    border-radius: 9999px !important;
+    -webkit-border-radius: 9999px !important;
+    border-top-left-radius: 9999px !important;
+    border-top-right-radius: 9999px !important;
+    border-bottom-left-radius: 9999px !important;
+    border-bottom-right-radius: 9999px !important;
+    color: var(--drive-text-sub, #6B5446) !important;
     background: transparent;
     transition: all 0.15s ease;
+    margin: 0 !important;
+    flex-shrink: 0;
+    line-height: 1.4;
+    overflow: visible !important;
+    text-decoration: none !important;
 }
 
-.request-filter-btn:hover {
-    color: var(--drive-text-main);
-    background: #F4EFE6;
+.request-filter-btn:hover,
+.land-filter-btn:hover {
+    color: var(--drive-text-main, #3E2B1E) !important;
+    background: #EAE1D2 !important;
+    border-color: transparent !important;
+    border-radius: 9999px !important;
+    border-top-left-radius: 9999px !important;
+    border-top-right-radius: 9999px !important;
+    border-bottom-left-radius: 9999px !important;
+    border-bottom-right-radius: 9999px !important;
 }
 
-.request-filter-btn.active {
+.request-filter-btn.active,
+.land-filter-btn.active {
     background: #7FA668 !important;
     color: #FFFDF9 !important;
     border: 2px solid #523E31 !important;
     box-shadow: 0 2.5px 0 #523E31 !important;
+    border-radius: 9999px !important;
+    border-top-left-radius: 9999px !important;
+    border-top-right-radius: 9999px !important;
+    border-bottom-left-radius: 9999px !important;
+    border-bottom-right-radius: 9999px !important;
 }
 
-.request-filter-btn.active .badge {
+.request-filter-btn.active:hover,
+.land-filter-btn.active:hover {
+    background: #71975B !important;
+    color: #FFFDF9 !important;
+}
+
+.request-filter-btn.active .badge,
+.land-filter-btn.active .badge {
     background: rgba(255, 255, 255, 0.3) !important;
     color: #ffffff !important;
+}
+
+/* Override any legacy .btn-group specificity that forces straight corners */
+.btn-group > .request-filter-btn,
+.btn-group > .land-filter-btn,
+.btn-group-sm > .request-filter-btn,
+.btn-group-sm > .land-filter-btn {
+    border-radius: 9999px !important;
+    border-top-left-radius: 9999px !important;
+    border-top-right-radius: 9999px !important;
+    border-bottom-left-radius: 9999px !important;
+    border-bottom-right-radius: 9999px !important;
+    margin-left: 0 !important;
 }
 
 .request-avatar {
@@ -3258,16 +3361,29 @@ header,
     border-radius: 18px !important;
     padding: 0.9rem 1.15rem;
     box-shadow: 0 2px 6px rgba(62, 43, 30, 0.04);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
     display: flex;
     align-items: center;
     gap: 1rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .gardener-request-card:hover {
     transform: translateY(-2px);
     border-color: #BDDAB8 !important;
     box-shadow: 0 6px 18px rgba(62, 43, 30, 0.08);
+}
+
+.gardener-request-card:active {
+    transform: scale(0.99);
+    background: #F7EFE6 !important;
+}
+
+.gardener-request-card:focus-visible {
+    outline: 2px solid #7FA668;
+    outline-offset: 2px;
 }
 
 .gardener-request-icon-wrap {
@@ -3411,5 +3527,121 @@ header,
     .request-filter-chip {
         font-size: 0.72rem;
         padding: 0.25rem 0.65rem !important;
+    }
+}
+
+/* ─── Cats & Soup Floating Action Buttons (FAB) ─── */
+.floating-action-fab,
+.floating-land-fab,
+.floating-task-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2.25rem;
+    width: 54px;
+    height: 54px;
+    background: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 0 #523E31, 0 8px 24px rgba(82, 62, 49, 0.28);
+    text-decoration: none !important;
+    z-index: 1040;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.15s ease;
+}
+
+.floating-action-fab i,
+.floating-land-fab i,
+.floating-task-fab i {
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #FFFDF9;
+    transition: transform 0.25s ease;
+}
+
+.floating-action-fab:hover,
+.floating-land-fab:hover,
+.floating-task-fab:hover {
+    background: #6E9557 !important;
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 7px 0 #523E31, 0 14px 28px rgba(82, 62, 49, 0.35);
+    color: #FFFDF9 !important;
+}
+
+.floating-action-fab:hover i,
+.floating-land-fab:hover i,
+.floating-task-fab:hover i {
+    transform: rotate(90deg);
+}
+
+.floating-action-fab:active,
+.floating-land-fab:active,
+.floating-task-fab:active {
+    transform: translateY(2px) scale(0.96);
+    box-shadow: 0 1px 0 #523E31, 0 4px 10px rgba(82, 62, 49, 0.2);
+}
+
+/* Tooltip label appearing on hover */
+.floating-action-fab .fab-tooltip,
+.floating-land-fab .fab-tooltip,
+.floating-task-fab .fab-tooltip {
+    position: absolute;
+    right: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
+    background: #523E31;
+    color: #FFFDF9;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(82, 62, 49, 0.2);
+}
+
+.floating-action-fab .fab-tooltip::after,
+.floating-land-fab .fab-tooltip::after,
+.floating-task-fab .fab-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent #523E31;
+}
+
+.floating-action-fab:hover .fab-tooltip,
+.floating-land-fab:hover .fab-tooltip,
+.floating-task-fab:hover .fab-tooltip {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+}
+
+@media (max-width: 767.98px) {
+    .floating-action-fab,
+    .floating-land-fab,
+    .floating-task-fab {
+        bottom: 5.5rem; /* Float above mobile bottom navigation dock */
+        right: 1.25rem;
+        width: 50px;
+        height: 50px;
+    }
+    .floating-action-fab i,
+    .floating-land-fab i,
+    .floating-task-fab i {
+        font-size: 1.35rem;
+    }
+    .floating-action-fab .fab-tooltip,
+    .floating-land-fab .fab-tooltip,
+    .floating-task-fab .fab-tooltip {
+        display: none;
     }
 }

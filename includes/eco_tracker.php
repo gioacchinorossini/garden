@@ -9,7 +9,7 @@ $sched_list = $_SESSION['mock_schedules'] ?? [];
 $completed_scheds = array_filter($sched_list, fn($s) => ($s['status'] ?? '') === 'completed');
 $completed_count = count($completed_scheds);
 $total_sched_count = count($sched_list);
-$completion_rate = ($total_sched_count > 0) ? round(($completed_count / $total_sched_count) * 100) : 100;
+$completion_rate = ($total_sched_count > 0) ? round(($completed_count / $total_sched_count) * 100) : 0;
 
 // Stewardship points calculated from tasks
 $task_pts_earned = 0;
@@ -23,7 +23,7 @@ $harvest_count = count(array_filter($completed_scheds, fn($s) => ($s['task_type'
 $maintenance_count = count(array_filter($completed_scheds, fn($s) => in_array($s['task_type'] ?? '', ['weeding', 'pruning', 'mulching', 'fertilizing', 'cleaning', 'pests', 'trellising'])));
 
 $user_role = $_SESSION['active_role'] ?? 'gardener';
-$base_pts = ($user_role === 'landowner') ? 500 : 350;
+$base_pts = 0;
 $total_stewardship_pts = $base_pts + $task_pts_earned;
 
 // Realistic Stewardship Tiers:
@@ -56,11 +56,11 @@ $eco_max_pts = isset($eco_max_xp_override) ? $eco_max_xp_override : $tier_next_p
 if ($eco_max_pts <= $eco_pts) $eco_max_pts = $eco_pts + 150;
 $progress_pct = min(100, round(($eco_pts / $eco_max_pts) * 100));
 
-// Realistic environmental calculations:
-$water_managed = isset($water_saved_override) ? $water_saved_override : (450 + ($watering_count * 250) + ($completed_count * 40));
-$co2_offset = isset($co2_offset_override) ? $co2_offset_override : round(45.0 + ($planting_count * 18.0) + ($maintenance_count * 6.0), 1);
-$organic_yield = isset($organic_yield_override) ? $organic_yield_override : round(20.0 + ($harvest_count * 12.0) + ($planting_count * 4.0), 1);
-$streak_days = isset($streak_days_override) ? $streak_days_override : (7 + min($completed_count, 14));
+// Realistic environmental calculations derived purely from actual tasks:
+$water_managed = isset($water_saved_override) ? $water_saved_override : (($watering_count * 250) + ($completed_count * 40));
+$co2_offset = isset($co2_offset_override) ? $co2_offset_override : round(($planting_count * 18.0) + ($maintenance_count * 6.0), 1);
+$organic_yield = isset($organic_yield_override) ? $organic_yield_override : round(($harvest_count * 12.0) + ($planting_count * 4.0), 1);
+$streak_days = isset($streak_days_override) ? $streak_days_override : min($completed_count, 14);
 ?>
 
 <div class="stewardship-card mb-4">

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: cacao (Cacao) -->
+
+  <!-- Rugby-ball shaped ribbed cacao pod -->
+  <path d="M 50 14 C 50 8 52 6 54 4" stroke="#3E2723" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M 50 14 C 34 14 22 34 22 56 C 22 78 36 92 50 96 C 64 92 78 78 78 56 C 78 34 66 14 50 14 Z" fill="#3E2723"/>
+  <path d="M 50 16 C 36 16 24 34 24 56 C 24 76 38 90 50 94 C 62 90 76 76 76 56 C 76 34 64 16 50 16 Z" fill="#E65100"/>
+  <!-- Longitudinal furrow ridges -->
+  <path d="M 36 22 C 30 40 30 70 38 88" stroke="#BF360C" stroke-width="3" fill="none"/>
+  <path d="M 50 16 C 47 40 47 70 50 94" stroke="#BF360C" stroke-width="3" fill="none"/>
+  <path d="M 64 22 C 70 40 70 70 62 88" stroke="#BF360C" stroke-width="3" fill="none"/>
+  <!-- Highlight -->
+  <path d="M 66 40 C 70 50 70 64 66 74" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85"/>
+
+</svg>

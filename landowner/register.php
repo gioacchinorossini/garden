@@ -24,19 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $has_3d = isset($_POST['enable_3d_view']) ? 1 : 0;
     $polygon = isset($_POST['lot_polygon']) ? htmlspecialchars(trim($_POST['lot_polygon'])) : '';
 
-    // Harvest sharing configuration
-    $harvest_share_type = $_POST['harvest_share_type'] ?? 'percentage';
-    if (!in_array($harvest_share_type, ['percentage', 'fixed_kg', 'negotiated'], true)) {
-        $harvest_share_type = 'percentage';
-    }
+    // Harvest sharing configuration (defaulted/optional)
+    $harvest_share_type = 'percentage';
     $landowner_share_percentage = null;
     $landowner_share_kg = null;
-
-    if ($harvest_share_type === 'percentage') {
-        $landowner_share_percentage = max(0, min(100, floatval($_POST['landowner_share_percentage'] ?? 25)));
-    } elseif ($harvest_share_type === 'fixed_kg') {
-        $landowner_share_kg = max(0, floatval($_POST['landowner_share_kg'] ?? 0));
-    }
 
     $seeds = isset($_POST['allowed_seeds']) ? array_map('htmlspecialchars', $_POST['allowed_seeds']) : [];
     if (empty($seeds)) {
@@ -93,23 +84,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ]);
         $new_id = (int) $pdo->lastInsertId();
 
-        // Auto-create partition plots in MySQL plots table
+        // Insert partition plots into MySQL plots table with specified base rent
         $plot_area = round($area / $plot_count, 1);
         $stmtPlot = $pdo->prepare("
-            INSERT INTO `plots` (land_id, plot_number, area_sqm, status, crop, crop_icon, allowed_seeds, farmer_name)
-            VALUES (?, ?, ?, 'available', ?, ?, ?, '')
+            INSERT INTO `plots` (land_id, plot_number, area_sqm, rental_price_per_year, status, crop, crop_icon, allowed_seeds, farmer_name)
+            VALUES (?, ?, ?, ?, 'available', ?, ?, ?, '')
         ");
 
-        for ($i = 1; $i <= $plot_count; $i++) {
-            $crop = !empty($seeds) ? $seeds[($i - 1) % count($seeds)] : 'Vegetables';
-            $stmtPlot->execute([
-                $new_id,
-                'Plot A-' . $i,
-                $plot_area,
-                $crop,
-                'tomato/tomato.svg',
-                $seeds_json
-            ]);
+        if (!empty($_POST['plot_numbers']) && is_array($_POST['plot_numbers'])) {
+            $submitted_plots = count($_POST['plot_numbers']);
+            for ($i = 0; $i < $submitted_plots; $i++) {
+                $pNum = htmlspecialchars(trim($_POST['plot_numbers'][$i] ?? ('Plot A-' . ($i + 1))));
+                $pArea = max(1.0, floatval($_POST['plot_areas'][$i] ?? $plot_area));
+                $pRent = max(0.0, floatval($_POST['plot_base_rents'][$i] ?? 110000.00));
+                $pCrop = !empty($_POST['plot_crops'][$i]) ? htmlspecialchars(trim($_POST['plot_crops'][$i])) : (!empty($seeds) ? $seeds[$i % count($seeds)] : 'Vegetables');
+                $stmtPlot->execute([
+                    $new_id,
+                    $pNum,
+                    $pArea,
+                    $pRent,
+                    $pCrop,
+                    'tomato/tomato.svg',
+                    $seeds_json
+                ]);
+            }
+        } else {
+            // Fallback: auto-create plots with default ₱110k/yr base rent
+            for ($i = 1; $i <= $plot_count; $i++) {
+                $crop = !empty($seeds) ? $seeds[($i - 1) % count($seeds)] : 'Vegetables';
+                $stmtPlot->execute([
+                    $new_id,
+                    'Plot A-' . $i,
+                    $plot_area,
+                    110000.00,
+                    $crop,
+                    'tomato/tomato.svg',
+                    $seeds_json
+                ]);
+            }
         }
 
         $success_message = "Land request registered successfully! It is now pending administrative approval and visible across all devices.";
@@ -377,7 +389,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <form action="register.php" method="POST" enctype="multipart/form-data" id="landRegistrationForm">
                 <input type="hidden" name="action" value="register">
                 <input type="hidden" name="lot_polygon" id="lot_polygon">
-                <input type="hidden" name="plot_count" id="form_plot_count" value="4">
+                <input type="hidden" id="form_plot_count" value="4">
 
                 <div class="d-flex align-items-center justify-content-between border-bottom pb-2.5 mb-3">
                     <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
@@ -480,68 +492,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div id="hiddenSeedInputs"></div>
                     </div>
 
-
-
-                    <!-- Harvest Sharing Configuration -->
-                    <div class="col-12">
-                        <div class="border rounded-4 p-3 p-md-4 bg-light"
-                            style="border-color: var(--drive-border) !important;">
-                            <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
-                                <div>
-                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">HARVEST SHARING
-                                        AGREEMENT</label>
-                                    <div class="text-muted text-xs">Configure how the harvest from this land will be
-                                        divided between the landowner and farmer.</div>
-                                </div>
-                                <span class="badge bg-success-subtle text-success rounded-pill">Landowner Share</span>
+                    <!-- REQUIRED PLOT PARTITIONING & BASE RENT CONFIGURATION (col-12) -->
+                    <div class="col-12 mt-3 pt-3 border-top">
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                                    <i class="bi bi-grid-3x3-gap-fill text-success fs-5"></i>
+                                    <span>Plot Partitioning &amp; Base Rent Specification</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size: 10px; padding: 3px 8px;">Required</span>
+                                </h6>
+                                <p class="text-secondary mb-0 mt-1" style="font-size: 0.78rem;">
+                                    Partition this land into individual plots and set the required base rent (₱/year) for each plot. Gardeners will see this base rent and may submit counter-offers during lease negotiations.
+                                </p>
                             </div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <span class="badge bg-light text-secondary border rounded-pill px-3 py-1.5 text-xs font-medium" id="plotCalcSummaryBadge">
+                                    <i class="bi bi-info-circle text-primary me-1"></i> Standard: ₱110,000/yr for ~50m²
+                                </span>
+                            </div>
+                        </div>
 
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-4">
-                                    <label for="harvest_share_type"
-                                        class="form-label text-secondary fw-semibold text-xs mb-1">SHARING
-                                        METHOD</label>
-                                    <select class="form-select drive-form-control" id="harvest_share_type"
-                                        name="harvest_share_type" onchange="updateHarvestShareFields()">
-                                        <option value="percentage" selected>Percentage of harvest</option>
-                                        <option value="fixed_kg">Fixed kilograms per harvest</option>
-                                        <option value="negotiated">Negotiated / manual</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-4" id="percentageShareField">
-                                    <label for="landowner_share_percentage"
-                                        class="form-label text-secondary fw-semibold text-xs mb-1">LANDOWNER SHARE
-                                        (%)</label>
+                        <!-- Plot Count Selector & Quick Presets -->
+                        <div class="p-3 rounded-4 bg-light border mb-3" style="border-color: var(--drive-border) !important;">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-sm-5 col-md-4">
+                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">NUMBER OF PLOTS (MIN: 1)</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control drive-form-control"
-                                            id="landowner_share_percentage" name="landowner_share_percentage" min="0"
-                                            max="100" step="0.01" value="25" oninput="updateHarvestSharePreview()">
-                                        <span class="input-group-text">%</span>
+                                        <button type="button" class="btn btn-outline-secondary px-3" onclick="adjustPlotCount(-1)">
+                                            <i class="bi bi-dash-lg"></i>
+                                        </button>
+                                        <input type="number" id="plot_count" name="plot_count" class="form-control text-center fw-bold text-dark" value="4" min="1" max="20" onchange="onPlotCountChanged(this.value)">
+                                        <button type="button" class="btn btn-outline-secondary px-3" onclick="adjustPlotCount(1)">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div class="col-md-4 d-none" id="fixedKgShareField">
-                                    <label for="landowner_share_kg"
-                                        class="form-label text-secondary fw-semibold text-xs mb-1">LANDOWNER SHARE
-                                        (KG)</label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control drive-form-control"
-                                            id="landowner_share_kg" name="landowner_share_kg" min="0" step="0.01"
-                                            value="0" oninput="updateHarvestSharePreview()">
-                                        <span class="input-group-text">kg</span>
+                                <div class="col-sm-7 col-md-8">
+                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">QUICK PARTITION PRESETS</label>
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(1, this)">1 Plot (Single)</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(2, this)">2 Plots</button>
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 text-xs text-white plot-preset-btn active" onclick="selectPlotCountPreset(4, this)">4 Plots</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(6, this)">6 Plots</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(8, this)">8 Plots</button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-white border rounded-3 h-100"
-                                        style="border-color: var(--drive-border) !important;">
-                                        <div class="text-muted text-xs mb-1">SHARING PREVIEW</div>
-                                        <div id="harvestSharePreview" class="fw-semibold text-dark text-sm">Landowner:
-                                            25% · Farmer: 75%</div>
-                                        <div class="text-muted mt-1" style="font-size: 0.7rem;">Actual kilograms will be
-                                            calculated when a harvest is recorded.</div>
-                                    </div>
+                        <!-- Interactive Plot Breakdown Cards Table -->
+                        <div class="border rounded-4 overflow-hidden mb-3 bg-white" style="border-color: var(--drive-border) !important;">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="plotsConfigTable">
+                                    <thead class="table-light text-xs text-secondary text-uppercase" style="letter-spacing: 0.5px;">
+                                        <tr>
+                                            <th style="width: 25%;" class="ps-3 py-2.5">Plot Identifier</th>
+                                            <th style="width: 20%;" class="py-2.5">Area (m²)</th>
+                                            <th style="width: 35%;" class="py-2.5">Base Annual Rent (₱ / Year) <span class="text-danger">*</span></th>
+                                            <th style="width: 20%;" class="pe-3 py-2.5 text-end">Monthly Rent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plotsConfigTableBody" class="text-sm">
+                                        <!-- Rendered dynamically by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="p-3 bg-light border-top d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-color: var(--drive-border) !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-secondary text-xs fw-semibold">TOTAL PROJECTED RENTAL EARNINGS:</span>
+                                    <span class="fs-5 fw-bold text-success" id="totalProjectedAnnualRent">₱440,000.00</span>
+                                    <span class="text-muted text-xs">/ year</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-secondary text-xs fw-semibold">MONTHLY PROJECTION:</span>
+                                    <span class="fs-6 fw-bold text-dark" id="totalProjectedMonthlyRent">₱36,666.67</span>
+                                    <span class="text-muted text-xs">/ month</span>
                                 </div>
                             </div>
                         </div>
@@ -583,68 +608,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
 </main>
 
-<script>
-    function updateHarvestShareFields() {
-        const type = document.getElementById('harvest_share_type')?.value;
-        const percentageField = document.getElementById('percentageShareField');
-        const fixedKgField = document.getElementById('fixedKgShareField');
-        const percentageInput = document.getElementById('landowner_share_percentage');
-        const fixedKgInput = document.getElementById('landowner_share_kg');
 
-        if (!percentageField || !fixedKgField) return;
-
-        percentageField.classList.toggle('d-none', type !== 'percentage');
-        fixedKgField.classList.toggle('d-none', type !== 'fixed_kg');
-
-        if (percentageInput) percentageInput.required = type === 'percentage';
-        if (fixedKgInput) fixedKgInput.required = type === 'fixed_kg';
-
-        updateHarvestSharePreview();
-    }
-
-    function updateHarvestSharePreview() {
-        const type = document.getElementById('harvest_share_type')?.value;
-        const preview = document.getElementById('harvestSharePreview');
-        if (!preview) return;
-
-        if (type === 'percentage') {
-            let percentage = parseFloat(document.getElementById('landowner_share_percentage')?.value || 0);
-            percentage = Math.max(0, Math.min(100, percentage));
-            const farmer = (100 - percentage).toFixed(2).replace(/\.00$/, '');
-            const owner = percentage.toFixed(2).replace(/\.00$/, '');
-            preview.textContent = `Landowner: ${owner}% · Farmer: ${farmer}%`;
-        } else if (type === 'fixed_kg') {
-            const kg = Math.max(0, parseFloat(document.getElementById('landowner_share_kg')?.value || 0));
-            preview.textContent = `Landowner: ${kg} kg per harvest · Farmer: Remaining harvest`;
-        } else {
-            preview.textContent = 'Landowner: Negotiated · Farmer: Negotiated';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        updateHarvestShareFields();
-    });
-</script>
 
 <?php
-$seedTypes = [
-    ['value' => 'tomato', 'label' => 'Tomato', 'icon' => '../assets/crop-icons/tomato/tomato.svg'],
-    ['value' => 'lettuce', 'label' => 'Lettuce', 'icon' => '../assets/crop-icons/romaine/romaine.svg'],
-    ['value' => 'herbs', 'label' => 'Herbs', 'icon' => '../assets/crop-icons/basil/basil.svg'],
-    ['value' => 'pepper', 'label' => 'Pepper', 'icon' => '../assets/crop-icons/red-bell-pepper/red-bell-pepper.svg'],
-    ['value' => 'carrot', 'label' => 'Carrot', 'icon' => '../assets/crop-icons/carrot/carrot.svg'],
-    ['value' => 'eggplant', 'label' => 'Eggplant', 'icon' => '../assets/crop-icons/eggplant/eggplant.svg'],
-    ['value' => 'cucumber', 'label' => 'Cucumber', 'icon' => '../assets/crop-icons/cucumber/cucumber.svg'],
-    ['value' => 'spinach', 'label' => 'Spinach', 'icon' => '../assets/crop-icons/spinach/spinach.svg'],
-    ['value' => 'beans', 'label' => 'Beans', 'icon' => '../assets/crop-icons/broad-bean/broad-bean.svg'],
-    ['value' => 'squash', 'label' => 'Squash', 'icon' => '../assets/crop-icons/yellow-squash/yellow-squash.svg'],
-    ['value' => 'onion', 'label' => 'Onion', 'icon' => '../assets/crop-icons/red-onion/red-onion.svg'],
-    ['value' => 'corn', 'label' => 'Corn', 'icon' => '../assets/crop-icons/corn/corn.svg'],
-    ['value' => 'garlic', 'label' => 'Garlic', 'icon' => '../assets/crop-icons/garlic/garlic.svg'],
-    ['value' => 'potato', 'label' => 'Potato', 'icon' => '../assets/crop-icons/russet-potato/russet-potato.svg'],
-    ['value' => 'mushroom', 'label' => 'Mushroom', 'icon' => '../assets/crop-icons/generic-mushroom/generic-mushroom.svg'],
-    ['value' => 'peas', 'label' => 'Peas', 'icon' => '../assets/crop-icons/snap-pea/snap-pea.svg'],
-];
+require_once __DIR__ . '/../includes/crops_library.php';
+$seedTypes = getPermittedCropsSeedList('../');
+$cropCategories = getCropCategories();
 ?>
 
 <!-- Permitted Crops Selection Modal -->
@@ -666,13 +635,13 @@ $seedTypes = [
 
             <div class="modal-body p-4 bg-light">
                 <!-- Search & Quick Selection Actions -->
-                <div class="d-flex flex-column flex-sm-row gap-3 align-items-center justify-content-between mb-4">
+                <div class="d-flex flex-column flex-sm-row gap-3 align-items-center justify-content-between mb-3">
                     <div class="position-relative w-100 me-sm-2">
                         <i data-lucide="search" class="position-absolute text-secondary"
                             style="left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
                         <input type="text" id="cropSearchInput"
                             class="form-control drive-form-control ps-5 py-2 text-xs rounded-pill"
-                            placeholder="Search crop types (e.g., Tomato, Lettuce, Carrot)..."
+                            placeholder="Search by English or local name (e.g. Mango, Mangga, Pechay, Ampalaya)..."
                             onkeyup="filterCropChips()">
                     </div>
                     <div class="d-flex gap-1.5 flex-shrink-0">
@@ -683,11 +652,25 @@ $seedTypes = [
                     </div>
                 </div>
 
+                <!-- Category Filters Scrollable Pills -->
+                <div class="d-flex gap-1.5 overflow-x-auto pb-2 mb-3" id="cropCategoryFilters" style="white-space: nowrap;">
+                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-2.5 py-1 text-xs crop-cat-pill active flex-shrink-0"
+                        onclick="setCropCategoryFilter('all', this)">All (<?php echo count($seedTypes); ?>)</button>
+                    <?php foreach ($cropCategories as $catId => $cat): ?>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs crop-cat-pill flex-shrink-0"
+                            onclick="setCropCategoryFilter('<?php echo $catId; ?>', this)">
+                            <span><?php echo $cat['icon']; ?> <?php echo $cat['name']; ?></span>
+                            <span class="badge bg-light text-dark ms-1 rounded-pill" style="font-size: 10px;"><?php echo $cat['count']; ?></span>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+
                 <!-- Crop Grid Container -->
                 <div class="row g-2 overflow-y-auto" id="modalCropGrid" style="max-height: 340px;">
                     <?php foreach ($seedTypes as $seed): ?>
                         <div class="col-6 col-sm-4 col-md-3 crop-grid-item"
-                            data-name="<?php echo strtolower($seed['label']); ?>">
+                            data-name="<?php echo strtolower($seed['label'] . ' ' . $seed['value'] . ' ' . ($seed['local_name'] ?? '')); ?>"
+                            data-category="<?php echo $seed['category_id'] ?? ''; ?>">
                             <div class="modal-crop-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2"
                                 data-value="<?php echo $seed['value']; ?>" data-label="<?php echo $seed['label']; ?>"
                                 data-icon="<?php echo $seed['icon']; ?>"
@@ -697,10 +680,10 @@ $seedTypes = [
                                     <div
                                         class="w-8 h-8 rounded-full flex items-center justify-center bg-drive-canvas border border-drive-border flex-shrink-0">
                                         <img src="<?php echo $seed['icon']; ?>" alt="<?php echo $seed['label']; ?>"
-                                            class="w-5 h-5 object-contain">
+                                            class="w-5 h-5 object-contain" loading="lazy">
                                     </div>
                                     <span
-                                        class="fw-semibold text-dark text-xs truncate"><?php echo $seed['label']; ?></span>
+                                        class="fw-semibold text-dark text-xs truncate" title="<?php echo $seed['label']; ?>"><?php echo $seed['label']; ?></span>
                                 </div>
                                 <div class="crop-check-icon text-primary hidden">
                                     <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #1a73e8;"></i>
@@ -852,11 +835,29 @@ $seedTypes = [
         renderSelectedCropsSummary();
     }
 
+    let currentCropCategory = 'all';
+
+    function setCropCategoryFilter(catId, btn) {
+        currentCropCategory = catId;
+        document.querySelectorAll('.crop-cat-pill').forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.classList.add('btn-outline-secondary');
+        });
+        if (btn) {
+            btn.classList.add('active', 'btn-primary');
+            btn.classList.remove('btn-outline-secondary');
+        }
+        filterCropChips();
+    }
+
     function filterCropChips() {
-        const query = document.getElementById('cropSearchInput').value.toLowerCase().trim();
+        const query = (document.getElementById('cropSearchInput').value || '').toLowerCase().trim();
         document.querySelectorAll('.crop-grid-item').forEach(item => {
-            const name = item.getAttribute('data-name');
-            if (!query || name.includes(query)) {
+            const name = (item.getAttribute('data-name') || '').toLowerCase();
+            const cat = item.getAttribute('data-category') || '';
+            const matchesQuery = !query || name.includes(query);
+            const matchesCategory = currentCropCategory === 'all' || cat === currentCropCategory;
+            if (matchesQuery && matchesCategory) {
                 item.classList.remove('d-none');
             } else {
                 item.classList.add('d-none');
@@ -2562,22 +2563,138 @@ $seedTypes = [
             };
         }
 
-        // ─── Partition Plots Setup & Calculation ───
-        window.selectPlotCount = function (count, btn) {
-            const hiddenInput = document.getElementById('plot_count');
-            if (hiddenInput) hiddenInput.value = count;
+        // ─── Partition Plots Setup, Table Rendering & Base Rent Calculation ───
+        window.adjustPlotCount = function(delta) {
+            const input = document.getElementById('plot_count');
+            let count = parseInt(input ? input.value : 4) || 4;
+            count = Math.max(1, Math.min(20, count + delta));
+            if (input) input.value = count;
+            onPlotCountChanged(count);
+        };
+
+        window.selectPlotCountPreset = function(count, btn) {
+            const input = document.getElementById('plot_count');
+            if (input) input.value = count;
+            document.querySelectorAll('.plot-preset-btn').forEach(b => {
+                b.classList.remove('btn-success', 'active', 'text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            if (btn) {
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-success', 'active', 'text-white');
+            }
+            onPlotCountChanged(count);
+        };
+
+        window.onPlotCountChanged = function(val) {
+            let count = parseInt(val) || 4;
+            count = Math.max(1, Math.min(20, count));
+            const input = document.getElementById('plot_count');
+            if (input) input.value = count;
             const formPlotCount = document.getElementById('form_plot_count');
             if (formPlotCount) formPlotCount.value = count;
 
-            document.querySelectorAll('.plot-count-btn').forEach(b => {
-                b.classList.remove('btn-success', 'active', 'text-white');
-                b.classList.add('btn-light', 'text-secondary');
+            // Highlight corresponding preset if matching
+            document.querySelectorAll('.plot-preset-btn').forEach(b => {
+                const bCount = parseInt(b.textContent);
+                if (bCount === count) {
+                    b.classList.remove('btn-outline-secondary');
+                    b.classList.add('btn-success', 'active', 'text-white');
+                } else {
+                    b.classList.remove('btn-success', 'active', 'text-white');
+                    b.classList.add('btn-outline-secondary');
+                }
             });
-            if (btn) {
-                btn.classList.remove('btn-light', 'text-secondary');
-                btn.classList.add('btn-success', 'active', 'text-white');
+
+            renderPlotsConfigTable();
+            updatePlotCalculation(false);
+        };
+
+        window.calculateTotalRent = function() {
+            let totalAnnual = 0;
+            const rentInputs = document.querySelectorAll('.plot-base-rent-input');
+            rentInputs.forEach(input => {
+                const val = parseFloat(input.value) || 0;
+                totalAnnual += val;
+                const row = input.closest('tr');
+                if (row) {
+                    const monthlyEl = row.querySelector('.plot-monthly-rent-display');
+                    if (monthlyEl) {
+                        const monthly = val > 0 ? (val / 12) : 0;
+                        monthlyEl.textContent = `₱${monthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo`;
+                    }
+                }
+            });
+
+            const totalMonthly = totalAnnual / 12;
+            const elAnnual = document.getElementById('totalProjectedAnnualRent');
+            const elMonthly = document.getElementById('totalProjectedMonthlyRent');
+            if (elAnnual) elAnnual.textContent = `₱${totalAnnual.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            if (elMonthly) elMonthly.textContent = `₱${totalMonthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        };
+
+        window.renderPlotsConfigTable = function() {
+            const tableBody = document.getElementById('plotsConfigTableBody');
+            if (!tableBody) return;
+
+            const input = document.getElementById('plot_count');
+            const count = parseInt(input ? input.value : 4) || 4;
+            const areaInput = document.getElementById('area');
+            const totalArea = parseFloat(areaInput ? areaInput.value : 250) || 250;
+            const singleArea = (totalArea / count).toFixed(1);
+
+            // Default benchmark: 50m² = ₱110,000/yr (₱2,200/m²), min ₱25,000
+            const defaultRent = Math.max(25000, Math.round(parseFloat(singleArea) * 2200));
+
+            // Retain any existing values user typed
+            const existingRents = Array.from(document.querySelectorAll('.plot-base-rent-input')).map(i => i.value);
+            const existingAreas = Array.from(document.querySelectorAll('.plot-area-input')).map(i => i.value);
+            const existingNames = Array.from(document.querySelectorAll('.plot-name-input')).map(i => i.value);
+
+            const permittedCrops = Array.from(selectedCrops.values()).map(c => c.label);
+            const defaultCrop = permittedCrops.length > 0 ? permittedCrops[0] : 'Vegetables';
+
+            let rowsHtml = '';
+            for (let i = 0; i < count; i++) {
+                const plotNum = existingNames[i] || `Plot A-${i + 1}`;
+                const plotArea = existingAreas[i] || singleArea;
+                const plotRent = existingRents[i] || defaultRent;
+                const plotMonthly = (parseFloat(plotRent) / 12);
+
+                rowsHtml += `
+                    <tr>
+                        <td class="ps-3 py-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-light-subtle text-success">
+                                    <i class="bi bi-grid-3x3"></i>
+                                </span>
+                                <input type="text" name="plot_numbers[]" class="form-control form-control-sm plot-name-input fw-semibold" value="${escapeHtml(plotNum)}" required>
+                            </div>
+                        </td>
+                        <td class="py-2">
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.1" name="plot_areas[]" class="form-control form-control-sm plot-area-input" value="${plotArea}" required oninput="calculateTotalRent()">
+                                <span class="input-group-text bg-light text-muted" style="font-size: 11px;">m²</span>
+                            </div>
+                        </td>
+                        <td class="py-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-success-subtle text-success fw-bold">₱</span>
+                                <input type="number" step="100" name="plot_base_rents[]" class="form-control form-control-sm plot-base-rent-input fw-bold text-dark" value="${plotRent}" required min="1000" oninput="calculateTotalRent()">
+                                <span class="input-group-text bg-light text-muted" style="font-size: 11px;">/ yr</span>
+                            </div>
+                        </td>
+                        <td class="pe-3 py-2 text-end">
+                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 text-xs plot-monthly-rent-display fw-semibold">
+                                ₱${plotMonthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo
+                            </span>
+                        </td>
+                    </tr>
+                `;
             }
-            updatePlotCalculation();
+
+            tableBody.innerHTML = rowsHtml;
+            calculateTotalRent();
         };
 
         window.updatePlotCalculation = function (syncTarget = true) {
@@ -2592,44 +2709,16 @@ $seedTypes = [
             }
             const plotCountSelect = document.getElementById('plot_count');
             const count = parseInt(plotCountSelect ? plotCountSelect.value : 4) || 4;
-            const singleAreaInput = document.getElementById('singlePlotArea');
-            const badge = document.getElementById('plotCalcBadge');
-            const previewGrid = document.getElementById('plotGridPreviewBadges');
-
-            const formPlotCount = document.getElementById('form_plot_count');
-            if (formPlotCount) formPlotCount.value = count;
-
-            // Sync button active state with count
-            const activeBtn = document.querySelector(`.plot-count-btn[data-count="${count}"]`);
-            if (activeBtn) {
-                document.querySelectorAll('.plot-count-btn').forEach(b => {
-                    b.classList.remove('btn-success', 'active', 'text-white');
-                    b.classList.add('btn-light', 'text-secondary');
-                });
-                activeBtn.classList.remove('btn-light', 'text-secondary');
-                activeBtn.classList.add('btn-success', 'active', 'text-white');
-            }
-
             const singleArea = totalArea > 0 ? (totalArea / count).toFixed(1) : '—';
-            if (singleAreaInput) singleAreaInput.value = singleArea;
-            if (badge) {
-                badge.textContent = totalArea > 0
-                    ? `${count} plot${count > 1 ? 's' : ''} (~${singleArea} m²)`
-                    : `${count} plot${count > 1 ? 's' : ''}`;
+
+            const summaryBadge = document.getElementById('plotCalcSummaryBadge');
+            if (summaryBadge && totalArea > 0) {
+                summaryBadge.innerHTML = `<i class="bi bi-info-circle text-primary me-1"></i> ${count} plots partition: ~${singleArea} m² each`;
             }
 
-            if (previewGrid) {
-                let badgesHtml = '';
-                for (let i = 1; i <= count; i++) {
-                    badgesHtml += `
-                        <span class="badge bg-white border text-dark rounded-pill px-2 py-1 text-xs d-inline-flex align-items-center gap-1 shadow-xs">
-                            <i class="bi bi-grid-3x3-gap-fill text-success" style="font-size:10px;"></i>
-                            <span>Plot A-${i}</span>
-                            <span class="text-muted" style="font-size:9px;">(${singleArea} m²)</span>
-                        </span>
-                    `;
-                }
-                previewGrid.innerHTML = badgesHtml;
+            // Sync plots config table
+            if (syncTarget) {
+                renderPlotsConfigTable();
             }
 
             if (drawnPolygonLayer) {

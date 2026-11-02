@@ -7,7 +7,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 $_SESSION['active_role'] = 'landowner';
 if (!isset($_SESSION['user_name'])) {
-    $_SESSION['user_name'] = 'John Landowner';
+    $_SESSION['user_name'] = 'Landowner';
 }
 
 include '../includes/header.php';
@@ -15,37 +15,58 @@ include '../includes/navbar.php';
 include '../includes/sidebar.php';
 ?>
 
-<main class="workspace-surface d-flex flex-column h-100 overflow-hidden">
-    <!-- Desktop & Mobile Toolbar -->
-    <div class="toolbar border-bottom d-flex align-items-center justify-content-between px-3 px-md-4 py-2.5 bg-white flex-shrink-0">
-        <div class="d-flex align-items-center gap-2 min-w-0">
-            <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success-subtle text-success p-2 flex-shrink-0" style="width:36px;height:36px;">
-                <i data-lucide="calendar" style="width:20px;height:20px;"></i>
-            </div>
-            <div class="min-w-0">
-                <h1 class="fs-6 fw-bold m-0 text-dark font-['Outfit'] text-truncate" style="line-height:1.2;">
-                    Garden Task Schedules
-                </h1>
-                <p class="text-secondary mb-0 small text-truncate" style="font-size:0.75rem;">
-                    Coordinate maintenance, irrigation, and stewardship across your lands
-                </p>
-            </div>
+<style>
+/* Search Input Fix: Ensure placeholder never overlaps search icon */
+#taskSearchInput,
+#mobileTaskSearchInput {
+    padding-left: 2.4rem !important;
+}
+</style>
+
+<main class="workspace-surface">
+    <!-- Desktop Toolbar (Title and actions, borderless matching requests.php & lands.php) -->
+    <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fs-5 fw-semibold m-0 text-dark">Garden Task Schedules</h1>
+            <p class="text-muted mb-0" style="font-size: 0.78rem;">Coordinate plot maintenance, irrigation, and tasks across your lands</p>
         </div>
 
-        <div class="d-flex align-items-center gap-2 flex-shrink-0">
-            <button class="btn btn-drive-primary btn-sm rounded-pill px-3.5 d-inline-flex align-items-center gap-1.5"
-                    style="font-size:0.76rem;" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                <i data-lucide="plus" style="width:15px;height:15px;"></i>
-                <span>Add Task</span>
-            </button>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Search bar -->
+            <div class="position-relative" style="width: 240px;">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem; pointer-events: none;"></i>
+                <input type="text" id="taskSearchInput" class="form-control form-control-sm ps-5 rounded-pill border-light-subtle bg-light"
+                    placeholder="Search tasks, types...">
+            </div>
         </div>
     </div>
 
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll flex-grow-1 p-3 p-md-4">
+    <div class="workspace-scroll p-3 px-md-4 pt-md-2 pb-5 pb-md-5">
+        <!-- Mobile Header Controls (Visible only on mobile < md) -->
+        <div class="d-block d-md-none mb-3">
+            <div class="mb-2.5">
+                <h1 class="fs-6 fw-bold m-0 text-dark font-['Outfit']">Garden Task Schedules</h1>
+                <p class="text-secondary mb-0" style="font-size: 0.72rem;">Coordinate maintenance, irrigation &amp; plot tasks</p>
+            </div>
+
+            <!-- Mobile Search -->
+            <div class="position-relative mb-2.5">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.85rem; pointer-events: none;"></i>
+                <input type="text" id="mobileTaskSearchInput" class="form-control form-control-sm ps-5 py-2 rounded-pill border-light-subtle bg-white shadow-xs"
+                    placeholder="Search tasks...">
+            </div>
+        </div>
+
         <!-- Schedules Dynamic Container -->
         <div id="schedulesContainer"></div>
     </div>
+
+    <!-- Floating Plus Button (Add Task FAB) -->
+    <button type="button" class="floating-task-fab" id="addTaskFab" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Schedule Garden Task" aria-label="Schedule Garden Task">
+        <i class="bi bi-plus-lg"></i>
+        <span class="fab-tooltip">Add Task</span>
+    </button>
 </main>
 
 <!-- Add Task Modal -->

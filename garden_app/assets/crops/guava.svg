@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: guava (Guava) -->
+
+  <!-- Leaf and Stem -->
+  <path d="M 50 18 C 38 8 26 12 24 22 C 34 24 44 22 50 18 Z" fill="#33691E"/>
+  <path d="M 50 18 C 50 12 54 8 56 6" stroke="#4E342E" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Round fruit -->
+  <circle cx="50" cy="56" r="32" fill="#558B2F"/>
+  <circle cx="50" cy="54" r="30" fill="#9CCC65"/>
+  <circle cx="48" cy="52" r="26" fill="#AED581"/>
+  <!-- Calyx crown at base -->
+  <path d="M 44 84 L 50 81 L 56 84 L 53 87 L 47 87 Z" fill="#33691E"/>
+  <path d="M 68 40 C 74 48 74 60 70 68" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <circle cx="62" cy="34" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

@@ -29,21 +29,47 @@ if (isset($_GET['switch_role'])) {
     if (in_array($role, ['admin', 'landowner', 'gardener'])) {
         $_SESSION['active_role'] = $role;
         $base = isset($base_path) ? $base_path : '';
+        $target = '';
         if ($role == 'admin') {
             $_SESSION['user_id'] = 1;
             $_SESSION['user_name'] = 'System Administrator';
-            header("Location: " . $base . "admin/dashboard.php");
-            exit;
+            $target = $base . "admin/dashboard.php";
         } elseif ($role == 'landowner') {
             $_SESSION['user_id'] = 2;
             $_SESSION['user_name'] = 'John Landowner';
-            header("Location: " . $base . "landowner/dashboard.php");
-            exit;
+            $target = $base . "landowner/dashboard.php";
         } elseif ($role == 'gardener') {
             $_SESSION['user_id'] = 3;
             $_SESSION['user_name'] = 'Mary Gardener';
-            header("Location: " . $base . "gardener/dashboard.php");
-            exit;
+            $target = $base . "gardener/dashboard.php";
+        }
+
+        if ($target !== '') {
+            $currentScript = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+            $isTarget = false;
+            if ($role === 'admin' && str_contains($currentScript, '/admin/dashboard.php')) {
+                $isTarget = true;
+            } elseif ($role === 'landowner' && str_contains($currentScript, '/landowner/dashboard.php')) {
+                $isTarget = true;
+            } elseif ($role === 'gardener' && str_contains($currentScript, '/gardener/dashboard.php')) {
+                $isTarget = true;
+            }
+
+            if ($isTarget) {
+                echo "<script>if (window.history.replaceState) { const u = new URL(window.location.href); u.searchParams.delete('switch_role'); window.history.replaceState(null, '', u.toString()); }</script>";
+            } else {
+                if (ob_get_level()) {
+                    ob_clean();
+                }
+                if (!headers_sent()) {
+                    header("Location: " . $target);
+                    exit;
+                } else {
+                    echo "<script>window.location.replace(" . json_encode($target) . ");</script>";
+                    echo "<noscript><meta http-equiv='refresh' content='0;url=" . htmlspecialchars($target, ENT_QUOTES) . "'></noscript>";
+                    exit;
+                }
+            }
         }
     }
 }
@@ -80,6 +106,17 @@ if (isset($_GET['switch_role'])) {
 
     <!-- Right: Notifications & Profile -->
     <div class="flex items-center gap-1.5 md:gap-2">
+        <?php if ($role === 'landowner' || $role === 'gardener'): ?>
+        <!-- Feature Guide & Tutorial Tour Button -->
+        <button type="button"
+            class="p-0 border-0 bg-transparent rounded-full flex items-center justify-center text-drive-text-sub hover:bg-drive-surface-hover hover:text-drive-primary transition-all focus:outline-none cursor-pointer"
+            style="width: 32px; height: 32px;"
+            title="Interactive Tutorial Tour"
+            onclick="window.IdlelandTutorial && window.IdlelandTutorial.start(true)">
+            <i class="bi bi-compass text-base leading-none"></i>
+        </button>
+        <?php endif; ?>
+
         <!-- Notifications Button & Dropdown (Desktop only - mobile has it in footer dock) -->
         <div class="dropdown hidden md:block">
             <button
@@ -120,7 +157,7 @@ if (isset($_GET['switch_role'])) {
                                 <?php echo $role === 'gardener' ? 'Plot Request Approved' : 'New Plot Request'; ?>
                             </p>
                             <p class="text-[11px] text-drive-text-muted mb-1 line-clamp-2 leading-tight">
-                                <?php echo $role === 'gardener' ? 'Your request for Plot #2 at Sunnyvale was accepted.' : 'Mary Gardener requested Plot #2 at Sunnyvale Garden.'; ?>
+                                <?php echo $role === 'gardener' ? 'Your plot application was reviewed.' : 'A new plot application has been submitted for review.'; ?>
                             </p>
                             <span class="text-[10px] text-drive-text-muted font-medium">10 mins ago</span>
                         </div>
@@ -202,7 +239,7 @@ if (isset($_GET['switch_role'])) {
                     </div>
                 </li>
 
-                <!-- Profile Link (if landowner) -->
+                <!-- Profile Link -->
                 <?php if ($role === 'landowner'): ?>
                 <li>
                     <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center gap-2 text-drive-text-sub hover:bg-drive-surface-hover"
@@ -210,6 +247,25 @@ if (isset($_GET['switch_role'])) {
                         <i class="bi bi-person text-base leading-none"></i>
                         <span>My Profile</span>
                     </a>
+                </li>
+                <?php elseif ($role === 'gardener'): ?>
+                <li>
+                    <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center gap-2 text-drive-text-sub hover:bg-drive-surface-hover"
+                        href="<?php echo $bp; ?>gardener/profile.php">
+                        <i class="bi bi-person text-base leading-none"></i>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+
+                <?php if ($role === 'landowner' || $role === 'gardener'): ?>
+                <!-- Tutorial Tour Replay Link -->
+                <li>
+                    <button type="button" class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center gap-2 text-drive-text-sub hover:bg-drive-surface-hover border-0 bg-transparent w-full text-start cursor-pointer"
+                        onclick="window.IdlelandTutorial && window.IdlelandTutorial.start(true)">
+                        <i class="bi bi-compass text-base leading-none text-emerald-600"></i>
+                        <span>Tutorial Navigation Guide</span>
+                    </button>
                 </li>
                 <?php endif; ?>
 
@@ -223,7 +279,7 @@ if (isset($_GET['switch_role'])) {
                 <!-- Admin Option -->
                 <li>
                     <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo $_SESSION['active_role'] == 'admin' ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
-                        href="?switch_role=admin">
+                        href="<?php echo $bp; ?>admin/dashboard.php?switch_role=admin">
                         <span class="flex items-center gap-2">
                             <i class="bi bi-shield-lock text-sm"></i>
                             <span>Administrator</span>
@@ -237,9 +293,9 @@ if (isset($_GET['switch_role'])) {
                 <!-- Landowner Option -->
                 <li>
                     <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo $_SESSION['active_role'] == 'landowner' ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
-                        href="?switch_role=landowner">
+                        href="<?php echo $bp; ?>landowner/dashboard.php?switch_role=landowner">
                         <span class="flex items-center gap-2">
-                            <i class="bi bi-house text-sm"></i>
+                            <img src="<?php echo $bp; ?>assets/images/roles/landowner-32px.png" alt="Landowner" class="w-4 h-4 object-contain">
                             <span>Landowner</span>
                         </span>
                         <?php if ($_SESSION['active_role'] == 'landowner'): ?>
@@ -251,9 +307,9 @@ if (isset($_GET['switch_role'])) {
                 <!-- Gardener Option -->
                 <li>
                     <a class="dropdown-item text-xs py-2 px-3 rounded-xl flex items-center justify-between <?php echo $_SESSION['active_role'] == 'gardener' ? 'active bg-drive-surface-active text-drive-primary-text font-semibold' : 'text-drive-text-sub hover:bg-drive-surface-hover'; ?>"
-                        href="?switch_role=gardener">
+                        href="<?php echo $bp; ?>gardener/dashboard.php?switch_role=gardener">
                         <span class="flex items-center gap-2">
-                            <i class="bi bi-flower1 text-sm"></i>
+                            <img src="<?php echo $bp; ?>assets/images/roles/gardener-32px.png" alt="Gardener" class="w-4 h-4 object-contain">
                             <span>Gardener</span>
                         </span>
                         <?php if ($_SESSION['active_role'] == 'gardener'): ?>

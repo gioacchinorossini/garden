@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: water-spinach (Water spinach) -->
+
+  <!-- Hollow stem with arrow-head pointed kangkong leaves -->
+  <path d="M 50 94 Q 48 60 48 30" stroke="#2E7D32" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M 50 94 Q 48 60 48 30" stroke="#4CAF50" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Leaf 1 (top arrowhead) -->
+  <path d="M 48 30 C 44 14 48 8 50 6 C 52 8 56 14 52 30 C 58 32 64 34 58 36 C 52 34 50 32 48 30 Z" fill="#388E3C"/>
+  <path d="M 48 30 C 42 32 36 34 42 36 C 46 34 48 32 48 30 Z" fill="#388E3C"/>
+  <!-- Leaf 2 (left) -->
+  <path d="M 48 48 C 34 42 20 40 14 42 C 20 48 30 50 48 50 Z" fill="#43A047"/>
+  <!-- Leaf 3 (right) -->
+  <path d="M 48 62 C 62 56 76 54 82 56 C 76 62 66 64 48 64 Z" fill="#43A047"/>
+  <!-- Leaf 4 (left lower) -->
+  <path d="M 49 76 C 36 72 24 72 18 74 C 24 78 34 78 49 78 Z" fill="#43A047"/>
+  <!-- Highlights -->
+  <path d="M 22 44 L 40 47" stroke="#A5D6A7" stroke-width="1.5" fill="none"/>
+  <path d="M 74 58 L 56 61" stroke="#A5D6A7" stroke-width="1.5" fill="none"/>
+
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: calamansi (Calamansi) -->
+
+  <!-- Stem and Leaf -->
+  <g id="leaf">
+    <path d="M 50 24 C 42 12 28 14 26 22 C 34 26 44 26 50 24 Z" fill="#2E7D32"/>
+    <path d="M 26 22 C 34 24 42 24 50 24" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+    <path d="M 50 25 C 50 18 52 14 54 10" stroke="#3E2723" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <ellipse cx="50" cy="24" rx="3.5" ry="2" fill="#1B5E20"/>
+  </g>
+  <!-- Fruit Body -->
+  <circle cx="50" cy="58" r="32" fill="#1B5E20"/>
+  <circle cx="50" cy="56" r="30" fill="#7CB342"/>
+  <!-- Subtle lime green inner blush -->
+  <circle cx="48" cy="54" r="26" fill="#8BC34A"/>
+  <!-- Tiny calyx ring at bottom / dimple -->
+  <circle cx="50" cy="84" r="1.5" fill="#33691E"/>
+  <!-- Glossy highlights -->
+  <path d="M 66 42 C 72 50 72 62 68 70" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <circle cx="60" cy="36" r="2.5" fill="#FFFFFF" opacity="0.85"/>
+
+</svg>

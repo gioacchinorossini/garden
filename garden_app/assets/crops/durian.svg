@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: durian (Durian) -->
+
+  <path d="M 50 14 C 50 8 52 4 54 2" stroke="#3E2723" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <!-- Base contour -->
+  <ellipse cx="50" cy="58" rx="32" ry="38" fill="#33691E"/>
+  <!-- Durian sharp thorny spikes around contour -->
+  <path d="M 50 20 L 54 14 L 58 20 L 66 16 L 68 24 L 76 22 L 76 30 L 84 32 L 80 40 L 88 44 L 82 52 L 88 58 L 80 66 L 86 72 L 76 78 L 80 86 L 70 88 L 70 94 L 60 94 L 54 98 L 48 94 L 40 98 L 38 90 L 30 92 L 30 84 L 22 84 L 24 76 L 16 74 L 20 66 L 12 62 L 18 54 L 12 48 L 20 42 L 16 34 L 24 32 L 24 24 L 32 24 L 34 16 L 42 20 Z" fill="#827717"/>
+  <ellipse cx="50" cy="58" rx="26" ry="32" fill="#9E9D24"/>
+  <!-- Interior thorn pyramid hints -->
+  <path d="M 46 36 L 50 30 L 54 36 Z" fill="#AFB42B"/>
+  <path d="M 36 50 L 40 44 L 44 50 Z" fill="#AFB42B"/>
+  <path d="M 56 50 L 60 44 L 64 50 Z" fill="#AFB42B"/>
+  <path d="M 46 64 L 50 58 L 54 64 Z" fill="#AFB42B"/>
+  <path d="M 36 74 L 40 68 L 44 74 Z" fill="#AFB42B"/>
+  <path d="M 56 74 L 60 68 L 64 74 Z" fill="#AFB42B"/>
+  <!-- Highlight -->
+  <path d="M 68 44 C 72 52 72 64 68 72" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+
+</svg>

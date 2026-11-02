@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let plotsList = [];
     let selectedLandId = null;
     let currentFilter = 'all';
+    let searchQuery = '';
     const _leafletMapsOwner = {};
 
     // DOM Elements
@@ -38,28 +39,53 @@ document.addEventListener("DOMContentLoaded", function () {
                     const isActive = (b.getAttribute('data-filter') || 'all') === filter;
                     b.classList.toggle('active', isActive);
                     if (isActive) {
-                        b.classList.remove('text-secondary');
+                        b.classList.remove('text-secondary', 'bg-white');
                     } else {
                         b.classList.add('text-secondary');
+                        if (b.classList.contains('flex-shrink-0')) {
+                            b.classList.add('bg-white');
+                        }
                     }
                 });
 
                 renderLands();
             });
         });
+
+        const desktopSearch = document.getElementById('landsSearchInput');
+        const mobileSearch = document.getElementById('mobileSearchInput');
+
+        if (desktopSearch) {
+            desktopSearch.addEventListener('input', function () {
+                searchQuery = this.value;
+                if (mobileSearch) mobileSearch.value = searchQuery;
+                renderLands();
+            });
+        }
+
+        if (mobileSearch) {
+            mobileSearch.addEventListener('input', function () {
+                searchQuery = this.value;
+                if (desktopSearch) desktopSearch.value = searchQuery;
+                renderLands();
+            });
+        }
     }
 
     function updateFilterCounts() {
         const allCount = landsList.length;
         const pendingCount = landsList.filter(l => l.status === 'pending').length;
         const approvedCount = landsList.filter(l => l.status === 'approved').length;
+        const rejectedCount = landsList.filter(l => l.status === 'rejected').length;
 
         const countAll = document.getElementById('countAll');
         const countPending = document.getElementById('countPending');
         const countApproved = document.getElementById('countApproved');
+        const countRejected = document.getElementById('countRejected');
         const mCountAll = document.getElementById('mCountAll');
         const mCountPending = document.getElementById('mCountPending');
         const mCountApproved = document.getElementById('mCountApproved');
+        const mCountRejected = document.getElementById('mCountRejected');
 
         if (countAll) countAll.textContent = allCount;
         if (mCountAll) mCountAll.textContent = allCount;
@@ -67,6 +93,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (mCountPending) mCountPending.textContent = pendingCount;
         if (countApproved) countApproved.textContent = approvedCount;
         if (mCountApproved) mCountApproved.textContent = approvedCount;
+        if (countRejected) countRejected.textContent = rejectedCount;
+        if (mCountRejected) mCountRejected.textContent = rejectedCount;
     }
 
     // Load lands & plots
@@ -115,8 +143,14 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         const filteredList = landsList.filter(land => {
-            if (currentFilter === 'pending') return land.status === 'pending';
-            if (currentFilter === 'approved') return land.status === 'approved';
+            if (currentFilter !== 'all' && land.status !== currentFilter) return false;
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                const matchTitle = (land.title || '').toLowerCase().includes(q);
+                const matchAddress = (land.address || '').toLowerCase().includes(q);
+                const matchCrop = (land.crop_preference || '').toLowerCase().includes(q);
+                return matchTitle || matchAddress || matchCrop;
+            }
             return true;
         });
 
@@ -147,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const isSelected = selectedLandId == land.id;
             const cardBorderClass = isSelected ? 'border-success shadow-sm' : '';
 
-            const managePlotsBtn = `<button class="btn btn-sm btn-drive-primary rounded-pill px-3" onclick="openManagePlotsModal(${land.id}, '${land.title.replace(/'/g, "\\'")}')">Manage Plots <i class="bi bi-arrow-right ms-1"></i></button>`;
+            const managePlotsBtn = `<a href="plots.php?id=${land.id}" class="btn btn-sm btn-drive-primary rounded-pill px-3 text-decoration-none d-inline-flex align-items-center gap-1">Manage Plots <i class="bi bi-arrow-right ms-1"></i></a>`;
 
             return `
                 <div class="col-md-6 col-xl-4">
@@ -163,10 +197,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             <!-- Toggle media pill -->
                             <button type="button"
-                                class="btn btn-sm rounded-pill d-flex align-items-center gap-1 position-absolute"
-                                style="bottom: 10px; left: 10px; z-index: 10; font-size: 11px; padding: 4px 12px; background: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(4px);"
+                                class="btn btn-sm btn-outline-success rounded-pill d-flex align-items-center gap-1 position-absolute"
+                                style="bottom: 10px; left: 10px; z-index: 10; font-size: 11px; padding: 4px 12px; box-shadow: 0 2.5px 0 #523E31 !important;"
                                 onclick="event.stopPropagation(); toggleMediaPreviewOwner(${land.id}, this)">
-                                <i class="bi bi-image text-success"></i>
+                                <i class="bi bi-image"></i>
                                 <span>View Photo</span>
                             </button>
 
@@ -239,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <i class="bi bi-pencil me-1"></i> Edit
                                     </button>
                                     <a href="dashboard.php?id=${land.id}" class="btn btn-sm btn-outline-success rounded-pill" title="View on full screen map">
-                                        <i class="bi bi-geo-alt me-1"></i> Map
+                                        <i class="bi bi-geo-alt-fill me-1"></i> Map
                                     </a>
                                 </div>
                                 ${managePlotsBtn}
@@ -319,12 +353,12 @@ document.addEventListener("DOMContentLoaded", function () {
             mapEl.classList.add('d-none');
             imgEl.classList.remove('d-none');
             text.innerText = 'View Map';
-            icon.className = 'bi bi-map text-success';
+            icon.className = 'bi bi-map';
         } else {
             imgEl.classList.add('d-none');
             mapEl.classList.remove('d-none');
             text.innerText = 'View Photo';
-            icon.className = 'bi bi-image text-success';
+            icon.className = 'bi bi-image';
 
             const mapInstance = _leafletMapsOwner[`map-preview-owner-${landId}`];
             if (mapInstance) setTimeout(() => mapInstance.invalidateSize(), 50);
@@ -346,24 +380,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Open Manage Plots Modal
+    // Open Manage Plots Page
     window.openManagePlotsModal = function (landId, landTitle) {
-        selectedLandId = landId;
-        const land = landsList.find(l => l.id == landId);
-        const titleStr = landTitle || (land ? land.title : '');
-
-        const modalTitleEl = document.getElementById('modalLandTitle');
-        if (modalTitleEl) modalTitleEl.textContent = titleStr;
-
-        const modalLandIdEl = document.getElementById('modalLandId');
-        if (modalLandIdEl) modalLandIdEl.value = landId;
-
-        renderPlotsModal(landId);
-
-        if (managePlotsModalEl) {
-            managePlotsModalInstance = bootstrap.Modal.getInstance(managePlotsModalEl) || new bootstrap.Modal(managePlotsModalEl);
-            managePlotsModalInstance.show();
-        }
+        window.location.href = `plots.php?id=${landId}`;
     };
 
     // Open Add Plot Modal
@@ -440,8 +459,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             <span>${plot.plot_number}</span>
                             ${statusBadge}
                         </div>
-                        <div class="text-muted mb-2" style="font-size: 0.78rem;">
-                            <i class="bi bi-rulers me-1"></i>Area: ${parseFloat(plot.area).toFixed(1)} m²
+                        <div class="d-flex align-items-center gap-3 text-muted mb-2 flex-wrap" style="font-size: 0.78rem;">
+                            <span><i class="bi bi-rulers me-1 text-success"></i>Area: ${parseFloat(plot.area).toFixed(1)} m²</span>
+                            <span><i class="bi bi-tag-fill me-1 text-warning"></i>Standard Lease: <strong class="text-dark">₱${parseFloat(plot.rental_price_per_year || 110000).toLocaleString()}/yr</strong></span>
                         </div>
                         <div class="d-flex align-items-center gap-1.5 flex-wrap">
                             <span class="text-muted uppercase text-[10px] font-bold me-1">Permitted Crops:</span>
@@ -466,6 +486,33 @@ document.addEventListener("DOMContentLoaded", function () {
     // Permitted Crops Modal Logic for Individual Plot
     const currentPlotSelectedCrops = new Map();
     let currentEditingPlotId = null;
+
+    // Stacked modals z-index and scroll management
+    const stackedModalIds = ['editPlotCropsModal', 'addPlotModal', 'editPermittedCropsModal'];
+    stackedModalIds.forEach(id => {
+        const modalEl = document.getElementById(id);
+        if (!modalEl) return;
+        modalEl.addEventListener('show.bs.modal', function () {
+            this.style.zIndex = '1065';
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 1) {
+                    backdrops[backdrops.length - 1].style.zIndex = '1060';
+                }
+            }, 10);
+        });
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            this.style.zIndex = '';
+            // If another modal (managePlotsModal or editLandModal) is still open, preserve modal-open on body
+            setTimeout(() => {
+                const anyOpenModal = document.querySelector('.modal.show');
+                if (anyOpenModal) {
+                    document.body.classList.add('modal-open');
+                    document.body.style.overflow = 'hidden';
+                }
+            }, 50);
+        });
+    });
 
     window.openEditPlotCropsModal = function (plotId, plotNumber) {
         currentEditingPlotId = plotId;
@@ -492,12 +539,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (isSelected) {
                 currentPlotSelectedCrops.set(val, { value: val, label: label, icon: icon });
-                chip.classList.add('border-primary', 'bg-blue-50/50');
-                chip.style.borderColor = '#198754';
+                chip.classList.add('selected');
                 if (checkIcon) checkIcon.classList.remove('d-none');
             } else {
-                chip.classList.remove('border-primary', 'bg-blue-50/50');
-                chip.style.borderColor = 'var(--drive-border)';
+                chip.classList.remove('selected');
                 if (checkIcon) checkIcon.classList.add('d-none');
             }
         });
@@ -516,13 +561,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const checkIcon = element.querySelector('.plot-crop-check-icon');
         if (currentPlotSelectedCrops.has(val)) {
             currentPlotSelectedCrops.delete(val);
-            element.classList.remove('border-primary', 'bg-blue-50/50');
-            element.style.borderColor = 'var(--drive-border)';
+            element.classList.remove('selected');
             if (checkIcon) checkIcon.classList.add('d-none');
         } else {
             currentPlotSelectedCrops.set(val, { value: val, label: label, icon: icon });
-            element.classList.add('border-primary', 'bg-blue-50/50');
-            element.style.borderColor = '#198754';
+            element.classList.add('selected');
             if (checkIcon) checkIcon.classList.remove('d-none');
         }
         const countEl = document.getElementById('plotSelectedCropCount');
@@ -580,13 +623,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const checkIcon = element.querySelector('.edit-crop-check-icon');
         if (editSelectedCrops.has(val)) {
             editSelectedCrops.delete(val);
-            element.classList.remove('border-primary', 'bg-blue-50/50');
-            element.style.borderColor = 'var(--drive-border)';
+            element.classList.remove('selected');
             if (checkIcon) checkIcon.classList.add('d-none');
         } else {
             editSelectedCrops.set(val, { value: val, label: label, icon: icon });
-            element.classList.add('border-primary', 'bg-blue-50/50');
-            element.style.borderColor = '#1a73e8';
+            element.classList.add('selected');
             if (checkIcon) checkIcon.classList.remove('d-none');
         }
         renderEditSelectedCropsSummary();
@@ -601,24 +642,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (select) {
                 editSelectedCrops.set(val, { value: val, label: label, icon: icon });
-                chip.classList.add('border-primary', 'bg-blue-50/50');
-                chip.style.borderColor = '#1a73e8';
+                chip.classList.add('selected');
                 if (checkIcon) checkIcon.classList.remove('d-none');
             } else {
                 editSelectedCrops.delete(val);
-                chip.classList.remove('border-primary', 'bg-blue-50/50');
-                chip.style.borderColor = 'var(--drive-border)';
+                chip.classList.remove('selected');
                 if (checkIcon) checkIcon.classList.add('d-none');
             }
         });
         renderEditSelectedCropsSummary();
     };
 
+    let currentEditCropCategory = 'all';
+
+    window.setEditCropCategoryFilter = function (catId, btn) {
+        currentEditCropCategory = catId;
+        document.querySelectorAll('.edit-crop-cat-pill').forEach(b => {
+            b.classList.remove('active', 'btn-primary');
+            b.classList.add('btn-outline-secondary');
+        });
+        if (btn) {
+            btn.classList.add('active', 'btn-primary');
+            btn.classList.remove('btn-outline-secondary');
+        }
+        window.filterEditCropChips();
+    };
+
     window.filterEditCropChips = function () {
         const query = (document.getElementById('editCropSearchInput')?.value || '').toLowerCase().trim();
         document.querySelectorAll('.edit-crop-grid-item').forEach(item => {
-            const name = item.getAttribute('data-name');
-            if (!query || name.includes(query)) {
+            const name = (item.getAttribute('data-name') || '').toLowerCase();
+            const cat = item.getAttribute('data-category') || '';
+            const matchesQuery = !query || name.includes(query);
+            const matchesCat = currentEditCropCategory === 'all' || cat === currentEditCropCategory;
+            if (matchesQuery && matchesCat) {
                 item.classList.remove('d-none');
             } else {
                 item.classList.add('d-none');

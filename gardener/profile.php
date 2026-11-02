@@ -9,22 +9,47 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 $_SESSION['active_role'] = 'gardener';
-if (!isset($_SESSION['user_name'])) {
-    $_SESSION['user_name'] = 'Mary Gardener';
+require_once __DIR__ . '/../includes/db.php';
+
+$gardener_id = $_SESSION['user_id'] ?? 3;
+$userRow = null;
+try {
+    $uStmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $uStmt->execute([$gardener_id]);
+    $userRow = $uStmt->fetch();
+} catch (\Exception $e) {}
+
+if ($userRow && !isset($_SESSION['user_name'])) {
+    $_SESSION['user_name'] = $userRow['name'];
+} elseif (!isset($_SESSION['user_name'])) {
+    $_SESSION['user_name'] = 'Gardener';
 }
 
-$user_email = $_SESSION['user_email'] ?? 'mary.gardener@example.com';
-$user_phone = $_SESSION['user_phone'] ?? '+63 918 765 4321';
-$user_address = $_SESSION['user_address'] ?? 'Plot B-1, Downtown Rooftop Garden, Manila';
-$user_bio = $_SESSION['user_bio'] ?? 'Passionate urban gardener specialized in organic vegetable cultivation, companion planting, drip irrigation, and composting.';
+$user_email = $userRow['email'] ?? ($_SESSION['user_email'] ?? '');
+$user_phone = $userRow['phone'] ?? ($_SESSION['user_phone'] ?? '');
+$user_address = $_SESSION['user_address'] ?? '';
+$user_bio = $_SESSION['user_bio'] ?? '';
+$member_since = !empty($userRow['created_at']) ? 'Active Gardener since ' . date('M Y', strtotime($userRow['created_at'])) : 'Active Gardener';
 
-// Process mock profile updates
+// Process profile updates
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_profile') {
-    $_SESSION['user_name'] = htmlspecialchars(trim($_POST['user_name']));
-    $_SESSION['user_email'] = htmlspecialchars(trim($_POST['user_email']));
-    $_SESSION['user_phone'] = htmlspecialchars(trim($_POST['user_phone']));
-    $_SESSION['user_address'] = htmlspecialchars(trim($_POST['user_address']));
-    $_SESSION['user_bio'] = htmlspecialchars(trim($_POST['user_bio']));
+    $newName = htmlspecialchars(trim($_POST['user_name']));
+    $newEmail = htmlspecialchars(trim($_POST['user_email']));
+    $newPhone = htmlspecialchars(trim($_POST['user_phone']));
+    $_SESSION['user_name'] = $newName;
+    $_SESSION['user_email'] = $newEmail;
+    $_SESSION['user_phone'] = $newPhone;
+    $_SESSION['user_address'] = htmlspecialchars(trim($_POST['user_address'] ?? ''));
+    $_SESSION['user_bio'] = htmlspecialchars(trim($_POST['user_bio'] ?? ''));
+    $user_email = $newEmail;
+    $user_phone = $newPhone;
+    $user_address = $_SESSION['user_address'];
+    $user_bio = $_SESSION['user_bio'];
+
+    try {
+        $upStmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?");
+        $upStmt->execute([$newName, $newEmail, $newPhone, $gardener_id]);
+    } catch (\Exception $e) {}
     $success_msg = "Profile updated successfully!";
 }
 
@@ -32,6 +57,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $sched_list = $_SESSION['mock_schedules'] ?? [];
 $completed_scheds = array_filter($sched_list, fn($s) => ($s['status'] ?? '') === 'completed');
 $completed_tasks_count = count($completed_scheds);
+
+// Query assigned plots for this gardener
+$assigned_plots = [];
+try {
+    $pStmt = $pdo->prepare("
+        SELECT p.*, l.title as land_title, l.address as land_address
+        FROM plots p
+        JOIN lands l ON p.land_id = l.id
+        WHERE p.gardener_id = ? OR (p.farmer_name = ? AND p.status = 'occupied')
+        ORDER BY p.id ASC
+    ");
+    $pStmt->execute([$gardener_id, $_SESSION['user_name']]);
+    $assigned_plots = $pStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (\Exception $e) {
+    $assigned_plots = [];
+}
+
+// Query total harvests for this gardener
+$total_harvest_kg = 0;
+try {
+    $hStmt = $pdo->prepare("SELECT COALESCE(SUM(quantity_kg), 0) FROM harvests WHERE gardener_id = ?");
+    $hStmt->execute([$gardener_id]);
+    $total_harvest_kg = (float)$hStmt->fetchColumn();
+} catch (\Exception $e) {
+    $total_harvest_kg = 0;
+}
 ?>
 
 <main class="workspace-surface">
@@ -114,7 +165,7 @@ $completed_tasks_count = count($completed_scheds);
                             </div>
                             <div class="d-flex align-items-center gap-1.5">
                                 <i data-lucide="calendar" style="width: 14px; height: 14px;" class="text-primary"></i>
-                                <span>Active Gardener since Feb 2025</span>
+                                <span><?php echo htmlspecialchars($member_since); ?></span>
                             </div>
                         </div>
                     </div>
@@ -127,7 +178,7 @@ $completed_tasks_count = count($completed_scheds);
                     <div class="col-4 border-end">
                         <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Active
                             Plots</span>
-                        <span class="fs-5 fw-bold text-dark">2</span>
+                        <span class="fs-5 fw-bold text-dark"><?php echo count($assigned_plots); ?></span>
                     </div>
                     <div class="col-4 border-end">
                         <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Tasks
@@ -137,7 +188,7 @@ $completed_tasks_count = count($completed_scheds);
                     <div class="col-4">
                         <span class="text-secondary text-[11px] font-semibold uppercase tracking-wider d-block">Total
                             Harvests</span>
-                        <span class="fs-5 fw-bold text-primary">42.5 <span
+                        <span class="fs-5 fw-bold text-primary"><?php echo number_format($total_harvest_kg, 1); ?> <span
                                 class="fs-6 font-normal text-muted">kg</span></span>
                     </div>
                 </div>
@@ -165,79 +216,57 @@ $completed_tasks_count = count($completed_scheds);
         </div>
 
         <div class="row g-3 mb-4">
-            <!-- Plot Card 1 -->
-            <div class="col-md-6">
-                <div class="drive-card h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span
-                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Plot
-                                A-1 • Leased</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="sprout"
-                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i>
-                                Tomatoes</span>
-                        </div>
-                        <h3 class="fs-6 fw-bold text-dark mb-1">Downtown Rooftop Garden</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
-                                style="width: 12px; height: 12px;"></i>45 Main St, Business District</p>
-                        <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Plot Size:</span>
-                                <span class="fw-semibold text-dark">25 m²</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Crop Status:</span>
-                                <span class="fw-semibold text-emerald-700">Flowering & Fruiting</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Next Activity:</span>
-                                <span class="fw-semibold text-primary">Watering & Soil Inspection</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="pt-2 border-top d-flex align-items-center justify-content-between">
-                        <span class="text-xs text-muted">Health Score: 96%</span>
-                        <a href="schedules.php" class="btn btn-sm btn-drive-primary text-xs">Manage Tasks</a>
+            <?php if (empty($assigned_plots)): ?>
+                <div class="col-12">
+                    <div class="p-4 border rounded-4 text-center bg-white text-muted">
+                        <i data-lucide="sprout" class="mx-auto mb-2 text-secondary" style="width: 28px; height: 28px;"></i>
+                        <p class="mb-1 text-dark fw-semibold text-xs">No assigned plots yet</p>
+                        <span class="text-xs text-secondary d-block mb-3">Browse available community garden plots and submit an application to start cultivating.</span>
+                        <a href="dashboard.php" class="btn btn-sm btn-drive-primary text-xs">Browse Available Lands</a>
                     </div>
                 </div>
-            </div>
-
-            <!-- Plot Card 2 -->
-            <div class="col-md-6">
-                <div class="drive-card h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <span
-                                class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">Plot
-                                B-2 • Leased</span>
-                            <span class="text-xs text-secondary font-semibold"><i data-lucide="sprout"
-                                    class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i> Organic
-                                Herbs</span>
-                        </div>
-                        <h3 class="fs-6 fw-bold text-dark mb-1">Sunnyvale Community Yard</h3>
-                        <p class="text-secondary text-xs mb-3"><i data-lucide="map-pin" class="inline me-1"
-                                style="width: 12px; height: 12px;"></i>124 Green Ave, Sunnyvale</p>
-                        <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Plot Size:</span>
-                                <span class="fw-semibold text-dark">18 m²</span>
+            <?php else: ?>
+                <?php foreach ($assigned_plots as $plot): ?>
+                    <div class="col-md-6">
+                        <div class="drive-card h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge rounded-pill bg-emerald-100 text-emerald-800 text-[10px] font-semibold">
+                                        Plot <?php echo htmlspecialchars($plot['plot_number']); ?> • Leased
+                                    </span>
+                                    <span class="text-xs text-secondary font-semibold">
+                                        <i data-lucide="sprout" class="text-emerald-500 inline me-1" style="width: 12px; height: 12px;"></i>
+                                        <?php echo htmlspecialchars($plot['crop'] ?? 'Crops'); ?>
+                                    </span>
+                                </div>
+                                <h3 class="fs-6 fw-bold text-dark mb-1"><?php echo htmlspecialchars($plot['land_title']); ?></h3>
+                                <p class="text-secondary text-xs mb-3">
+                                    <i data-lucide="map-pin" class="inline me-1" style="width: 12px; height: 12px;"></i>
+                                    <?php echo htmlspecialchars($plot['land_address'] ?? 'Urban Community Garden'); ?>
+                                </p>
+                                <div class="bg-light p-2.5 rounded-3 border mb-3 text-xs">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Plot Size:</span>
+                                        <span class="fw-semibold text-dark"><?php echo htmlspecialchars($plot['area_sqm'] ?? 25); ?> m²</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Status:</span>
+                                        <span class="fw-semibold text-emerald-700"><?php echo ucfirst(htmlspecialchars($plot['status'])); ?></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">Current Crop:</span>
+                                        <span class="fw-semibold text-primary"><?php echo htmlspecialchars($plot['crop'] ?? 'Vegetables'); ?></span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted">Crop Status:</span>
-                                <span class="fw-semibold text-emerald-700">Ready for Harvest</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Harvest Estimate:</span>
-                                <span class="fw-semibold text-success">~12 kg Basil & Mint</span>
+                            <div class="pt-2 border-top d-flex align-items-center justify-content-between">
+                                <a href="schedules.php" class="btn btn-sm btn-drive-primary text-xs">Manage Tasks</a>
+                                <a href="harvests.php" class="btn btn-sm btn-drive-secondary text-xs">Record Harvest</a>
                             </div>
                         </div>
                     </div>
-                    <div class="pt-2 border-top d-flex align-items-center justify-content-between">
-                        <span class="text-xs text-muted">Health Score: 98%</span>
-                        <a href="harvests.php" class="btn btn-sm btn-drive-secondary text-xs">Record Harvest</a>
-                    </div>
-                </div>
-            </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </main>

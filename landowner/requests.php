@@ -22,12 +22,20 @@ include '../includes/sidebar.php';
             </div>
 
             <!-- Filter tabs -->
-            <div class="btn-group btn-group-sm p-1 bg-light rounded-pill border" role="group">
+            <!-- Filter tabs -->
+            <!-- Filter tabs -->
+            <div class="filter-pill-track" role="group">
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn active" data-filter="all" id="filterAllBtn">
                     All <span class="badge rounded-pill bg-secondary ms-1" id="countAll">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="pending" id="filterPendingBtn">
                     Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="countPending">0</span>
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="offer_sent" id="filterOfferBtn">
+                    Offers Sent <span class="badge rounded-pill text-dark ms-1" style="background:#FEE7AA;" id="countOffer">0</span>
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="counter_offered" id="filterCounterBtn">
+                    Counter-Offers <span class="badge rounded-pill text-white ms-1" style="background:#0284C7;" id="countCounter">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="approved" id="filterApprovedBtn">
                     Approved <span class="badge rounded-pill bg-success ms-1" id="countApproved">0</span>
@@ -51,12 +59,18 @@ include '../includes/sidebar.php';
             </div>
 
             <!-- Mobile Filter Pills (Horizontal Scroll) -->
-            <div class="d-flex align-items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <div class="d-flex align-items-center gap-2 overflow-x-auto py-1.5 px-0.5 no-scrollbar">
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn active flex-shrink-0" data-filter="all">
                     All <span class="badge rounded-pill bg-secondary ms-1" id="mCountAll">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="pending">
                     Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="mCountPending">0</span>
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="offer_sent">
+                    Offers <span class="badge rounded-pill text-dark ms-1" style="background:#FEE7AA;" id="mCountOffer">0</span>
+                </button>
+                <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="counter_offered">
+                    Counter <span class="badge rounded-pill text-white ms-1" style="background:#0284C7;" id="mCountCounter">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="approved">
                     Approved <span class="badge rounded-pill bg-success ms-1" id="mCountApproved">0</span>
@@ -136,9 +150,47 @@ include '../includes/sidebar.php';
                     <p class="text-dark bg-light p-3 rounded-3 mb-0 border border-light-subtle" style="font-size: 0.85rem; line-height: 1.5;" id="view_purpose"></p>
                 </div>
 
+                <!-- Gardener Counter-Offer Section -->
+                <div class="mb-3 d-none" id="view_counter_offer_section">
+                    <div class="p-3 rounded-4 border" style="background:#F0F9FF;border-color:#BAE6FD !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;">
+                                <i class="bi bi-arrow-left-right me-1 text-primary"></i> Gardener Counter-Offer Proposed
+                            </span>
+                            <span class="text-muted small" style="font-size:11px;" id="view_counter_time"></span>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <span class="fs-4 fw-bolder text-dark" id="view_counter_rate">₱95,000.00</span>
+                            <span class="text-secondary small fw-medium">/ Year</span>
+                            <span class="text-muted small" id="view_counter_monthly">(₱7,916.67/mo)</span>
+                        </div>
+                        <div class="small text-secondary p-2.5 rounded-3 bg-white border border-light-subtle" id="view_counter_notes">
+                            No explanation provided.
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-3 d-none" id="view_feedback_section">
                     <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">RESPONSE / FEEDBACK</label>
                     <div class="alert py-2 px-3 mb-0" style="font-size: 0.85rem; border-radius: 8px;" id="view_feedback"></div>
+                </div>
+
+                <!-- Land Location Map inside Application Details -->
+                <div class="mb-3 d-none" id="view_map_section">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label class="text-secondary fw-semibold mb-0" style="font-size: 11px;">LAND LOCATION</label>
+                        <span class="text-muted small" id="view_map_coords" style="font-size: 0.72rem;"></span>
+                    </div>
+                    <div class="rounded-4 overflow-hidden border mb-2" style="border-color:#DFCFC2 !important;">
+                        <div id="viewLeafletMap" style="height: 180px; width: 100%; z-index: 1;"></div>
+                    </div>
+                    <div class="text-end">
+                        <a id="view_gmaps_link" href="#" target="_blank" rel="noopener"
+                           class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5 text-decoration-none"
+                           style="background:#E8F3F8;color:#204E6E;border:1.5px solid #C4DCEB;font-size:0.75rem;">
+                            <i class="bi bi-box-arrow-up-right"></i> Open in Google Maps
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Modal footer actions -->
@@ -189,6 +241,80 @@ include '../includes/sidebar.php';
                     <div class="d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-danger rounded-pill px-4">Confirm Rejection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Rental Offer Modal (Landowner -> Gardener Offer Workflow) -->
+<div class="modal fade" id="sendRentalOfferModal" tabindex="-1" aria-hidden="true" style="z-index: 10000;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content drive-modal-content border-0 shadow-xl" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-tag-fill text-success"></i>
+                        <span>Send Rental Offer to Gardener</span>
+                    </h5>
+                    <p class="text-muted small mb-0 mt-0.5">Gardener can review and decide whether to approve or decline</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-4">
+                <form id="sendRentalOfferForm">
+                    <input type="hidden" id="offer_request_id" name="id">
+
+                    <!-- Gardener & Plot Target Banner -->
+                    <div class="p-3 rounded-3 mb-3 border border-light-subtle bg-light">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="text-secondary small fw-bold text-uppercase" style="font-size:10px;">APPLICANT</span>
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis">Awaiting Offer</span>
+                        </div>
+                        <div class="fw-bold text-dark" id="offer_gardener_name">Gardener Name</div>
+                        <div class="small text-muted" id="offer_plot_desc">Plot &amp; Property</div>
+                    </div>
+
+                    <!-- Rental Rate Field -->
+                    <div class="mb-3">
+                        <label for="offer_rental_rate" class="form-label text-secondary d-flex justify-content-between mb-1" style="font-size: 0.75rem; font-weight: 700;">
+                            <span>PROPOSED ANNUAL RENTAL FEE (₱)</span>
+                            <span class="text-muted font-normal">Benchmark: 50 m² @ ₱110k/yr</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-light-subtle fw-bold text-muted">₱</span>
+                            <input type="number" step="100" min="0" class="form-control rounded-end-pill border-light-subtle ps-2 fw-bold"
+                                id="offer_rental_rate" name="rental_rate" required placeholder="110000" value="110000">
+                        </div>
+                    </div>
+
+                    <!-- Rental Duration -->
+                    <div class="mb-3">
+                        <label for="offer_rental_duration" class="form-label text-secondary mb-1" style="font-size: 0.75rem; font-weight: 700;">
+                            LEASE TERM DURATION
+                        </label>
+                        <select class="form-select rounded-pill border-light-subtle text-sm" id="offer_rental_duration" name="rental_duration">
+                            <option value="1 Year" selected>1 Year Lease Agreement</option>
+                            <option value="6 Months">6 Months Seasonal Lease</option>
+                            <option value="2 Years">2 Years Multi-Year Lease</option>
+                        </select>
+                    </div>
+
+                    <!-- Terms & Conditions / Allowed Organic Crops -->
+                    <div class="mb-4">
+                        <label for="offer_terms" class="form-label text-secondary mb-1" style="font-size: 0.75rem; font-weight: 700;">
+                            TERMS, CROPS &amp; GUIDELINES
+                        </label>
+                        <textarea class="form-control drive-form-control w-100" id="offer_terms" name="terms" rows="3"
+                            placeholder="Permitted crops, plot guidelines, and water access included.">Standard 50 sq. m. community plot lease. Organic vegetables and herbs permitted. Water spigot access provided.</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold shadow-xs">
+                            <i class="bi bi-send-fill me-1"></i> Send Offer to Renter
+                        </button>
                     </div>
                 </form>
             </div>

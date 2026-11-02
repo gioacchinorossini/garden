@@ -10,12 +10,43 @@ $registered_lands_count = (int)$pdo->query("SELECT COUNT(*) FROM lands")->fetchC
 $pending_lands_count = (int)$pdo->query("SELECT COUNT(*) FROM lands WHERE status = 'pending'")->fetchColumn();
 $active_gardeners_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'gardener'")->fetchColumn();
 $total_harvest_kg = (float)$pdo->query("SELECT COALESCE(SUM(quantity_kg), 0) FROM harvests")->fetchColumn();
-if ($total_harvest_kg == 0) {
-    $total_harvest_kg = 340; // Default baseline
-}
-if ($active_gardeners_count < 5) {
-    $active_gardeners_count = max(45, $active_gardeners_count);
-}
+
+// Fetch recent real platform activities
+$recent_activities = [];
+try {
+    $uStmt = $pdo->query("SELECT id, name, role, created_at FROM users ORDER BY id DESC LIMIT 3");
+    while ($u = $uStmt->fetch(PDO::FETCH_ASSOC)) {
+        $recent_activities[] = [
+            'icon' => 'user-plus',
+            'icon_color' => '#8e24aa',
+            'text' => 'Registered new ' . ucfirst(htmlspecialchars($u['role'])) . ' account <strong>' . htmlspecialchars($u['name']) . '</strong>',
+            'user' => htmlspecialchars($u['name']),
+            'time' => !empty($u['created_at']) ? date('M d, g:i A', strtotime($u['created_at'])) : 'Recent',
+            'raw_time' => $u['created_at'] ?? '',
+            'ip' => 'Local'
+        ];
+    }
+} catch (\Exception $e) {}
+
+try {
+    $lStmt = $pdo->query("SELECT id, title, landowner_name, status, created_at FROM lands ORDER BY id DESC LIMIT 3");
+    while ($l = $lStmt->fetch(PDO::FETCH_ASSOC)) {
+        $recent_activities[] = [
+            'icon' => 'file-check',
+            'icon_color' => '#1a73e8',
+            'text' => 'Land Registration: <strong>' . htmlspecialchars($l['title']) . '</strong> (' . htmlspecialchars(ucfirst($l['status'])) . ')',
+            'user' => htmlspecialchars($l['landowner_name'] ?? 'Landowner'),
+            'time' => !empty($l['created_at']) ? date('M d, g:i A', strtotime($l['created_at'])) : 'Recent',
+            'raw_time' => $l['created_at'] ?? '',
+            'ip' => 'Local'
+        ];
+    }
+} catch (\Exception $e) {}
+
+usort($recent_activities, function($a, $b) {
+    return strcmp($b['raw_time'], $a['raw_time']);
+});
+$recent_activities = array_slice($recent_activities, 0, 5);
 ?>
 
 <!-- Main Content Workspace Container -->
@@ -100,24 +131,18 @@ if ($active_gardeners_count < 5) {
                     <div>
                         <span class="text-secondary fw-semibold d-block"
                             style="font-size: 0.75rem; line-height: 1.2;">Total Harvest</span>
-                        <h3 class="fw-bold m-0 mt-1 text-danger" style="font-size: 1.5rem;">340 <span
+                        <h3 class="fw-bold m-0 mt-1 text-danger" style="font-size: 1.5rem;"><?php echo number_format($total_harvest_kg, 1); ?> <span
                                 style="font-size: 0.9rem;">kg</span></h3>
-                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;"><span
-                                class="text-danger fw-bold d-inline-flex align-items-center gap-1"><i
-                                    data-lucide="arrow-up" style="width: 12px; height: 12px;"></i> +12%</span> vs last
-                            month
-                        </p>
+                        <p class="text-muted mb-0 mt-0.5" style="font-size: 0.7rem;">Recorded harvests</p>
                     </div>
                 </div>
             </div>
         </div>
 
-
-
-        <!-- 3. Recent Activity Log (Mocking File List Rows from design.md) -->
+        <!-- 3. Recent Activity Log -->
         <h2 class="fs-6 fw-semibold text-secondary mb-3" style="letter-spacing: 0.5px; text-transform: uppercase;">
             Recent Activity</h2>
-        <div class="border rounded-4 bg-white overflow-hidden  mb-2"
+        <div class="border rounded-4 bg-white overflow-hidden mb-2"
             style="border-color: var(--drive-border) !important;">
             <!-- Table Header Row -->
             <div class="d-flex align-items-center justify-content-between h-10 px-4 border-b bg-light text-secondary"
@@ -128,36 +153,24 @@ if ($active_gardeners_count < 5) {
                 <div class="w-24 text-start">IP</div>
             </div>
 
-            <!-- Row 1 -->
-            <div class="drive-list-row">
-                <div class="flex-1 d-flex align-items-center gap-3">
-                    <i data-lucide="user-plus" style="color: #8e24aa; width: 20px; height: 20px;"></i>
-                    <span>Registered new Gardener account <strong>Mary Gardener</strong></span>
+            <?php if (empty($recent_activities)): ?>
+                <div class="text-center py-4 text-muted">
+                    <i data-lucide="activity" class="mx-auto mb-2 text-secondary" style="width: 24px; height: 24px;"></i>
+                    <p class="mb-0 text-xs text-secondary">No recent system activity recorded yet.</p>
                 </div>
-                <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Registrar</div>
-                <div class="w-36 text-secondary" style="font-size: 0.75rem;">Today, 07:15 AM</div>
-                <div class="w-24 text-secondary" style="font-size: 0.75rem;">192.168.1.12</div>
-            </div>
-            <!-- Row 2 -->
-            <div class="drive-list-row">
-                <div class="flex-1 d-flex align-items-center gap-3">
-                    <i data-lucide="file-check" style="color: #1a73e8; width: 20px; height: 20px;"></i>
-                    <span>Approved Land Registration: <strong>Riverdale Acres</strong></span>
-                </div>
-                <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Administrator</div>
-                <div class="w-36 text-secondary" style="font-size: 0.75rem;">Yesterday, 04:30 PM</div>
-                <div class="w-24 text-secondary" style="font-size: 0.75rem;">192.168.1.2</div>
-            </div>
-            <!-- Row 3 -->
-            <div class="drive-list-row">
-                <div class="flex-1 d-flex align-items-center gap-3">
-                    <i data-lucide="trash-2" class="text-danger" style="width: 20px; height: 20px;"></i>
-                    <span>Deleted inactive Landowner account ID: 104</span>
-                </div>
-                <div class="w-36 text-secondary" style="font-size: 0.75rem;">System Administrator</div>
-                <div class="w-36 text-secondary" style="font-size: 0.75rem;">Aug 05, 2026, 11:20 AM</div>
-                <div class="w-24 text-secondary" style="font-size: 0.75rem;">192.168.1.2</div>
-            </div>
+            <?php else: ?>
+                <?php foreach ($recent_activities as $act): ?>
+                    <div class="drive-list-row">
+                        <div class="flex-1 d-flex align-items-center gap-3">
+                            <i data-lucide="<?php echo $act['icon']; ?>" style="color: <?php echo $act['icon_color']; ?>; width: 20px; height: 20px;"></i>
+                            <span><?php echo $act['text']; ?></span>
+                        </div>
+                        <div class="w-36 text-secondary" style="font-size: 0.75rem;"><?php echo htmlspecialchars($act['user']); ?></div>
+                        <div class="w-36 text-secondary" style="font-size: 0.75rem;"><?php echo htmlspecialchars($act['time']); ?></div>
+                        <div class="w-24 text-secondary" style="font-size: 0.75rem;"><?php echo htmlspecialchars($act['ip']); ?></div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 </main>

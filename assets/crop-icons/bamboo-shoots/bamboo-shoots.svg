@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: bamboo-shoots (Bamboo shoots) -->
+
+  <!-- Conical overlapping triangular bamboo shoot (Labong) -->
+  <path d="M 50 12 C 42 28 30 52 24 82 C 34 86 66 86 76 82 C 70 52 58 28 50 12 Z" fill="#5D4037"/>
+  <path d="M 50 14 C 44 28 32 52 26 80 C 36 84 64 84 74 80 C 68 52 56 28 50 14 Z" fill="#8D6E63"/>
+  <!-- Overlapping cream-tan sheath scales -->
+  <path d="M 50 14 L 38 42 L 62 42 Z" fill="#A1887F"/>
+  <path d="M 50 32 L 32 64 L 68 64 Z" fill="#BCAAA4"/>
+  <path d="M 50 52 L 26 82 L 74 82 Z" fill="#D7CCC8"/>
+  <!-- Cut base -->
+  <ellipse cx="50" cy="82" rx="24" ry="6" fill="#EFEBE9"/>
+  <path d="M 64 36 C 68 46 68 60 64 72" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8"/>
+
+</svg>

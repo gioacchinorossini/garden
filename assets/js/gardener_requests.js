@@ -1,3 +1,13 @@
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     let requestsList = [];
     let currentFilter = 'all';
@@ -87,17 +97,20 @@ document.addEventListener("DOMContentLoaded", function() {
         const counts = {
             all: requestsList.length,
             pending: requestsList.filter(r => r.status === 'pending').length,
+            offer_sent: requestsList.filter(r => r.status === 'offer_sent').length,
             approved: requestsList.filter(r => r.status === 'approved').length,
-            rejected: requestsList.filter(r => r.status === 'rejected').length
+            rejected: requestsList.filter(r => r.status === 'rejected' || r.status === 'declined').length
         };
 
         const elAll = document.getElementById('filterCountAll');
         const elPending = document.getElementById('filterCountPending');
+        const elOffer = document.getElementById('filterCountOffer');
         const elApproved = document.getElementById('filterCountApproved');
         const elRejected = document.getElementById('filterCountRejected');
 
         if (elAll) elAll.innerText = counts.all;
         if (elPending) elPending.innerText = counts.pending;
+        if (elOffer) elOffer.innerText = counts.offer_sent;
         if (elApproved) elApproved.innerText = counts.approved;
         if (elRejected) elRejected.innerText = counts.rejected;
     }
@@ -121,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 label.innerText = `Showing all applications (${requestsList.length})`;
             } else {
                 const count = requestsList.filter(r => r.status === statusKey).length;
-                label.innerText = `Showing ${statusKey} applications (${count})`;
+                label.innerText = `Showing ${statusKey.replace('_', ' ')} applications (${count})`;
             }
         }
 
@@ -155,8 +168,8 @@ document.addEventListener("DOMContentLoaded", function() {
             requestsTableBody.innerHTML = `
                 <div class="text-center py-5 px-3 bg-white rounded-4 border border-light-subtle shadow-xs">
                     <i class="bi bi-filter-circle fs-1 text-secondary opacity-50 d-block mb-2"></i>
-                    <div class="fw-semibold text-dark mb-1">No ${currentFilter} applications found</div>
-                    <p class="text-secondary small mb-3">There are currently no requests with "${currentFilter}" status.</p>
+                    <div class="fw-semibold text-dark mb-1">No ${currentFilter.replace('_', ' ')} applications found</div>
+                    <p class="text-secondary small mb-3">There are currently no requests with "${currentFilter.replace('_', ' ')}" status.</p>
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3.5 py-1.5 fw-semibold" onclick="filterGardenerRequests('all')">
                         View All Applications
                     </button>
@@ -173,14 +186,61 @@ document.addEventListener("DOMContentLoaded", function() {
                 statusBadge = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1"><i class="bi bi-check-circle-fill"></i> Approved</span>`;
             } else if (req.status === 'pending') {
                 statusBadge = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1"><i class="bi bi-clock-history"></i> Pending</span>`;
+            } else if (req.status === 'offer_sent') {
+                const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
+                statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Rental Offer: ${rateStr}"><i class="bi bi-tag-fill text-warning"></i> Offer Received</span>`;
+            } else if (req.status === 'counter_offered') {
+                const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
+                statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;" title="Counter-Offer: ${counterRateStr}"><i class="bi bi-arrow-left-right text-primary"></i> Counter Sent</span>`;
+            } else if (req.status === 'declined') {
+                statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1"><i class="bi bi-x-circle-fill"></i> Declined</span>`;
             } else {
                 statusBadge = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1"><i class="bi bi-x-circle-fill"></i> Rejected</span>`;
             }
 
             const formattedTime = req.requested_at ? timeAgo(req.requested_at) : '';
 
+            // If offer received, show action banner on card
+            let offerActionBanner = '';
+            if (req.status === 'offer_sent') {
+                const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
+                offerActionBanner = `
+                    <div class="mt-2.5 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-2" onclick="event.stopPropagation()">
+                        <div class="small fw-semibold text-dark d-flex align-items-center gap-1">
+                            <span class="text-secondary" style="font-size:11px;">Rental Rate:</span>
+                            <span class="text-success fw-bold">${rateStr}</span>
+                            <span class="text-muted" style="font-size:10px;">(${req.rental_duration || '1 Year'})</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-1.5 ms-auto">
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 text-xs fw-semibold" onclick="decideRentalOffer(${req.id}, 'declined')">
+                                <i class="bi bi-x-circle me-1"></i> Decline
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold" onclick="openCounterOfferPrompt(${req.id})">
+                                <i class="bi bi-arrow-left-right me-1"></i> Counter
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 text-xs fw-semibold text-white shadow-xs" onclick="decideRentalOffer(${req.id}, 'approved')">
+                                <i class="bi bi-check-circle-fill me-1"></i> Approve
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (req.status === 'counter_offered') {
+                const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
+                offerActionBanner = `
+                    <div class="mt-2.5 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-2" onclick="event.stopPropagation()">
+                        <div class="small fw-semibold text-dark d-flex align-items-center gap-1">
+                            <span class="text-secondary" style="font-size:11px;">Your Counter-Offer:</span>
+                            <span class="text-primary fw-bold">${counterRateStr}</span>
+                        </div>
+                        <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 text-xs fw-medium d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-hourglass-split text-primary"></i> Awaiting Owner Decision
+                        </span>
+                    </div>
+                `;
+            }
+
             return `
-                <div class="gardener-request-card" data-id="${req.id}" data-status="${req.status}">
+                <div class="gardener-request-card" data-id="${req.id}" data-status="${req.status}" onclick="openDetailsModal(${req.id})" role="button" tabindex="0">
                     <!-- Left: SVG Land Icon -->
                     <div class="gardener-request-icon-wrap" title="${req.land_title} — ${req.plot_num}">
                         ${landIconSvgHtml}
@@ -188,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
                     <!-- Center/Right Details -->
                     <div class="gardener-request-info">
-                        <!-- Row 1: Title & Plot Badge on Left, Status Badge on Right (Single Line!) -->
+                        <!-- Row 1: Title & Plot Badge on Left, Status Badge on Right -->
                         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
                             <div class="d-flex align-items-center gap-1.5 min-w-0">
                                 <h3 class="gardener-request-title mb-0 text-truncate">${req.land_title}</h3>
@@ -201,12 +261,12 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </div>
 
-                        <!-- Row 2: Purpose text (Single Line Truncated) -->
+                        <!-- Row 2: Purpose text -->
                         <p class="gardener-request-purpose mb-1.5 text-truncate" title="${escapeHtml(req.purpose)}">
                             "${escapeHtml(req.purpose)}"
                         </p>
 
-                        <!-- Row 3: Meta Pills on Left + Action Buttons on Right (Single Line!) -->
+                        <!-- Row 3: Meta Pills on Left + Subtle Chevron on Right -->
                         <div class="d-flex align-items-center justify-content-between gap-2">
                             <div class="gardener-request-meta-pills">
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 text-xs d-inline-flex align-items-center gap-1">
@@ -222,29 +282,20 @@ document.addEventListener("DOMContentLoaded", function() {
                                 </span>` : ''}
                             </div>
 
-                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                                ${(req.latitude && req.longitude) ? `
-                                <button type="button" onclick="openMapModal(${req.id})" 
-                                        class="btn btn-sm rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
-                                        style="font-size:0.75rem;background:#E8F3F8;color:#204E6E;border:1.5px solid #C4DCEB;"
-                                        title="View on Map">
-                                    <i class="bi bi-geo-alt-fill"></i>
-                                    <span class="d-none d-sm-inline">Map</span>
-                                </button>` : ''}
-                                <button type="button" onclick="openDetailsModal(${req.id})" 
-                                        class="btn btn-sm btn-drive-secondary rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs" 
-                                        style="font-size:0.75rem;"
-                                        title="Details">
-                                    <i class="bi bi-eye"></i>
-                                    <span class="d-none d-sm-inline">Details</span>
-                                </button>
+                            <div class="text-secondary opacity-50 flex-shrink-0" style="font-size:0.75rem;">
+                                <i class="bi bi-chevron-right"></i>
                             </div>
                         </div>
+
+                        <!-- Offer Action Banner (if offer_sent) -->
+                        ${offerActionBanner}
                     </div>
                 </div>
             `;
         }).join('');
     }
+
+    let _detailsModalMap = null;
 
     window.openDetailsModal = function(id) {
         const req = requestsList.find(r => r.id === id);
@@ -253,6 +304,78 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('modal_land_title').innerText = req.land_title + ' — ' + req.plot_num;
         document.getElementById('modal_purpose').innerText = req.purpose;
         document.getElementById('modal_duration').innerText = req.duration;
+
+        let currentGardenerReqId = req.id;
+        window._activeGardenerReqId = req.id;
+
+        const statusBadgeEl = document.getElementById('modal_status_badge');
+        if (statusBadgeEl) {
+            if (req.status === 'approved') {
+                statusBadgeEl.innerHTML = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1 text-xs fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>`;
+            } else if (req.status === 'pending') {
+                statusBadgeEl.innerHTML = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs fw-bold"><i class="bi bi-clock-history me-1"></i>Pending</span>`;
+            } else if (req.status === 'offer_sent') {
+                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;"><i class="bi bi-tag-fill me-1 text-warning"></i>Offer Received</span>`;
+            } else if (req.status === 'counter_offered') {
+                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;"><i class="bi bi-arrow-left-right me-1 text-primary"></i>Counter-Offer Sent</span>`;
+            } else if (req.status === 'declined') {
+                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i>Declined</span>`;
+            } else {
+                statusBadgeEl.innerHTML = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1 text-xs fw-bold"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>`;
+            }
+        }
+
+        // Rental Offer Section
+        const offerSection = document.getElementById('modal_offer_section');
+        const counterSection = document.getElementById('modal_counter_offered_section');
+
+        if (offerSection) {
+            if (req.status === 'offer_sent') {
+                offerSection.classList.remove('d-none');
+                const rate = req.offered_rental_rate ? parseFloat(req.offered_rental_rate) : 110000;
+                const rateEl = document.getElementById('modal_offer_rate');
+                const durEl = document.getElementById('modal_offer_duration');
+                const termsEl = document.getElementById('modal_offer_terms');
+
+                if (rateEl) rateEl.innerText = `₱${rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                if (durEl) durEl.innerText = `/ ${req.rental_duration || '1 Year'}`;
+                if (termsEl) termsEl.innerText = req.terms_conditions || 'Standard 50 sq. m. community plot lease. Organic vegetables, composting, and water access included.';
+
+                // Setup counter inputs default value
+                const counterInput = document.getElementById('modal_counter_rate_input');
+                if (counterInput) counterInput.value = rate;
+                const counterForm = document.getElementById('modal_counter_form_container');
+                if (counterForm) counterForm.classList.add('d-none');
+                updateCounterMonthlyCalc();
+
+                const btnApprove = document.getElementById('btnModalApproveOffer');
+                if (btnApprove) {
+                    btnApprove.onclick = () => window.decideRentalOffer(req.id, 'approved');
+                }
+                const btnDecline = document.getElementById('btnModalDeclineOffer');
+                if (btnDecline) {
+                    btnDecline.onclick = () => window.decideRentalOffer(req.id, 'declined');
+                }
+            } else {
+                offerSection.classList.add('d-none');
+            }
+        }
+
+        if (counterSection) {
+            if (req.status === 'counter_offered') {
+                counterSection.classList.remove('d-none');
+                const cRate = req.counter_rental_rate ? parseFloat(req.counter_rental_rate) : 0;
+                const cRateEl = document.getElementById('modal_counter_rate_display');
+                const cMonthlyEl = document.getElementById('modal_counter_monthly_display');
+                const cNotesEl = document.getElementById('modal_counter_notes_display');
+
+                if (cRateEl) cRateEl.innerText = `₱${cRate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                if (cMonthlyEl) cMonthlyEl.innerText = `(₱${(cRate / 12).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo)`;
+                if (cNotesEl) cNotesEl.innerText = req.counter_notes ? `"${escapeHtml(req.counter_notes)}"` : 'No counter notes specified.';
+            } else {
+                counterSection.classList.add('d-none');
+            }
+        }
 
         const feedbackSection = document.getElementById('modal_feedback_section');
         if (req.notes) {
@@ -263,79 +386,55 @@ document.addEventListener("DOMContentLoaded", function() {
             feedbackSection.classList.add('d-none');
         }
 
+        // ─── Land Location Map inside Application Details ─────────────────────
+        const mapSection = document.getElementById('modal_map_section');
+        const lat = parseFloat(req.latitude);
+        const lng = parseFloat(req.longitude);
+        const hasCoords = !isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0);
+
+        if (mapSection) {
+            if (hasCoords || req.land_address) {
+                mapSection.classList.remove('d-none');
+                const addrEl = document.getElementById('modal_land_address');
+                if (addrEl) addrEl.innerText = req.land_address || 'Coordinates marked on map';
+
+                const coordsEl = document.getElementById('modal_map_coords');
+                if (coordsEl) coordsEl.innerText = hasCoords ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '';
+
+                const gmapsLink = document.getElementById('modal_gmaps_link');
+                if (gmapsLink) {
+                    gmapsLink.href = hasCoords
+                        ? `https://www.google.com/maps?q=${lat},${lng}`
+                        : `https://www.google.com/maps/search/${encodeURIComponent(req.land_title + ' ' + (req.land_address || ''))}`;
+                }
+
+                const mapEl = document.getElementById('modalDetailsLeafletMap');
+                if (hasCoords && mapEl) {
+                    mapEl.parentElement.classList.remove('d-none');
+                    renderDetailsModalMap(lat, lng, req.land_title, req.plot_num);
+                } else if (mapEl) {
+                    mapEl.parentElement.classList.add('d-none');
+                }
+            } else {
+                mapSection.classList.add('d-none');
+            }
+        }
+
         const viewModal = new bootstrap.Modal(viewResponseModalEl);
         viewModal.show();
     };
 
-    // ─── View on Map Modal ───────────────────────────────────────────────────
-    function ensureMapModal() {
-        if (document.getElementById('requestMapModal')) return;
-        const html = `
-        <div class="modal fade" id="requestMapModal" tabindex="-1" aria-hidden="true" style="z-index:10060;">
-            <div class="modal-dialog modal-dialog-centered" style="max-width:600px;">
-                <div class="modal-content border-0 shadow-lg" style="border-radius:24px;overflow:hidden;">
-                    <div class="modal-header border-0 pb-1 px-4 pt-4">
-                        <div class="min-w-0">
-                            <span class="badge rounded-pill mb-1 fw-bold" style="background:#E8F3F8;color:#204E6E;border:1px solid #C4DCEB;font-size:0.68rem;">LAND LOCATION</span>
-                            <h5 class="modal-title fw-bold text-dark mb-0" id="mapModalTitle" style="font-size:1rem;"></h5>
-                            <p class="text-secondary mb-0" id="mapModalAddress" style="font-size:0.78rem;"></p>
-                        </div>
-                        <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-0">
-                        <div id="requestLeafletMap" style="height:340px;width:100%;z-index:1;"></div>
-                    </div>
-                    <div class="modal-footer border-0 px-4 pb-4 pt-3 justify-content-between">
-                        <span class="text-muted" id="mapModalCoords" style="font-size:0.72rem;"></span>
-                        <a id="mapModalGmapsLink" href="#" target="_blank" rel="noopener"
-                           class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5"
-                           style="background:#E8F3F8;color:#204E6E;border:1.5px solid #C4DCEB;font-size:0.78rem;">
-                            <i class="bi bi-box-arrow-up-right"></i> Open in Google Maps
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', html);
-    }
+    function renderDetailsModalMap(lat, lng, title, plotNum) {
+        const initMap = () => {
+            const mapEl = document.getElementById('modalDetailsLeafletMap');
+            if (!mapEl || typeof L === 'undefined') return;
 
-    let _reqLeafletMap = null;
-    let _reqLeafletCircle = null;
-    let _reqLeafletMarker = null;
-
-    window.openMapModal = function(id) {
-        const req = requestsList.find(r => r.id === id);
-        if (!req) return;
-
-        ensureMapModal();
-
-        // Populate header
-        document.getElementById('mapModalTitle').innerText = req.land_title + ' — ' + req.plot_num;
-        document.getElementById('mapModalAddress').innerText = req.land_address || '';
-        document.getElementById('mapModalCoords').innerText = req.latitude && req.longitude
-            ? `${req.latitude.toFixed(6)}, ${req.longitude.toFixed(6)}`
-            : '';
-        const gmapLink = document.getElementById('mapModalGmapsLink');
-        gmapLink.href = req.latitude && req.longitude
-            ? `https://www.google.com/maps?q=${req.latitude},${req.longitude}`
-            : `https://www.google.com/maps/search/${encodeURIComponent(req.land_title + ' ' + (req.land_address || ''))}`;
-
-        const mapModal = new bootstrap.Modal(document.getElementById('requestMapModal'));
-        mapModal.show();
-
-        // Init Leaflet after modal becomes visible
-        document.getElementById('requestMapModal').addEventListener('shown.bs.modal', function handler() {
-            this.removeEventListener('shown.bs.modal', handler);
-            const lat = req.latitude || 14.5995;
-            const lng = req.longitude || 120.9842;
-            const mapEl = document.getElementById('requestLeafletMap');
-
-            if (_reqLeafletMap) {
-                _reqLeafletMap.remove();
-                _reqLeafletMap = null;
+            if (_detailsModalMap) {
+                _detailsModalMap.remove();
+                _detailsModalMap = null;
             }
 
-            _reqLeafletMap = L.map(mapEl, {
+            _detailsModalMap = L.map(mapEl, {
                 center: [lat, lng],
                 zoom: 16,
                 zoomControl: true,
@@ -344,32 +443,59 @@ document.addEventListener("DOMContentLoaded", function() {
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(_reqLeafletMap);
+                attribution: '© OpenStreetMap'
+            }).addTo(_detailsModalMap);
 
-            // Soft circle for plot area
             L.circle([lat, lng], {
                 color: '#2D5A27',
                 fillColor: '#7FA668',
                 fillOpacity: 0.18,
                 weight: 2,
                 radius: 40
-            }).addTo(_reqLeafletMap);
+            }).addTo(_detailsModalMap);
 
-            // Custom green marker
             const pinIcon = L.divIcon({
                 className: '',
-                html: `<div style="width:32px;height:32px;background:#2D5A27;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 32]
+                html: `<div style="width:28px;height:28px;background:#2D5A27;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 28]
             });
+
             L.marker([lat, lng], { icon: pinIcon })
-                .bindPopup(`<strong>${req.land_title}</strong><br>${req.plot_num}`)
-                .addTo(_reqLeafletMap)
+                .bindPopup(`<strong>${title}</strong><br>${plotNum}`)
+                .addTo(_detailsModalMap)
                 .openPopup();
 
-            _reqLeafletMap.invalidateSize();
+            setTimeout(() => {
+                if (_detailsModalMap) {
+                    _detailsModalMap.invalidateSize();
+                }
+            }, 120);
+        };
+
+        if (viewResponseModalEl && viewResponseModalEl.classList.contains('show')) {
+            setTimeout(initMap, 80);
+        } else if (viewResponseModalEl) {
+            const onShown = function () {
+                viewResponseModalEl.removeEventListener('shown.bs.modal', onShown);
+                initMap();
+            };
+            viewResponseModalEl.addEventListener('shown.bs.modal', onShown);
+        }
+    }
+
+    if (viewResponseModalEl) {
+        viewResponseModalEl.addEventListener('hidden.bs.modal', function () {
+            if (_detailsModalMap) {
+                _detailsModalMap.remove();
+                _detailsModalMap = null;
+            }
         });
+    }
+
+    // Keep openMapModal as an alias so any external calls continue working seamlessly
+    window.openMapModal = function(id) {
+        window.openDetailsModal(id);
     };
 
     // ─── Horizontal Scroll Drag & Wheel Support for Filter Chips ───────────
@@ -421,7 +547,141 @@ document.addEventListener("DOMContentLoaded", function() {
         }, true);
     }
 
+    // ─── Rental Offer Approval/Decline Decision Handler ───────────────────
+    window.decideRentalOffer = async function(id, decision) {
+        const req = requestsList.find(r => r.id === id);
+        const rateStr = req && req.offered_rental_rate 
+            ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/year` 
+            : '₱110,000/year';
+
+        const confirmMsg = decision === 'approved'
+            ? `Do you accept the rental offer of ${rateStr} for ${req ? req.plot_num : 'this plot'}?\n\nBy approving, the lease becomes active and your plot reservation is officially confirmed!`
+            : `Are you sure you want to decline this rental offer?`;
+
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            const response = await fetch('../api/requests.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'gardener_decision',
+                    id: id,
+                    decision: decision
+                })
+            });
+            const res = await response.json();
+            if (res.status === 'success') {
+                // Hide modal if open
+                const modal = bootstrap.Modal.getInstance(viewResponseModalEl);
+                if (modal) modal.hide();
+
+                alert(res.message || (decision === 'approved' ? 'Rental offer approved! Your lease agreement is now active.' : 'Rental offer declined.'));
+                await loadRequests();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (err) {
+            console.error("Rental decision failed:", err);
+            alert("Failed to submit rental decision. Please check your connection.");
+        }
+    };
+
+    // ─── Counter-Offer Handlers for Gardeners ─────────────────────────────
+    window.toggleCounterOfferForm = function(force) {
+        const container = document.getElementById('modal_counter_form_container');
+        if (!container) return;
+        if (typeof force === 'boolean') {
+            if (force) container.classList.remove('d-none');
+            else container.classList.add('d-none');
+        } else {
+            container.classList.toggle('d-none');
+        }
+        if (!container.classList.contains('d-none')) {
+            const input = document.getElementById('modal_counter_rate_input');
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }
+    };
+
+    window.updateCounterMonthlyCalc = function() {
+        const input = document.getElementById('modal_counter_rate_input');
+        const calcEl = document.getElementById('modal_counter_monthly_calc');
+        if (!input || !calcEl) return;
+        const val = parseFloat(input.value) || 0;
+        const monthly = val > 0 ? (val / 12) : 0;
+        calcEl.textContent = `~₱${monthly.toLocaleString('en-US', {maximumFractionDigits: 0})}/mo`;
+    };
+
+    window.openCounterOfferPrompt = function(id) {
+        window.openDetailsModal(id);
+        setTimeout(() => {
+            window.toggleCounterOfferForm(true);
+        }, 150);
+    };
+
+    window.submitCurrentCounterOffer = async function() {
+        const reqId = window._activeGardenerReqId;
+        if (!reqId) {
+            alert("No active request selected.");
+            return;
+        }
+
+        const rateInput = document.getElementById('modal_counter_rate_input');
+        const notesInput = document.getElementById('modal_counter_notes_input');
+        const counterRate = parseFloat(rateInput ? rateInput.value : 0);
+        const counterNotes = notesInput ? notesInput.value.trim() : '';
+
+        if (!counterRate || counterRate <= 0) {
+            alert("Please enter a valid positive counter-offer amount (₱ / year).");
+            if (rateInput) rateInput.focus();
+            return;
+        }
+
+        const confirmMsg = `Submit rental counter-offer of ₱${counterRate.toLocaleString('en-US', {minimumFractionDigits: 2})}/year to the landowner?\n\nThis will send your proposed rate for the landowner to review and accept or adjust.`;
+        if (!confirm(confirmMsg)) return;
+
+        const btn = document.getElementById('btnSubmitCounterOffer');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Submitting...';
+        }
+
+        try {
+            const response = await fetch('../api/requests.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'counter_offer',
+                    id: reqId,
+                    counter_rate: counterRate,
+                    counter_notes: counterNotes
+                })
+            });
+            const res = await response.json();
+            if (res.status === 'success') {
+                const modal = bootstrap.Modal.getInstance(viewResponseModalEl);
+                if (modal) modal.hide();
+                alert(res.message || 'Counter-offer submitted successfully!');
+                await loadRequests();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (err) {
+            console.error("Counter-offer submission failed:", err);
+            alert("Failed to submit counter-offer. Please check your connection.");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Send Counter-Offer';
+            }
+        }
+    };
+
     window.loadRequests = loadRequests;
 
     loadRequests();
 });
+

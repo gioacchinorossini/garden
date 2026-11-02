@@ -35,56 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 header("Location: $redirect");
                 exit;
             } else {
-                // Fallback for hardcoded demo accounts if not matched in DB
-                $demo_accounts = [
-                    'admin@garden.com'     => ['role' => 'admin',     'name' => 'System Administrator', 'id' => 1],
-                    'landowner@garden.com' => ['role' => 'landowner', 'name' => 'John Landowner',        'id' => 2],
-                    'gardener@garden.com'  => ['role' => 'gardener',  'name' => 'Mary Gardener',         'id' => 3],
-                ];
-                $key = strtolower($email);
-                if (isset($demo_accounts[$key]) && $password === 'password123') {
-                    $acc = $demo_accounts[$key];
-                    $_SESSION['user_id']     = $acc['id'];
-                    $_SESSION['user_name']   = $acc['name'];
-                    $_SESSION['user_email']  = $key;
-                    $_SESSION['active_role'] = $acc['role'];
-
-                    $redirect = match($acc['role']) {
-                        'admin'     => 'admin/dashboard.php',
-                        'landowner' => 'landowner/dashboard.php',
-                        default     => 'gardener/dashboard.php',
-                    };
-                    header("Location: $redirect");
-                    exit;
-                }
                 $login_error = 'Invalid email or password. Please try again.';
             }
         } catch (\PDOException $e) {
-            // ── Fallback: hardcoded demo accounts when DB is unavailable ──
-            $demo_accounts = [
-                'admin@garden.com'     => ['role' => 'admin',     'name' => 'System Administrator', 'id' => 1],
-                'landowner@garden.com' => ['role' => 'landowner', 'name' => 'John Landowner',        'id' => 2],
-                'gardener@garden.com'  => ['role' => 'gardener',  'name' => 'Mary Gardener',         'id' => 3],
-            ];
-
-            $key = strtolower($email);
-            if (isset($demo_accounts[$key]) && $password === 'password123') {
-                $acc = $demo_accounts[$key];
-                $_SESSION['user_id']     = $acc['id'];
-                $_SESSION['user_name']   = $acc['name'];
-                $_SESSION['user_email']  = $key;
-                $_SESSION['active_role'] = $acc['role'];
-
-                $redirect = match($acc['role']) {
-                    'admin'     => 'admin/dashboard.php',
-                    'landowner' => 'landowner/dashboard.php',
-                    default     => 'gardener/dashboard.php',
-                };
-                header("Location: $redirect");
-                exit;
-            } else {
-                $login_error = 'Invalid email or password.';
-            }
+            $login_error = 'Database connection error. Please try again later.';
         }
     }
 }

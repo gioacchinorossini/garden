@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Open Crop Icon: malunggay (Malunggay) -->
+
+  <!-- Moringa: Twig with bipinnate sprays of tiny emerald oval leaflets -->
+  <path d="M 50 94 Q 50 50 48 10" stroke="#33691E" stroke-width="2.5" fill="none"/>
+  <!-- Leaflet pairs -->
+  <g fill="#2E7D32">
+    <ellipse cx="48" cy="14" rx="4" ry="7"/>
+    <ellipse cx="36" cy="24" rx="6" ry="4" transform="rotate(-15 36 24)"/>
+    <ellipse cx="60" cy="24" rx="6" ry="4" transform="rotate(15 60 24)"/>
+    <ellipse cx="32" cy="40" rx="7" ry="4.5" transform="rotate(-20 32 40)"/>
+    <ellipse cx="64" cy="40" rx="7" ry="4.5" transform="rotate(20 64 40)"/>
+    <ellipse cx="28" cy="58" rx="8" ry="5" transform="rotate(-25 28 58)"/>
+    <ellipse cx="68" cy="58" rx="8" ry="5" transform="rotate(25 68 58)"/>
+    <ellipse cx="26" cy="76" rx="8" ry="5" transform="rotate(-30 26 76)"/>
+    <ellipse cx="70" cy="76" rx="8" ry="5" transform="rotate(30 70 76)"/>
+  </g>
+  <g fill="#4CAF50">
+    <ellipse cx="48" cy="13" rx="3" ry="5"/>
+    <ellipse cx="36" cy="23" rx="5" ry="3" transform="rotate(-15 36 23)"/>
+    <ellipse cx="60" cy="23" rx="5" ry="3" transform="rotate(15 60 23)"/>
+    <ellipse cx="32" cy="39" rx="6" ry="3.5" transform="rotate(-20 32 39)"/>
+    <ellipse cx="64" cy="39" rx="6" ry="3.5" transform="rotate(20 64 39)"/>
+    <ellipse cx="28" cy="57" rx="6.5" ry="4" transform="rotate(-25 28 57)"/>
+    <ellipse cx="68" cy="57" rx="6.5" ry="4" transform="rotate(25 68 57)"/>
+  </g>
+
+</svg>
