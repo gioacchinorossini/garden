@@ -432,6 +432,15 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
                     <div id="sheetPermittedCropsContainer" class="d-flex flex-wrap gap-1.5 align-items-center"></div>
                 </div>
 
+                <!-- Amenities & Utilities Section -->
+                <div class="mb-2 d-none" id="sheetAmenitiesSection">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="text-secondary fw-semibold"
+                            style="font-size:0.68rem;letter-spacing:0.5px;text-transform:uppercase;">Amenities &amp; Utilities</span>
+                    </div>
+                    <div id="sheetAmenitiesContainer" class="d-flex flex-wrap gap-1.5 align-items-center"></div>
+                </div>
+
                 <!-- Description -->
                 <p id="sheetLandDesc" class="text-secondary mb-2"
                     style="font-size:0.78rem;line-height:1.5;max-height:48px;overflow:hidden;"></p>
@@ -823,6 +832,39 @@ $my_count = count(array_filter($lands_data, fn($l) => ($l['landowner'] ?? '') ==
                         </span>
                     `;
                 }).join('');
+            }
+        }
+
+        // Render Amenities & Utilities in sheet
+        const amenitiesSec = document.getElementById('sheetAmenitiesSection');
+        const amenitiesCont = document.getElementById('sheetAmenitiesContainer');
+        const rawAmenities = Array.isArray(land.amenities) ? land.amenities : [];
+        if (amenitiesSec && amenitiesCont) {
+            if (rawAmenities.length > 0) {
+                amenitiesSec.classList.remove('d-none');
+                amenitiesCont.innerHTML = rawAmenities.map(a => {
+                    const lower = (a || '').toLowerCase();
+                    let file = 'general.svg';
+                    if (lower.includes('water') || lower.includes('well') || lower.includes('drain') || lower.includes('spigot') || lower.includes('tap')) file = 'water-source.svg';
+                    else if (lower.includes('elect') || lower.includes('power') || lower.includes('grid') || lower.includes('light')) file = 'electricity.svg';
+                    else if (lower.includes('irrig') || lower.includes('sprink') || lower.includes('hose') || lower.includes('drip')) file = 'irrigation.svg';
+                    else if (lower.includes('tool') || lower.includes('shed') || lower.includes('stor') || lower.includes('barn') || lower.includes('equip')) file = 'tool-storage.svg';
+                    else if (lower.includes('fenc') || lower.includes('gate') || lower.includes('secur') || lower.includes('wall') || lower.includes('perim')) file = 'perimeter-fencing.svg';
+                    else if (lower.includes('compost') || lower.includes('recyc') || lower.includes('soil') || lower.includes('organic') || lower.includes('fertil')) file = 'compost-area.svg';
+                    else if (lower.includes('rest') || lower.includes('toilet') || lower.includes('wash') || lower.includes('wc') || lower.includes('cr') || lower.includes('comfort')) file = 'restroom.svg';
+                    else if (lower.includes('solar') || lower.includes('sun') || lower.includes('panel')) file = 'solar-power.svg';
+
+                    const iconSrc = `../assets/amenity-icons/${file}`;
+
+                    return `
+                        <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-xs" style="font-size:0.72rem;font-weight:500;">
+                            <img src="${iconSrc}" alt="${a}" style="width:14px;height:14px;object-fit:contain;">
+                            <span>${a}</span>
+                        </span>
+                    `;
+                }).join('');
+            } else {
+                amenitiesSec.classList.add('d-none');
             }
         }
 

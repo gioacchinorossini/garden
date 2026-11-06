@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <!-- Amenity Icon: General Farm Utility -->
+  <defs>
+    <filter id="generalGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#2e7d32" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Ground Mound -->
+  <ellipse cx="32" cy="58" rx="22" ry="4" fill="#33691E" opacity="0.35"/>
+  <ellipse cx="32" cy="57" rx="20" ry="3" fill="#558B2F"/>
+
+  <!-- Wooden Post -->
+  <rect x="29" y="16" width="6" height="42" rx="2" fill="#3E2723"/>
+  <rect x="30" y="17" width="4" height="40" rx="1.5" fill="#6D4C41"/>
+  <line x1="31" y1="18" x2="31" y2="56" stroke="#8D6E63" stroke-width="1"/>
+
+  <!-- Horizontal Wooden Signboard Plate -->
+  <g id="plaque" filter="url(#generalGlow)">
+    <rect x="10" y="12" width="44" height="24" rx="4" fill="#4E342E"/>
+    <rect x="11" y="13" width="42" height="22" rx="3" fill="#A1887F"/>
+    <rect x="13" y="15" width="38" height="18" rx="2" fill="#D7CCC8"/>
+
+    <!-- Signboard Screws/Rivets -->
+    <circle cx="15" cy="18" r="1.2" fill="#4E342E"/>
+    <circle cx="15" cy="29" r="1.2" fill="#4E342E"/>
+    <circle cx="49" cy="18" r="1.2" fill="#4E342E"/>
+    <circle cx="49" cy="29" r="1.2" fill="#4E342E"/>
+
+    <!-- Vibrant Sprout Emblem on Plaque -->
+    <path d="M 32 30 C 32 23 33 19 35 17" stroke="#1B5E20" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <!-- Left Leaf -->
+    <path d="M 33 22 C 26 20 25 26 32 27 Z" fill="#2E7D32"/>
+    <path d="M 32.5 22.5 C 27 21 26 25.5 31.5 26.5 Z" fill="#4CAF50"/>
+    <circle cx="29" cy="23" r="0.6" fill="#FFFFFF"/>
+    <!-- Right Leaf -->
+    <path d="M 34 19 C 40 17 41 23 35 24 Z" fill="#1B5E20"/>
+    <path d="M 34.5 19.5 C 39 18 40 22.5 35.5 23.5 Z" fill="#81C784"/>
+    <circle cx="37" cy="20" r="0.6" fill="#FFFFFF"/>
+
+    <!-- Wood grain gloss line -->
+    <path d="M 14 16 L 48 16" stroke="#FFFFFF" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+  </g>
+
+  <!-- Sparkle stars -->
+  <circle cx="53" cy="10" r="1.8" fill="#FBC02D"/>
+  <circle cx="53" cy="10" r="1" fill="#FFFFFF"/>
+</svg>
+

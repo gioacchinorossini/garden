@@ -165,7 +165,7 @@ if (isset($_GET['switch_role'])) {
                     </a>
 
                     <!-- Notification 2 -->
-                    <a href="<?php echo $bp; ?><?php echo $role === 'gardener' ? 'gardener/schedules.php' : ($role === 'landowner' ? 'landowner/schedules.php' : 'admin/dashboard.php'); ?>"
+                    <a href="<?php echo $bp; ?><?php echo $role === 'gardener' ? 'gardener/schedules.php' : ($role === 'landowner' ? 'landowner/requests.php' : 'admin/dashboard.php'); ?>"
                         class="flex items-start gap-2.5 px-3.5 py-2.5 hover:bg-drive-surface-hover text-decoration-none transition-colors group">
                         <div class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs">
                             <i class="bi bi-calendar-event"></i>

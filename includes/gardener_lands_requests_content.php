@@ -146,9 +146,37 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
             </div>
         </div>
     <?php else: ?>
-        <div class="toolbar border-bottom d-none d-md-flex">
-            <div>
-                <h1 class="fs-5 fw-semibold m-0 text-dark">Request Log</h1>
+        <div class="toolbar requests-toolbar d-none d-md-flex">
+            <div class="toolbar-title-wrap">
+                <h1 class="fs-5 fw-semibold m-0 text-dark">Plot Requests</h1>
+                <p class="text-muted mb-0" style="font-size: 0.78rem;">Track your plot applications and manage lease offers</p>
+            </div>
+
+            <div class="toolbar-actions-wrap">
+                <!-- Search bar -->
+                <div class="position-relative toolbar-search-wrap">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+                        style="font-size: 0.8rem; pointer-events: none;"></i>
+                    <input type="text" id="requestsSearchInput"
+                        class="form-control rounded-pill ps-5"
+                        placeholder="Search land, plot...">
+                </div>
+
+                <!-- Filter tabs (Approved, Pending, Rejected) -->
+                <div class="filter-pill-track" role="group">
+                    <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary"
+                        data-filter="approved" id="filterApprovedBtn">
+                        Approved <span class="badge rounded-pill bg-success ms-1" id="countApproved">0</span>
+                    </button>
+                    <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary"
+                        data-filter="pending" id="filterPendingBtn">
+                        Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="countPending">0</span>
+                    </button>
+                    <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary"
+                        data-filter="rejected" id="filterRejectedBtn">
+                        Rejected <span class="badge rounded-pill bg-danger ms-1" id="countRejected">0</span>
+                    </button>
+                </div>
             </div>
         </div>
     <?php endif; ?>
@@ -171,7 +199,7 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
     </div>
 
     <!-- Workspace Scrollable Area -->
-    <div class="workspace-scroll" style="padding-bottom: 100px !important;">
+    <div class="workspace-scroll p-3 px-md-4 pt-md-2" style="padding-bottom: 100px !important;">
 
         <?php if (!empty($success_msg)): ?>
             <div class="alert alert-success d-flex align-items-center gap-2 border-0 mb-4" role="alert"
@@ -241,11 +269,11 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
 
                                 <!-- Card Body -->
                                 <div class="p-3 pb-2 flex-grow-1 d-flex flex-column">
-                                    <h3 class="fw-bold text-dark mb-0" style="font-size: 1.05rem; line-height: 1.3;">
+                                    <h3 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 1.05rem; line-height: 1.3;" title="<?php echo htmlspecialchars($land['title']); ?>">
                                         <?php echo htmlspecialchars($land['title']); ?>
                                     </h3>
 
-                                    <p class="text-muted mb-2 mt-1" style="font-size: 0.78rem;">
+                                    <p class="text-muted mb-2 mt-1" style="font-size: 0.78rem; word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35;" title="<?php echo htmlspecialchars($land['address']); ?>">
                                         <i class="bi bi-geo-alt-fill me-1" style="color: var(--drive-primary, #198754);"></i>
                                         <?php echo htmlspecialchars($land['address']); ?>
                                     </p>
@@ -276,6 +304,20 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                 m²</span>
                                         </div>
                                     </div>
+
+                                    <!-- Available Amenities & Utilities Row -->
+                                    <?php if (!empty($land['amenities']) && is_array($land['amenities'])): ?>
+                                        <div class="d-flex align-items-center gap-1.5 flex-wrap mb-2">
+                                            <?php foreach ($land['amenities'] as $amenity): 
+                                                $iconUrl = function_exists('resolve_amenity_icon') ? resolve_amenity_icon($amenity, $base_path) : ($base_path . 'assets/amenity-icons/general.svg');
+                                            ?>
+                                                <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs" style="font-size: 10px; font-weight: 600;">
+                                                    <img src="<?php echo htmlspecialchars($iconUrl); ?>" alt="<?php echo htmlspecialchars($amenity); ?>" style="width: 14px; height: 14px; object-fit: contain;">
+                                                    <span><?php echo htmlspecialchars($amenity); ?></span>
+                                                </span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <!-- Collapsible Description -->
                                     <div class="mb-2">
@@ -316,9 +358,15 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                             <span class="text-muted d-block"
                                                                 style="font-size: 0.65rem;"><?php echo $plot['area']; ?> m²</span>
                                                             <?php if ($plot['status'] === 'available'): ?>
-                                                                <button class="btn btn-drive-primary py-1 px-1 w-100 mt-1"
+                                                                <button type="button" class="btn btn-drive-primary py-1 px-1 w-100 mt-1"
                                                                     style="font-size: 9px;" data-bs-toggle="modal"
-                                                                    data-bs-target="#requestPlotModal<?php echo $plot['id']; ?>">
+                                                                    data-bs-target="#requestPlotModal"
+                                                                    data-land-id="<?php echo $land['id']; ?>"
+                                                                    data-land-title="<?php echo htmlspecialchars($land['title'], ENT_QUOTES); ?>"
+                                                                    data-plot-id="<?php echo $plot['id']; ?>"
+                                                                    data-plot-number="<?php echo htmlspecialchars($plot['plot_number'], ENT_QUOTES); ?>"
+                                                                    data-plot-area="<?php echo htmlspecialchars($plot['area'], ENT_QUOTES); ?>"
+                                                                    data-landowner="<?php echo htmlspecialchars($land['landowner'], ENT_QUOTES); ?>">
                                                                     Request
                                                                 </button>
                                                             <?php else: ?>
@@ -327,71 +375,6 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                                                     <?php echo ucfirst($plot['status']); ?>
                                                                 </span>
                                                             <?php endif; ?>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Plot Request Modal -->
-                                                    <div class="modal fade" id="requestPlotModal<?php echo $plot['id']; ?>"
-                                                        tabindex="-1" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content drive-modal-content">
-                                                                <div class="modal-header border-0 pb-0">
-                                                                    <h5 class="modal-title fw-semibold text-dark">Apply for Plot</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                        aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body text-start">
-                                                                    <form
-                                                                        action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>?tab=requests"
-                                                                        method="POST">
-                                                                        <input type="hidden" name="action" value="submit_request">
-                                                                        <input type="hidden" name="land_id"
-                                                                            value="<?php echo $land['id']; ?>">
-                                                                        <input type="hidden" name="plot_id"
-                                                                            value="<?php echo $plot['id']; ?>">
-
-                                                                        <div class="p-3 bg-light rounded-3 mb-3"
-                                                                            style="font-size: 0.8rem;">
-                                                                            <strong>Land:</strong>
-                                                                            <?php echo htmlspecialchars($land['title']); ?><br>
-                                                                            <strong>Selected Plot:</strong>
-                                                                            <?php echo htmlspecialchars($plot['plot_number']); ?>
-                                                                            (<?php echo $plot['area']; ?> m²)
-                                                                        </div>
-
-                                                                        <div class="mb-3">
-                                                                            <label for="duration_<?php echo $plot['id']; ?>"
-                                                                                class="form-label text-secondary"
-                                                                                style="font-size: 0.75rem; font-weight:600;">DURATION</label>
-                                                                            <select class="form-select drive-form-control w-100"
-                                                                                id="duration_<?php echo $plot['id']; ?>" name="duration"
-                                                                                required>
-                                                                                <option value="3 Months">3 Months</option>
-                                                                                <option value="6 Months" selected>6 Months</option>
-                                                                                <option value="1 Year">1 Year</option>
-                                                                                <option value="Indefinite">Indefinite</option>
-                                                                            </select>
-                                                                        </div>
-
-                                                                        <div class="mb-4">
-                                                                            <label for="purpose_<?php echo $plot['id']; ?>"
-                                                                                class="form-label text-secondary"
-                                                                                style="font-size: 0.75rem; font-weight:600;">PURPOSE</label>
-                                                                            <textarea class="form-control drive-form-control w-100"
-                                                                                id="purpose_<?php echo $plot['id']; ?>" name="purpose"
-                                                                                rows="3" required
-                                                                                placeholder="Describe your gardening plans (e.g. vegetable patches, herbs, organic composting)..."></textarea>
-                                                                        </div>
-
-                                                                        <div class="d-flex justify-content-end gap-2">
-                                                                            <button type="button" class="btn btn-drive-secondary"
-                                                                                data-bs-dismiss="modal">Cancel</button>
-                                                                            <button type="submit" class="btn btn-drive-primary">Submit
-                                                                                Application</button>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 <?php endforeach; ?>
@@ -413,101 +396,203 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
         <!-- ======================= ② MY REQUESTS SECTION ======================= -->
         <div id="requestsSection"
             class="gardener-mobile-pane <?php echo $active_tab === 'requests' ? 'visible-on-mobile' : 'hidden-on-mobile'; ?>">
-            
-            <!-- Filter Bar for Requests (Horizontal scrolling chips) -->
-            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                <div class="requests-filter-scroll-wrapper">
-                    <div class="requests-filter-scroll" id="requestsFilterChips">
-                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold request-filter-chip active flex-shrink-0" data-filter="all" onclick="filterGardenerRequests('all')">
-                            All <span class="badge rounded-pill bg-white text-dark ms-1 shadow-xs" id="filterCountAll">0</span>
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="pending" onclick="filterGardenerRequests('pending')">
-                            Pending <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis ms-1" id="filterCountPending">0</span>
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="offer_sent" onclick="filterGardenerRequests('offer_sent')">
-                            Offers <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis ms-1" id="filterCountOffer">0</span>
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="approved" onclick="filterGardenerRequests('approved')">
-                            Approved <span class="badge rounded-pill bg-success-subtle text-success ms-1" id="filterCountApproved">0</span>
-                        </button>
-                        <button type="button" class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold request-filter-chip flex-shrink-0" data-filter="rejected" onclick="filterGardenerRequests('rejected')">
-                            Rejected <span class="badge rounded-pill bg-danger-subtle text-danger ms-1" id="filterCountRejected">0</span>
-                        </button>
-                    </div>
+
+            <!-- Mobile Header Controls for Requests (Visible only on mobile < md) -->
+            <div class="d-block d-md-none mb-3">
+                <div class="position-relative mb-2.5">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"
+                        style="font-size: 0.85rem; pointer-events: none;"></i>
+                    <input type="text" id="mobileSearchInput"
+                        class="form-control form-control-sm ps-5 py-2 rounded-pill border-light-subtle bg-white shadow-xs"
+                        placeholder="Search requests...">
                 </div>
-                <div class="text-secondary small fw-medium text-nowrap d-none d-lg-block flex-shrink-0 ms-2" id="requestsCountLabel">
-                    Showing all applications
+
+                <div class="d-flex align-items-center gap-2 overflow-x-auto py-1.5 px-0.5 no-scrollbar">
+                    <button type="button"
+                        class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary"
+                        data-filter="approved">
+                        Approved <span class="badge rounded-pill bg-success ms-1" id="mCountApproved">0</span>
+                    </button>
+                    <button type="button"
+                        class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary"
+                        data-filter="pending">
+                        Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="mCountPending">0</span>
+                    </button>
+                    <button type="button"
+                        class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary"
+                        data-filter="rejected">
+                        Rejected <span class="badge rounded-pill bg-danger ms-1" id="mCountRejected">0</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Card List Container populated by gardener_requests.js -->
-            <div id="requestsTableBody" class="gardener-requests-card-list">
-                <div class="text-center py-5 text-muted bg-white rounded-4 border border-light-subtle shadow-xs">
-                    <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
-                    <span>Loading your applications...</span>
+
+            <!-- Desktop Table View (Hidden on mobile < md, identical to Landowner) -->
+            <div class="d-none d-md-block request-table-container mb-4">
+                <!-- Header Row -->
+                <div class="d-flex align-items-center justify-content-between px-4 py-3 request-table-header"
+                    style="font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;">
+                    <div style="width: 23%; min-width: 170px;">TARGET PROPERTY &amp; OWNER</div>
+                    <div style="width: 23%; min-width: 170px;">PLOT &amp; DETAILS</div>
+                    <div style="width: 17%; min-width: 130px;">PURPOSE &amp; DURATION</div>
+                    <div style="width: 13%; min-width: 100px;">STATUS</div>
+                    <div style="width: 24%; min-width: 215px;" class="text-end pe-1">ACTION</div>
                 </div>
+
+                <!-- Request Rows Placeholder -->
+                <div id="requestsTableBody">
+                    <div class="text-center py-5 text-muted">
+                        <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
+                        <span>Loading your applications...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Card List View (Visible only on mobile < md) -->
+            <div class="d-md-none" id="requestsMobileCards">
+                <!-- Dynamic cards injected here -->
             </div>
         </div>
     </div>
 </main>
 
-<!-- Details/Response Modal (Single dynamic modal instance) -->
-<div class="modal fade" id="viewResponseModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+<!-- Single Dynamic Plot Application Modal (Root level for proper viewport centering) -->
+<div class="modal fade" id="requestPlotModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 24px;">
+        <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark">Application Details</h5>
+                <h5 class="modal-title fw-bold text-dark">Apply for Plot</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-start pt-2" style="max-height: calc(85vh - 100px); overflow-y: auto;">
-                <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-3" style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
-                    <div class="d-flex align-items-center gap-3 min-w-0">
-                        <div class="gardener-request-icon-wrap" style="width:46px;height:46px;min-width:46px;">
-                            <img src="../assets/images/land_icon.svg" alt="Land Icon" class="gardener-request-icon-img" width="46" height="46">
+            <div class="modal-body pt-3">
+                <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>?tab=requests" method="POST"
+                    id="applyPlotForm">
+                    <input type="hidden" name="action" value="submit_request">
+                    <input type="hidden" name="land_id" id="apply_land_id" value="">
+                    <input type="hidden" name="plot_id" id="apply_plot_id" value="">
+
+                    <!-- Target Land & Plot Info Card -->
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-3"
+                        style="background:#F7EFE6;border:1.5px solid #DFCFC2;">
+                        <div class="d-flex align-items-center gap-3 min-w-0">
+                            <div class="gardener-request-icon-wrap" style="width:44px;height:44px;min-width:44px;">
+                                <img src="<?php echo isset($base_path) ? $base_path : '../'; ?>assets/images/land_icon.svg"
+                                    alt="Land Icon" class="gardener-request-icon-img" width="44" height="44">
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-secondary fw-bold text-uppercase d-block"
+                                    style="font-size: 10px; letter-spacing:0.4px;">TARGET LAND</span>
+                                <h6 id="apply_land_title" class="fw-bold text-dark mb-0 text-truncate">Land Title</h6>
+                                <span id="apply_landowner" class="text-muted d-block small"
+                                    style="font-size: 11px;"></span>
+                            </div>
                         </div>
-                        <div class="min-w-0">
-                            <span class="text-secondary fw-bold text-uppercase d-block" style="font-size: 10px; letter-spacing:0.4px;">TARGET PLOT &amp; LAND</span>
-                            <h6 id="modal_land_title" class="fw-bold text-dark mb-0 text-truncate"></h6>
+                        <div class="text-end flex-shrink-0 ms-2">
+                            <span class="text-secondary fw-bold text-uppercase d-block"
+                                style="font-size: 10px; letter-spacing:0.4px;">SELECTED PLOT</span>
+                            <span id="apply_plot_details" class="badge rounded-pill px-2.5 py-1 text-xs fw-bold"
+                                style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;">
+                                Plot
+                            </span>
                         </div>
                     </div>
-                    <div id="modal_status_badge" class="flex-shrink-0 ms-2"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">PROPOSED PURPOSE</label>
-                    <div class="p-3 bg-light rounded-3 text-secondary" style="font-size:0.85rem;" id="modal_purpose">
+
+                    <div class="mb-3">
+                        <label for="apply_duration" class="form-label text-secondary fw-semibold"
+                            style="font-size: 0.75rem; letter-spacing: 0.3px;">LEASE DURATION</label>
+                        <select class="form-select drive-form-control w-100 rounded-3" id="apply_duration"
+                            name="duration" required>
+                            <option value="3 Months">3 Months</option>
+                            <option value="6 Months" selected>6 Months</option>
+                            <option value="1 Year">1 Year</option>
+                            <option value="Indefinite">Indefinite</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="apply_purpose" class="form-label text-secondary fw-semibold"
+                            style="font-size: 0.75rem; letter-spacing: 0.3px;">PURPOSE &amp; GARDENING INTENT</label>
+                        <textarea class="form-control drive-form-control w-100 rounded-3" id="apply_purpose"
+                            name="purpose" rows="3" required
+                            placeholder="Describe your gardening plans (e.g. vegetable patches, herbs, organic composting)..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-1">
+                        <button type="button" class="btn btn-drive-secondary rounded-pill px-3.5"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-drive-primary rounded-pill px-4 fw-semibold">Submit
+                            Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details/Response Modal (Single dynamic modal instance matching Landowner Request Details Modal) -->
+<div class="modal fade" id="viewResponseModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="request-avatar bg-success-subtle text-success" id="modal_avatar">LD</div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark m-0" id="modal_request_title">Request Details</h5>
+                        <small class="text-muted" id="modal_request_date"></small>
                     </div>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <!-- Landowner & Land info card -->
+                <div class="p-3 bg-light rounded-3 mb-3 border border-light-subtle">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <strong class="text-dark" id="modal_land_title"></strong>
+                        <span id="modal_status_badge"></span>
+                    </div>
+                    <div class="text-muted small d-flex flex-wrap gap-3 mt-1" id="modal_landowner_contact">
+                        <!-- landowner and address links -->
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border border-light-subtle">
+                            <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">TARGET PLOT</label>
+                            <div class="text-dark fw-bold small" id="modal_plot"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border border-light-subtle">
+                            <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">REQUESTED TERM</label>
+                            <div class="text-dark fw-bold small" id="modal_duration"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">LEASE DURATION</label>
-                    <div id="modal_duration" class="text-dark fw-medium"></div>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">GARDENING PURPOSE / PROPOSAL</label>
+                    <p class="text-dark bg-light p-3 rounded-3 mb-0 border border-light-subtle" style="font-size: 0.85rem; line-height: 1.5;" id="modal_purpose"></p>
                 </div>
 
                 <!-- Incoming Rental Offer Section (Panel Feedback: Gardener decides whether to approve offer) -->
                 <div class="mb-3 d-none" id="modal_offer_section">
                     <div class="p-3 rounded-4 border" style="background:#FFFDF7;border-color:#FCD34D !important;">
                         <div class="d-flex align-items-center justify-content-between mb-1.5">
-                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;">
+                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold"
+                                style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;">
                                 <i class="bi bi-tag-fill me-1 text-warning"></i> Incoming Rental Offer
                             </span>
-                            <span class="text-muted small" style="font-size:11px;">Standard: 50 m² @ ₱110k/yr</span>
+                            <span class="text-muted small" style="font-size:11px;" id="modal_offer_time"></span>
                         </div>
-                        <div class="d-flex align-items-baseline gap-2 mb-2">
-                            <span class="fs-4 fw-bolder text-dark" id="modal_offer_rate">₱110,000.00</span>
-                            <span class="text-secondary small fw-medium" id="modal_offer_duration">/ Year</span>
+                        <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <span class="fs-4 fw-bolder text-dark" id="modal_offer_rate">₱9,166.67</span>
+                            <span class="text-secondary small fw-medium" id="modal_offer_duration">/ Month</span>
+                            <span class="text-muted small" id="modal_offer_annual">(₱110,000.00/yr)</span>
                         </div>
-                        <div class="small text-secondary mb-3 p-2.5 rounded-3 bg-white border border-light-subtle" id="modal_offer_terms">
+                        <div class="small text-secondary p-2.5 rounded-3 bg-white border border-light-subtle"
+                            id="modal_offer_terms">
                             Standard community gardening lease. Organic vegetables, composting, and water access included.
-                        </div>
-                        <div class="d-flex align-items-center gap-2 pt-1 flex-wrap" id="modal_offer_actions">
-                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold" id="btnModalDeclineOffer">
-                                <i class="bi bi-x-circle me-1"></i> Decline
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold" id="btnModalToggleCounter" onclick="toggleCounterOfferForm()">
-                                <i class="bi bi-arrow-left-right me-1"></i> Counter-Offer
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-semibold text-white shadow-xs ms-auto" id="btnModalApproveOffer">
-                                <i class="bi bi-check-circle-fill me-1"></i> Approve &amp; Lease
-                            </button>
                         </div>
 
                         <!-- Expandable Gardener Counter-Offer Form -->
@@ -516,20 +601,27 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                                 <i class="bi bi-pencil-square text-primary"></i> Propose Rental Counter-Offer
                             </h6>
                             <div class="mb-2.5">
-                                <label class="form-label text-secondary fw-semibold text-xs mb-1">PROPOSED ANNUAL RENT (₱ / YEAR)</label>
+                                <label class="form-label text-secondary fw-semibold text-xs mb-1">PROPOSED MONTHLY FEE (₱ / MONTH)</label>
                                 <div class="input-group input-group-sm">
                                     <span class="input-group-text bg-light fw-bold text-dark">₱</span>
-                                    <input type="number" step="500" class="form-control fw-bold text-dark" id="modal_counter_rate_input" placeholder="e.g. 95000" oninput="updateCounterMonthlyCalc()">
-                                    <span class="input-group-text bg-light text-muted" id="modal_counter_monthly_calc">/ Year</span>
+                                    <input type="number" step="50" min="100" class="form-control fw-bold text-dark"
+                                        id="modal_counter_rate_input" placeholder="e.g. 8000"
+                                        oninput="updateCounterMonthlyCalc()">
+                                    <span class="input-group-text bg-light text-muted" id="modal_counter_monthly_calc">/ mo (Annual: ~₱96,000/yr)</span>
                                 </div>
                             </div>
                             <div class="mb-2.5">
                                 <label class="form-label text-secondary fw-semibold text-xs mb-1">PROPOSAL NOTES / TERMS (OPTIONAL)</label>
-                                <textarea class="form-control form-control-sm text-xs" id="modal_counter_notes_input" rows="2" placeholder="Explain your proposed rate or rental payment preferences..."></textarea>
+                                <textarea class="form-control form-control-sm text-xs" id="modal_counter_notes_input"
+                                    rows="2"
+                                    placeholder="Explain your proposed rate or rental payment preferences..."></textarea>
                             </div>
                             <div class="d-flex align-items-center justify-content-end gap-2">
-                                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 text-xs" onclick="toggleCounterOfferForm(false)">Cancel</button>
-                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 text-xs fw-semibold" id="btnSubmitCounterOffer" onclick="submitCurrentCounterOffer()">
+                                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 text-xs"
+                                    onclick="toggleCounterOfferForm(false)">Cancel</button>
+                                <button type="button"
+                                    class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 text-xs fw-semibold"
+                                    id="btnSubmitCounterOffer" onclick="submitCurrentCounterOffer()">
                                     <i class="bi bi-send-fill me-1"></i> Send Counter-Offer
                                 </button>
                             </div>
@@ -541,50 +633,53 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
                 <div class="mb-3 d-none" id="modal_counter_offered_section">
                     <div class="p-3 rounded-4 border" style="background:#F0FDF4;border-color:#BBF7D0 !important;">
                         <div class="d-flex align-items-center justify-content-between mb-1.5">
-                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;">
+                            <span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold"
+                                style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0;">
                                 <i class="bi bi-arrow-left-right me-1 text-success"></i> Counter-Offer Submitted
                             </span>
                             <span class="text-muted small" style="font-size:11px;">Awaiting Landowner Response</span>
                         </div>
                         <div class="d-flex align-items-baseline gap-2 mb-1">
-                            <span class="fs-4 fw-bolder text-dark" id="modal_counter_rate_display">₱95,000.00</span>
-                            <span class="text-secondary small fw-medium">/ Year</span>
-                            <span class="text-muted small" id="modal_counter_monthly_display">(₱7,916.67/mo)</span>
+                            <span class="fs-4 fw-bolder text-dark" id="modal_counter_rate_display">₱7,916.67</span>
+                            <span class="text-secondary small fw-medium">/ Month</span>
+                            <span class="text-muted small" id="modal_counter_monthly_display">(₱95,000.00/yr)</span>
                         </div>
-                        <div class="small text-secondary p-2.5 rounded-3 bg-white border border-light-subtle" id="modal_counter_notes_display">
+                        <div class="small text-secondary p-2.5 rounded-3 bg-white border border-light-subtle"
+                            id="modal_counter_notes_display">
                             No notes attached.
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-3 d-none" id="modal_feedback_section">
-                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">LANDOWNER RESPONSE &amp; GUIDELINES</label>
-                    <div class="alert alert-info py-2" style="font-size: 0.85rem; border-radius: 8px;"
-                        id="modal_feedback"></div>
+                    <label class="text-secondary fw-semibold d-block mb-1" style="font-size: 11px;">RESPONSE / FEEDBACK</label>
+                    <div class="alert py-2 px-3 mb-0" style="font-size: 0.85rem; border-radius: 8px;" id="modal_feedback"></div>
                 </div>
+
                 <!-- Land Location Map inside Application Details -->
-                <div class="mb-3" id="modal_map_section">
+                <div class="mb-3 d-none" id="modal_map_section">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label class="text-secondary fw-semibold mb-0" style="font-size: 11px;">LAND LOCATION</label>
                         <span class="text-muted small" id="modal_map_coords" style="font-size: 0.72rem;"></span>
                     </div>
-                    <div class="text-secondary small mb-2 d-flex align-items-center gap-1.5" id="modal_land_address_wrap">
-                        <i class="bi bi-geo-alt-fill text-success"></i>
-                        <span id="modal_land_address" class="text-truncate"></span>
-                    </div>
                     <div class="rounded-4 overflow-hidden border mb-2" style="border-color:#DFCFC2 !important;">
-                        <div id="modalDetailsLeafletMap" style="height: 190px; width: 100%; z-index: 1;"></div>
+                        <div id="modalDetailsLeafletMap" style="height: 180px; width: 100%; z-index: 1;"></div>
                     </div>
                     <div class="text-end">
                         <a id="modal_gmaps_link" href="#" target="_blank" rel="noopener"
-                           class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5 text-decoration-none"
-                           style="background:#E8F3F8;color:#204E6E;border:1.5px solid #C4DCEB;font-size:0.75rem;">
+                            class="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5 text-decoration-none"
+                            style="background:#E8F3F8;color:#204E6E;border:1.5px solid #C4DCEB;font-size:0.75rem;">
                             <i class="bi bi-box-arrow-up-right"></i> Open in Google Maps
                         </a>
                     </div>
                 </div>
-                <div class="d-flex justify-content-end pt-2">
-                    <button type="button" class="btn btn-drive-primary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+
+                <!-- Modal footer actions matching landowner UI -->
+                <div class="d-flex align-items-center justify-content-between pt-3 border-top flex-wrap gap-2">
+                    <div id="modalOfferActionButtons" class="d-flex align-items-center gap-2 flex-wrap">
+                        <!-- Dynamic Offer Actions (Approve, Counter, Decline) -->
+                    </div>
+                    <button type="button" class="btn btn-light rounded-pill px-4 ms-auto" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -637,7 +732,60 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
 
     document.addEventListener("DOMContentLoaded", function () {
         initLeafletPreviewMaps();
+
+        const requestPlotModalEl = document.getElementById('requestPlotModal');
+        if (requestPlotModalEl) {
+            requestPlotModalEl.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                if (!button) return;
+
+                const landId = button.getAttribute('data-land-id') || '';
+                const landTitle = button.getAttribute('data-land-title') || 'Unknown Land';
+                const plotId = button.getAttribute('data-plot-id') || '';
+                const plotNumber = button.getAttribute('data-plot-number') || 'Plot';
+                const plotArea = button.getAttribute('data-plot-area') || '0';
+                const landowner = button.getAttribute('data-landowner') || '';
+
+                const landIdInput = document.getElementById('apply_land_id');
+                const plotIdInput = document.getElementById('apply_plot_id');
+                const landTitleDisplay = document.getElementById('apply_land_title');
+                const plotDetailsDisplay = document.getElementById('apply_plot_details');
+                const landownerDisplay = document.getElementById('apply_landowner');
+
+                if (landIdInput) landIdInput.value = landId;
+                if (plotIdInput) plotIdInput.value = plotId;
+                if (landTitleDisplay) landTitleDisplay.innerText = landTitle;
+                if (plotDetailsDisplay) plotDetailsDisplay.innerText = `${plotNumber} (${plotArea} m²)`;
+                if (landownerDisplay) landownerDisplay.innerText = landowner ? `Managed by ${landowner}` : '';
+
+                const purposeInput = document.getElementById('apply_purpose');
+                if (purposeInput) purposeInput.value = '';
+                const durationSelect = document.getElementById('apply_duration');
+                if (durationSelect) durationSelect.value = '6 Months';
+            });
+        }
     });
+
+    // Programmatic trigger helper
+    window.openApplyPlotModal = function (landId, landTitle, plotId, plotNumber, plotArea, landowner) {
+        const landIdInput = document.getElementById('apply_land_id');
+        const plotIdInput = document.getElementById('apply_plot_id');
+        const landTitleDisplay = document.getElementById('apply_land_title');
+        const plotDetailsDisplay = document.getElementById('apply_plot_details');
+        const landownerDisplay = document.getElementById('apply_landowner');
+
+        if (landIdInput) landIdInput.value = landId || '';
+        if (plotIdInput) plotIdInput.value = plotId || '';
+        if (landTitleDisplay) landTitleDisplay.innerText = landTitle || 'Unknown Land';
+        if (plotDetailsDisplay) plotDetailsDisplay.innerText = `${plotNumber || 'Plot'} (${plotArea || '0'} m²)`;
+        if (landownerDisplay) landownerDisplay.innerText = landowner ? `Managed by ${landowner}` : '';
+
+        const modalEl = document.getElementById('requestPlotModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            bsModal.show();
+        }
+    };
 
     function switchGardenerTab(tab) {
         const browseSec = document.getElementById('browseSection');
@@ -720,5 +868,20 @@ $approved_lands = array_filter($all_db_lands, function ($l) {
         }
     }
 </script>
+
+<!-- Toast Feedback Container (Identical to Landowner Requests) -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 10500;">
+    <div id="requestToast" class="toast align-items-center text-white bg-dark border-0 rounded-4 shadow-lg" role="alert"
+        aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body py-2.5 px-3 d-flex align-items-center gap-2">
+                <i class="bi bi-check-circle-fill text-success" id="toastIcon"></i>
+                <span id="toastMsg" class="small fw-medium">Action completed successfully.</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 
 <script src="<?php echo $base_path; ?>assets/js/gardener_requests.js?v=<?php echo time(); ?>"></script>

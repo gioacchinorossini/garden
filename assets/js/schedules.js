@@ -338,7 +338,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="task-empty-state">
                         ${lucideIcon('sprout', 48)}
                         <h3>No tasks yet!</h3>
-                        <p>Click <strong>+ Add Task</strong> to schedule your first garden task.</p>
+                        <p class="mb-3">Click <strong>+ Add Task</strong> or use the floating plus button to schedule your first garden task.</p>
+                        <button type="button" class="btn btn-sm btn-drive-primary rounded-pill px-3.5 py-1.5 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                            <i class="bi bi-plus-lg me-1"></i> Add Task
+                        </button>
                     </div>`;
             }
             lucide.createIcons();
@@ -574,9 +577,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ─── Add Task Form ────────────────────────────────────────────────────────
 
+    if (addTaskModalEl) {
+        addTaskModalEl.addEventListener('show.bs.modal', function () {
+            const startInput = document.getElementById('start_time');
+            const endInput = document.getElementById('end_time');
+            if (startInput && !startInput.value) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                startInput.value = now.toISOString().slice(0, 16);
+            }
+            if (endInput && !endInput.value) {
+                const later = new Date(Date.now() + 60 * 60 * 1000);
+                later.setMinutes(later.getMinutes() - later.getTimezoneOffset());
+                endInput.value = later.toISOString().slice(0, 16);
+            }
+        });
+    }
+
     if (addTaskForm) {
         addTaskForm.addEventListener('submit', async function (e) {
             e.preventDefault();
+
+            const landTitleInput = document.getElementById('land_title');
+            const land_title = landTitleInput ? landTitleInput.value.trim() : 'Garden Plot';
 
             const payload = {
                 action: 'create_schedule',
@@ -584,8 +607,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 task_type: document.getElementById('task_type').value,
                 start_time: document.getElementById('start_time').value,
                 end_time: document.getElementById('end_time').value,
-                description: document.getElementById('description').value
+                description: document.getElementById('description').value,
+                land_title: land_title
             };
+
+            const submitBtn = addTaskForm.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Scheduling...';
+            }
 
             try {
                 const response = await fetch('../api/schedules.php', {
@@ -598,12 +629,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     const modal = bootstrap.Modal.getInstance(addTaskModalEl);
                     if (modal) modal.hide();
                     addTaskForm.reset();
+                    showTaskToast(res.message || "Task scheduled successfully! +150 XP pending.");
                     loadSchedules();
                 } else {
-                    alert("Error: " + res.message);
+                    alert("Error: " + (res.message || "Failed to schedule task."));
                 }
             } catch (err) {
                 console.error("Schedule task failed:", err);
+                alert("Connection error. Could not schedule task.");
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml || '<i class="bi bi-calendar-plus me-1"></i> Schedule Task';
+                }
             }
         });
     }

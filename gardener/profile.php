@@ -254,7 +254,7 @@ try {
                                         <span class="fw-semibold text-emerald-700"><?php echo ucfirst(htmlspecialchars($plot['status'])); ?></span>
                                     </div>
                                     <div class="d-flex justify-content-between">
-                                        <span class="text-muted">Current Crop:</span>
+                                        <span class="text-muted">Planted:</span>
                                         <span class="fw-semibold text-primary"><?php echo htmlspecialchars($plot['crop'] ?? 'Vegetables'); ?></span>
                                     </div>
                                 </div>

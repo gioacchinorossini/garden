@@ -154,6 +154,38 @@ include '../includes/sidebar.php';
     </div>
 </div>
 
+<!-- Delete Land Modal (Single instance) -->
+<div class="modal fade" id="deleteLandModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content drive-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-trash3-fill fs-5"></i>
+                    </div>
+                    <h5 class="modal-title fw-semibold text-dark m-0">Delete Land</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <input type="hidden" id="delete_land_id" name="id">
+                <p class="text-secondary text-sm mb-2">Are you sure you want to permanently delete <strong id="delete_land_title" class="text-dark"></strong>?</p>
+                <div class="alert alert-warning py-2 mb-0 d-flex align-items-center gap-2" style="font-size: 0.8rem; border-radius: 8px;">
+                    <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 fs-5"></i>
+                    <span>This action will permanently remove this land and all associated plots, partitions, and records. This action cannot be undone.</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-drive-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmDeleteLandBtn" class="btn btn-danger rounded-pill px-4 fw-semibold">
+                    <i class="bi bi-trash3 me-1"></i>Delete Land
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script src="<?php echo $base_path; ?>assets/js/admin_lands.js"></script>
 
 <?php include '../includes/footer.php'; ?>

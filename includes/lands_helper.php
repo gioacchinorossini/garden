@@ -16,6 +16,11 @@ function get_all_lands($pdo) {
                 $allowed_seeds = !empty($l['allowed_seeds']) ? array_map('trim', explode(',', $l['allowed_seeds'])) : ['Vegetables'];
             }
 
+            $amenities = json_decode($l['amenities'] ?? '[]', true);
+            if (!is_array($amenities)) {
+                $amenities = !empty($l['amenities']) ? array_map('trim', explode(',', $l['amenities'])) : [];
+            }
+
             $formatted[] = [
                 'id' => (int)$l['id'],
                 'owner_id' => (int)($l['owner_id'] ?? 0),
@@ -39,6 +44,7 @@ function get_all_lands($pdo) {
                 'description' => $l['description'] ?? '',
                 'crops' => $allowed_seeds,
                 'allowed_seeds' => $allowed_seeds,
+                'amenities' => $amenities,
                 'total_plots' => (int)($l['plot_count'] ?? 4),
                 'occupied_plots' => 0,
                 'has_3d_view' => (int)($l['has_3d_view'] ?? 0),
@@ -76,8 +82,8 @@ function get_all_plots($pdo) {
                 'area' => (float)($p['area_sqm'] ?? $p['area'] ?? 50.0),
                 'rental_price_per_year' => (float)($p['rental_price_per_year'] ?? 110000.00),
                 'status' => $p['status'] ?? 'available',
-                'crop' => $p['crop'] ?? 'Tomato',
-                'crop_icon' => $p['crop_icon'] ?? 'tomato/tomato.svg',
+                'crop' => !empty($p['crop']) ? $p['crop'] : '',
+                'crop_icon' => !empty($p['crop_icon']) ? $p['crop_icon'] : '',
                 'crops' => $plot_seeds,
                 'farmer_name' => $p['farmer_name'] ?? '',
                 'lease_end' => $p['lease_end'] ?? ''
@@ -96,7 +102,7 @@ function get_all_plots($pdo) {
 function get_all_requests($pdo) {
     try {
         $stmt = $pdo->query("
-            SELECT r.*, l.latitude, l.longitude, l.address as land_address
+            SELECT r.*, l.latitude, l.longitude, l.address as land_address, l.landowner_name
             FROM `requests` r
             LEFT JOIN `lands` l ON r.land_id = l.id
             ORDER BY r.id DESC
@@ -111,6 +117,7 @@ function get_all_requests($pdo) {
                 'plot_id' => (int)($r['plot_id'] ?? 0),
                 'gardener' => $r['gardener_name'] ?? 'Gardener',
                 'land_title' => $r['land_title'] ?? 'Garden Plot',
+                'landowner' => !empty($r['landowner_name']) ? $r['landowner_name'] : 'Landowner',
                 'plot_num' => $r['plot_number'] ?? 'Plot',
                 'purpose' => $r['purpose'] ?? ($r['message'] ?? ''),
                 'duration' => $r['requested_duration'] ?? '1 year',
@@ -135,4 +142,90 @@ function get_all_requests($pdo) {
         error_log("Error fetching requests: " . $e->getMessage());
         return [];
     }
+}
+
+/**
+ * Get standard list of site amenities & utilities with vector icons
+ */
+function get_standard_amenities($base_path = '') {
+    $clean_base = !empty($base_path) ? rtrim($base_path, '/') . '/' : '';
+    return [
+        [
+            'value' => 'Water Source',
+            'label' => 'Water Source',
+            'icon' => $clean_base . 'assets/amenity-icons/water-source.svg',
+            'desc' => 'Well, tap, or continuous fresh water supply'
+        ],
+        [
+            'value' => 'Electricity',
+            'label' => 'Electricity',
+            'icon' => $clean_base . 'assets/amenity-icons/electricity.svg',
+            'desc' => 'Grid power or solar electrical outlets'
+        ],
+        [
+            'value' => 'Irrigation System',
+            'label' => 'Irrigation System',
+            'icon' => $clean_base . 'assets/amenity-icons/irrigation.svg',
+            'desc' => 'Drip, sprinkler, or furrow irrigation lines'
+        ],
+        [
+            'value' => 'Tool Storage',
+            'label' => 'Tool Storage',
+            'icon' => $clean_base . 'assets/amenity-icons/tool-storage.svg',
+            'desc' => 'Lockable garden shed or tool locker'
+        ],
+        [
+            'value' => 'Perimeter Fencing',
+            'label' => 'Perimeter Fencing',
+            'icon' => $clean_base . 'assets/amenity-icons/perimeter-fencing.svg',
+            'desc' => 'Secure boundary fencing or wall'
+        ],
+        [
+            'value' => 'Compost Area',
+            'label' => 'Compost Area',
+            'icon' => $clean_base . 'assets/amenity-icons/compost-area.svg',
+            'desc' => 'Designated organic waste & composting bin'
+        ],
+        [
+            'value' => 'Restroom / Wash Area',
+            'label' => 'Restroom / Wash Area',
+            'icon' => $clean_base . 'assets/amenity-icons/restroom.svg',
+            'desc' => 'On-site sanitation, sink, or comfort room'
+        ],
+        [
+            'value' => 'Solar Power',
+            'label' => 'Solar Power',
+            'icon' => $clean_base . 'assets/amenity-icons/solar-power.svg',
+            'desc' => 'Eco-friendly solar panels and battery setup'
+        ]
+    ];
+}
+
+/**
+ * Resolve matching vector icon SVG path for an amenity or utility
+ */
+function resolve_amenity_icon($name, $base_path = '') {
+    $lower = strtolower(trim((string)$name));
+    $file = 'general.svg';
+
+    if (strpos($lower, 'water') !== false || strpos($lower, 'well') !== false || strpos($lower, 'drain') !== false || strpos($lower, 'spigot') !== false || strpos($lower, 'tap') !== false) {
+        $file = 'water-source.svg';
+    } elseif (strpos($lower, 'elect') !== false || strpos($lower, 'power') !== false || strpos($lower, 'grid') !== false || strpos($lower, 'light') !== false) {
+        $file = 'electricity.svg';
+    } elseif (strpos($lower, 'irrig') !== false || strpos($lower, 'sprinkler') !== false || strpos($lower, 'drip') !== false || strpos($lower, 'hose') !== false) {
+        $file = 'irrigation.svg';
+    } elseif (strpos($lower, 'tool') !== false || strpos($lower, 'shed') !== false || strpos($lower, 'storage') !== false || strpos($lower, 'equip') !== false || strpos($lower, 'barn') !== false) {
+        $file = 'tool-storage.svg';
+    } elseif (strpos($lower, 'fenc') !== false || strpos($lower, 'perim') !== false || strpos($lower, 'wall') !== false || strpos($lower, 'gate') !== false || strpos($lower, 'secur') !== false) {
+        $file = 'perimeter-fencing.svg';
+    } elseif (strpos($lower, 'compost') !== false || strpos($lower, 'fertil') !== false || strpos($lower, 'soil') !== false || strpos($lower, 'organic') !== false || strpos($lower, 'mulch') !== false) {
+        $file = 'compost-area.svg';
+    } elseif (strpos($lower, 'restroom') !== false || strpos($lower, 'wash') !== false || strpos($lower, 'toilet') !== false || strpos($lower, 'cr') !== false || strpos($lower, 'comfort') !== false || strpos($lower, 'bath') !== false || strpos($lower, 'sink') !== false) {
+        $file = 'restroom.svg';
+    } elseif (strpos($lower, 'solar') !== false || strpos($lower, 'sun') !== false || strpos($lower, 'panel') !== false) {
+        $file = 'solar-power.svg';
+    }
+
+    $clean_base = !empty($base_path) ? rtrim($base_path, '/') . '/' : '';
+    return $clean_base . 'assets/amenity-icons/' . $file;
 }

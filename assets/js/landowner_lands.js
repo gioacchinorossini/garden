@@ -32,11 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const filterBtns = document.querySelectorAll('.land-filter-btn');
         filterBtns.forEach(btn => {
             btn.addEventListener('click', function () {
-                const filter = this.getAttribute('data-filter') || 'all';
-                currentFilter = filter;
+                const filter = this.getAttribute('data-filter');
+                if (currentFilter === filter) {
+                    currentFilter = 'all';
+                } else {
+                    currentFilter = filter;
+                }
 
                 filterBtns.forEach(b => {
-                    const isActive = (b.getAttribute('data-filter') || 'all') === filter;
+                    const isActive = currentFilter !== 'all' && b.getAttribute('data-filter') === currentFilter;
                     b.classList.toggle('active', isActive);
                     if (isActive) {
                         b.classList.remove('text-secondary', 'bg-white');
@@ -128,6 +132,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function getAmenityIcon(name) {
+        const lower = (name || '').toLowerCase();
+        let file = 'general.svg';
+        if (lower.includes('water') || lower.includes('well') || lower.includes('drain') || lower.includes('spigot') || lower.includes('tap')) file = 'water-source.svg';
+        else if (lower.includes('elect') || lower.includes('power') || lower.includes('grid') || lower.includes('light')) file = 'electricity.svg';
+        else if (lower.includes('irrig') || lower.includes('sprink') || lower.includes('hose') || lower.includes('drip')) file = 'irrigation.svg';
+        else if (lower.includes('tool') || lower.includes('shed') || lower.includes('stor') || lower.includes('barn') || lower.includes('equip')) file = 'tool-storage.svg';
+        else if (lower.includes('fenc') || lower.includes('gate') || lower.includes('secur') || lower.includes('wall') || lower.includes('perim')) file = 'perimeter-fencing.svg';
+        else if (lower.includes('compost') || lower.includes('recyc') || lower.includes('soil') || lower.includes('organic') || lower.includes('fertil')) file = 'compost-area.svg';
+        else if (lower.includes('rest') || lower.includes('toilet') || lower.includes('wash') || lower.includes('wc') || lower.includes('cr') || lower.includes('comfort')) file = 'restroom.svg';
+        else if (lower.includes('solar') || lower.includes('sun') || lower.includes('panel')) file = 'solar-power.svg';
+        return `../assets/amenity-icons/${file}`;
+    }
+
     // Render properties in a responsive full-width grid matching browse lands
     function renderLands() {
         if (!landsContainer) return;
@@ -179,13 +197,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const isSelected = selectedLandId == land.id;
-            const cardBorderClass = isSelected ? 'border-success shadow-sm' : '';
+            const cardBorderClass = isSelected ? 'is-selected' : '';
 
-            const managePlotsBtn = `<a href="plots.php?id=${land.id}" class="btn btn-sm btn-drive-primary rounded-pill px-3 text-decoration-none d-inline-flex align-items-center gap-1">Manage Plots <i class="bi bi-arrow-right ms-1"></i></a>`;
+            const managePlotsBtn = `<a href="plots.php?id=${land.id}" class="btn btn-sm btn-drive-primary text-white rounded-pill px-3 text-decoration-none d-inline-flex align-items-center gap-1" style="color: #ffffff !important;">Manage Plots <i class="bi bi-arrow-right ms-1 text-white"></i></a>`;
 
             return `
                 <div class="col-md-6 col-xl-4">
-                    <div class="land-listing-card rounded-4 overflow-hidden border bg-white h-100 d-flex flex-column ${cardBorderClass}">
+                    <div class="land-listing-card rounded-4 overflow-hidden h-100 d-flex flex-column ${cardBorderClass}">
                         <!-- ① Hero Image / Mini Map preview with zoom-in click -->
                         <div class="position-relative" style="height: 200px; overflow: hidden; cursor: pointer;" onclick="zoomInCardMap(${land.id})" title="Click to zoom map">
                             <!-- Map Preview -->
@@ -216,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     </a>
                                 </h3>
 
-                                <p class="text-muted mb-2 mt-1" style="font-size: 0.78rem;">
+                                <p class="text-muted mb-2 mt-1" style="font-size: 0.78rem; word-break: break-word; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35;" title="${land.address}">
                                     <i class="bi bi-geo-alt-fill me-1" style="color: var(--drive-primary);"></i>
                                     ${land.address}
                                 </p>
@@ -240,6 +258,18 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <span style="font-size: 0.7rem; color: #6c757d;">${parseFloat(land.area).toFixed(0)} m²</span>
                                     </div>
                                 </div>
+
+                                <!-- Amenities Row (if specified) -->
+                                ${Array.isArray(land.amenities) && land.amenities.length > 0 ? `
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap mb-2">
+                                        ${land.amenities.map(a => `
+                                            <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs" style="font-size: 10px; font-weight: 600;">
+                                                <img src="${getAmenityIcon(a)}" alt="${escapeHtml(a)}" style="width: 14px; height: 14px; object-fit: contain;">
+                                                <span>${escapeHtml(a)}</span>
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
 
                                 <!-- Collapsible Description -->
                                 <div class="mb-2">
@@ -272,7 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="openEditLandModal(${land.id})">
                                         <i class="bi bi-pencil me-1"></i> Edit
                                     </button>
-                                    <a href="dashboard.php?id=${land.id}" class="btn btn-sm btn-outline-success rounded-pill" title="View on full screen map">
+                                    <a href="dashboard.php?id=${land.id}" class="btn btn-sm btn-outline-secondary rounded-pill text-decoration-none" title="View on full screen map">
                                         <i class="bi bi-geo-alt-fill me-1"></i> Map
                                     </a>
                                 </div>
@@ -716,6 +746,148 @@ document.addEventListener("DOMContentLoaded", function () {
         if (hiddenInputs) hiddenInputs.innerHTML = inputsHtml;
     }
 
+    // Edit Land Amenities state
+    const editSelectedAmenities = new Map();
+
+    window.toggleEditAmenitySelection = function (val, label, icon, element) {
+        if (!icon) icon = getAmenityIcon(val);
+        const checkIcon = element ? element.querySelector('.edit-amenity-check-icon') : null;
+        if (editSelectedAmenities.has(val)) {
+            editSelectedAmenities.delete(val);
+            if (element) {
+                element.classList.remove('selected', 'border-primary', 'bg-blue-50/50');
+                element.style.borderColor = 'var(--drive-border)';
+            }
+            if (checkIcon) checkIcon.classList.add('d-none');
+        } else {
+            editSelectedAmenities.set(val, { value: val, label: label || val, icon: icon });
+            if (element) {
+                element.classList.add('selected', 'border-primary', 'bg-blue-50/50');
+                element.style.borderColor = '#1a73e8';
+            }
+            if (checkIcon) checkIcon.classList.remove('d-none');
+        }
+        renderEditSelectedAmenitiesSummary();
+    };
+
+    window.selectAllEditAmenities = function (select) {
+        document.querySelectorAll('.edit-modal-amenity-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label') || val;
+            const icon = chip.getAttribute('data-icon') || getAmenityIcon(val);
+            const checkIcon = chip.querySelector('.edit-amenity-check-icon');
+
+            if (select) {
+                editSelectedAmenities.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('selected', 'border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#1a73e8';
+                if (checkIcon) checkIcon.classList.remove('d-none');
+            } else {
+                editSelectedAmenities.delete(val);
+                chip.classList.remove('selected', 'border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('d-none');
+            }
+        });
+        renderEditSelectedAmenitiesSummary();
+    };
+
+    window.filterEditAmenityChips = function () {
+        const query = (document.getElementById('editAmenitySearchInput')?.value || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.edit-amenity-grid-item');
+        items.forEach(item => {
+            const name = (item.getAttribute('data-name') || '').toLowerCase();
+            if (!query || name.includes(query)) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+    };
+
+    window.addEditCustomAmenityFromModal = function () {
+        const input = document.getElementById('editModalCustomAmenityInput');
+        if (!input) return;
+        const val = input.value.trim();
+        if (!val) return;
+
+        const formatted = val.charAt(0).toUpperCase() + val.slice(1);
+        const icon = getAmenityIcon(formatted);
+
+        let existingChip = document.querySelector(`.edit-modal-amenity-chip[data-value="${CSS.escape(formatted)}"]`);
+        if (!existingChip) {
+            const grid = document.getElementById('editModalAmenityGrid');
+            if (grid) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3 edit-amenity-grid-item';
+                col.setAttribute('data-name', formatted.toLowerCase());
+                col.innerHTML = `
+                    <div class="edit-modal-amenity-chip p-2.5 d-flex align-items-center justify-content-between gap-2 border rounded-3 bg-white"
+                        data-value="${escapeHtml(formatted)}"
+                        data-label="${escapeHtml(formatted)}"
+                        data-icon="${icon}"
+                        style="user-select: none; cursor: pointer; border-color: var(--drive-border) !important;">
+                        <div class="d-flex align-items-center gap-2 text-truncate">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
+                                style="width:32px;height:32px;">
+                                <img src="${icon}" alt="${escapeHtml(formatted)}" style="width:20px;height:20px;object-fit:contain;" loading="lazy">
+                            </div>
+                            <span class="fw-semibold text-dark text-xs truncate" title="${escapeHtml(formatted)}">${escapeHtml(formatted)}</span>
+                        </div>
+                        <div class="edit-amenity-check-icon text-primary d-none">
+                            <i class="bi bi-check-circle-fill text-primary" style="font-size: 14px;"></i>
+                        </div>
+                    </div>
+                `;
+                existingChip = col.querySelector('.edit-modal-amenity-chip');
+                existingChip.onclick = function() {
+                    toggleEditAmenitySelection(formatted, formatted, icon, existingChip);
+                };
+                grid.prepend(col);
+            }
+        }
+
+        if (!editSelectedAmenities.has(formatted)) {
+            toggleEditAmenitySelection(formatted, formatted, icon, existingChip);
+        }
+        input.value = '';
+    };
+
+    window.renderEditSelectedAmenitiesSummary = function () {
+        const summaryBox = document.getElementById('editSelectedAmenitiesSummary');
+        const hiddenInputs = document.getElementById('editHiddenAmenitiesInputs');
+        const countText = document.getElementById('editSelectedAmenitiesCountText');
+
+        if (countText) countText.textContent = editSelectedAmenities.size;
+        if (!summaryBox) return;
+
+        if (editSelectedAmenities.size === 0) {
+            summaryBox.innerHTML = '<span class="text-muted text-xs italic" id="editEmptyAmenitiesNotice">No amenities selected.</span>';
+            if (hiddenInputs) hiddenInputs.innerHTML = '';
+            return;
+        }
+
+        let summaryHtml = '';
+        let inputsHtml = '';
+
+        editSelectedAmenities.forEach(item => {
+            const iconSrc = item.icon || getAmenityIcon(item.value);
+            summaryHtml += `
+                <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-1 border rounded-pill bg-white text-xs fw-semibold text-dark shadow-2xs"
+                    style="border-color: var(--drive-border) !important;">
+                    <img src="${iconSrc}" alt="${escapeHtml(item.label)}" style="width: 15px; height: 15px; object-fit: contain;">
+                    <span>${escapeHtml(item.label)}</span>
+                    <button type="button" class="btn-close text-xs ms-1" style="width: 8px; height: 8px;"
+                        onclick="toggleEditAmenitySelection('${escapeHtml(item.value).replace(/'/g, "\\'")}', '${escapeHtml(item.label).replace(/'/g, "\\'")}', '${iconSrc}', document.querySelector('.edit-modal-amenity-chip[data-value=\\'${escapeHtml(item.value)}\\']'))"></button>
+                </div>
+            `;
+            inputsHtml += `<input type="hidden" name="amenities[]" value="${escapeHtml(item.value)}">`;
+        });
+
+        summaryBox.innerHTML = summaryHtml;
+        if (hiddenInputs) hiddenInputs.innerHTML = inputsHtml;
+    };
+
     // Open Edit Land Modal
     window.openEditLandModal = function (id) {
         const land = landsList.find(l => l.id == id);
@@ -756,6 +928,51 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
         renderEditSelectedCropsSummary();
+
+        // Pre-select amenities
+        editSelectedAmenities.clear();
+        let existingAmenities = [];
+        if (Array.isArray(land.amenities)) {
+            existingAmenities = land.amenities;
+        } else if (typeof land.amenities === 'string' && land.amenities.trim() !== '') {
+            try {
+                const parsed = JSON.parse(land.amenities);
+                if (Array.isArray(parsed)) existingAmenities = parsed;
+            } catch (e) {
+                existingAmenities = land.amenities.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        }
+
+        document.querySelectorAll('.edit-modal-amenity-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label') || val;
+            const icon = chip.getAttribute('data-icon') || getAmenityIcon(val);
+            const checkIcon = chip.querySelector('.edit-amenity-check-icon');
+
+            const isMatched = existingAmenities.some(a => a.toLowerCase().trim() === val.toLowerCase().trim() || a.toLowerCase().includes(val.toLowerCase()) || val.toLowerCase().includes(a.toLowerCase()));
+
+            if (isMatched) {
+                editSelectedAmenities.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('selected', 'border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#1a73e8';
+                if (checkIcon) checkIcon.classList.remove('d-none');
+            } else {
+                chip.classList.remove('selected', 'border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('d-none');
+            }
+        });
+
+        // Add any custom existing amenities not in preset list
+        existingAmenities.forEach(a => {
+            const trimmed = (a || '').trim();
+            if (trimmed && !editSelectedAmenities.has(trimmed)) {
+                const icon = getAmenityIcon(trimmed);
+                editSelectedAmenities.set(trimmed, { value: trimmed, label: trimmed, icon: icon });
+            }
+        });
+
+        renderEditSelectedAmenitiesSummary();
 
         const modal = new bootstrap.Modal(editLandModalEl);
         modal.show();
@@ -816,7 +1033,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 latitude: parseFloat(document.getElementById('edit_latitude').value),
                 longitude: parseFloat(document.getElementById('edit_longitude').value),
                 description: document.getElementById('edit_description').value,
-                crops: selectedCropsArr.length > 0 ? selectedCropsArr : ['General Gardening']
+                crops: selectedCropsArr.length > 0 ? selectedCropsArr : ['General Gardening'],
+                amenities: Array.from(editSelectedAmenities.values()).map(a => a.label || a.value)
             };
 
             try {

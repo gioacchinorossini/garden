@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <!-- Amenity Icon: Compost Area -->
+  <defs>
+    <filter id="compostGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#1b5e20" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="32" cy="58" rx="24" ry="4" fill="#2E1B10" opacity="0.3"/>
+
+  <!-- Compost Bin Main Slatted Crate (Shadow outline) -->
+  <path d="M 12 30 L 16 56 L 48 56 L 52 30 Z" fill="#3E2723"/>
+
+  <!-- Dark Rich Compost Mound overflowing -->
+  <path d="M 14 31 C 14 22 22 17 32 17 C 42 17 50 22 50 31 Z" fill="#2E1B10"/>
+  <path d="M 16 31 C 16 23.5 23 18.5 32 18.5 C 41 18.5 48 23.5 48 31 Z" fill="#4E342E"/>
+  <path d="M 18 31 C 18 25 24 20 32 20 C 39 20 45 25 46 31 Z" fill="#5D4037"/>
+
+  <!-- Golden Autumn Leaf in Compost -->
+  <g transform="translate(20, 21) rotate(-20)">
+    <path d="M 0 8 C 0 3 6 0 10 0 C 10 6 7 11 0 8 Z" fill="#E65100"/>
+    <path d="M 0.5 7.5 C 1 3.5 6 1 9 1 C 9 5.5 6.5 10 0.5 7.5 Z" fill="#FF9800"/>
+    <line x1="0" y1="8" x2="8" y2="2" stroke="#BF360C" stroke-width="0.8"/>
+  </g>
+
+  <!-- Fresh Two-Leaf Sprout Germinating on Top -->
+  <g id="sprout" filter="url(#compostGlow)">
+    <path d="M 33 22 C 33 16 34 11 36 6" stroke="#1B5E20" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <!-- Left Leaf -->
+    <path d="M 35 11 C 28 8 26 15 34 16 Z" fill="#2E7D32"/>
+    <path d="M 34.5 11.5 C 29 9 27.5 14.5 33.5 15.5 Z" fill="#4CAF50"/>
+    <circle cx="31" cy="13" r="0.7" fill="#FFFFFF"/>
+    <!-- Right Leaf -->
+    <path d="M 36 8 C 43 5 44 12 37 13 Z" fill="#1B5E20"/>
+    <path d="M 36.5 8.5 C 42 6 43 11.5 37.5 12.5 Z" fill="#81C784"/>
+    <circle cx="39" cy="10" r="0.7" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Wooden Slatted Front Panels -->
+  <g id="slats">
+    <!-- Slat 1 (Top) -->
+    <rect x="11" y="30" width="42" height="6.5" rx="2" fill="#5D4037"/>
+    <rect x="12" y="31" width="40" height="4.5" rx="1.5" fill="#8D6E63"/>
+    <line x1="14" y1="32" x2="50" y2="32" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Slat 2 (Middle) -->
+    <rect x="12.5" y="38.5" width="39" height="6.5" rx="2" fill="#5D4037"/>
+    <rect x="13.5" y="39.5" width="37" height="4.5" rx="1.5" fill="#8D6E63"/>
+    <line x1="15" y1="40.5" x2="48" y2="40.5" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Slat 3 (Bottom) -->
+    <rect x="14" y="47" width="36" height="6.5" rx="2" fill="#5D4037"/>
+    <rect x="15" y="48" width="34" height="4.5" rx="1.5" fill="#8D6E63"/>
+    <line x1="17" y1="49" x2="46" y2="49" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Vertical Side Framing Uprights -->
+    <rect x="12" y="29" width="5" height="26" rx="1.5" fill="#4E342E"/>
+    <rect x="12.5" y="30" width="4" height="24" rx="1" fill="#6D4C41"/>
+    <rect x="47" y="29" width="5" height="26" rx="1.5" fill="#4E342E"/>
+    <rect x="47.5" y="30" width="4" height="24" rx="1" fill="#6D4C41"/>
+  </g>
+
+  <!-- Green Recycling / Eco Leaf Badge -->
+  <circle cx="32" cy="42" r="6" fill="#1B5E20"/>
+  <circle cx="32" cy="42" r="5" fill="#2E7D32"/>
+  <path d="M 32 38 C 30 38 29 40 29 42 C 29 44 32 46 32 46 C 32 46 35 44 35 42 C 35 40 34 38 32 38 Z" fill="#81C784"/>
+  <circle cx="31.2" cy="40.5" r="0.6" fill="#FFFFFF"/>
+</svg>
+

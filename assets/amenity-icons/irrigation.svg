@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <!-- Amenity Icon: Irrigation System -->
+  <defs>
+    <filter id="sprayGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0288d1" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Water Spray Arcs & Droplets -->
+  <g id="spray" filter="url(#sprayGlow)">
+    <!-- Left spray arc -->
+    <path d="M 28 26 C 22 22 14 24 8 32" stroke="#0288D1" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <path d="M 28 26 C 22 22 14 24 8 32" stroke="#4FC3F7" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <!-- Left droplets -->
+    <circle cx="6" cy="35" r="2.5" fill="#0288D1"/>
+    <circle cx="6" cy="35" r="1.8" fill="#4FC3F7"/>
+    <circle cx="5.5" cy="34.5" r="0.7" fill="#FFFFFF"/>
+
+    <circle cx="15" cy="18" r="2.2" fill="#0288D1"/>
+    <circle cx="15" cy="18" r="1.5" fill="#4FC3F7"/>
+    <circle cx="14.5" cy="17.5" r="0.6" fill="#FFFFFF"/>
+
+    <!-- Right spray arc -->
+    <path d="M 36 26 C 42 22 50 24 56 32" stroke="#0288D1" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <path d="M 36 26 C 42 22 50 24 56 32" stroke="#4FC3F7" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <!-- Right droplets -->
+    <circle cx="58" cy="35" r="2.5" fill="#0288D1"/>
+    <circle cx="58" cy="35" r="1.8" fill="#4FC3F7"/>
+    <circle cx="57.5" cy="34.5" r="0.7" fill="#FFFFFF"/>
+
+    <circle cx="49" cy="18" r="2.2" fill="#0288D1"/>
+    <circle cx="49" cy="18" r="1.5" fill="#4FC3F7"/>
+    <circle cx="48.5" cy="17.5" r="0.6" fill="#FFFFFF"/>
+
+    <!-- Top central mist fountain droplets -->
+    <path d="M 32 24 L 32 10" stroke="#0288D1" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <path d="M 32 24 L 32 10" stroke="#4FC3F7" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <circle cx="32" cy="7" r="3" fill="#0288D1"/>
+    <circle cx="32" cy="7" r="2.2" fill="#4FC3F7"/>
+    <circle cx="31.2" cy="6.2" r="0.9" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Garden Soil Mound Base -->
+  <ellipse cx="32" cy="56" rx="20" ry="5.5" fill="#3E2723" opacity="0.8"/>
+  <ellipse cx="32" cy="55" rx="18" ry="4.5" fill="#5D4037"/>
+
+  <!-- Sprinkler Stand & Turf Spike -->
+  <path d="M 30 42 L 34 42 L 33 54 L 31 54 Z" fill="#2E7D32"/>
+  <rect x="25" y="40" width="14" height="6" rx="2" fill="#1B5E20"/>
+  <rect x="26" y="41" width="12" height="4" rx="1.5" fill="#4CAF50"/>
+  <path d="M 27 42 L 37 42" stroke="#A5D6A7" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Sprinkler Rotating Mechanism / Brass Riser -->
+  <g id="sprinklerHead">
+    <!-- Brass stem -->
+    <rect x="29" y="32" width="6" height="9" rx="1.5" fill="#B45309"/>
+    <rect x="30" y="33" width="4" height="7" rx="1" fill="#F59E0B"/>
+    <path d="M 31 34 L 31 39" stroke="#FEF3C7" stroke-width="1" stroke-linecap="round"/>
+
+    <!-- Brass rotating hub -->
+    <circle cx="32" cy="28" r="6" fill="#78350F"/>
+    <circle cx="32" cy="28" r="5" fill="#D97706"/>
+    <circle cx="32" cy="28" r="3" fill="#FCD34D"/>
+
+    <!-- Left spray wing nozzle -->
+    <path d="M 27 28 L 19 24 C 18 23 18 21 19 21 L 22 20 C 23 20 24 21 25 22 L 29 26 Z" fill="#92400E"/>
+    <path d="M 26.5 27.5 L 20 24 C 19.5 23.5 19.5 22.5 20 22 L 21.5 21.5 C 22 21.5 22.5 22 23 22.5 L 28 26 Z" fill="#FBBF24"/>
+
+    <!-- Right spray wing nozzle -->
+    <path d="M 37 28 L 45 24 C 46 23 46 21 45 21 L 42 20 C 41 20 40 21 39 22 L 35 26 Z" fill="#92400E"/>
+    <path d="M 37.5 27.5 L 44 24 C 44.5 23.5 44.5 22.5 44 22 L 42.5 21.5 C 42 21.5 41.5 22 41 22.5 L 36 26 Z" fill="#FBBF24"/>
+  </g>
+</svg>
+

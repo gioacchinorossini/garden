@@ -4,6 +4,10 @@ $page_title = "Farm & Partition Plots";
 include '../includes/header.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
+require_once '../includes/settings_helper.php';
+$sys_settings = get_system_settings();
+$show_homestead_switcher = !empty($sys_settings['enable_homestead_switcher']);
+$admin_map_mode = isset($sys_settings['farm_map_view_mode']) ? $sys_settings['farm_map_view_mode'] : 'crops';
 ?>
 
 <style>
@@ -214,59 +218,219 @@ include '../includes/sidebar.php';
     border-radius: 20px;
 }
 
-#cropsMapViewContainer {
+/* Dynamic Top-Down Farm Ground & Soil Beds */
+.dynamic-farm-map-wrapper {
     position: relative;
-    overflow: hidden;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-height: 380px;
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
     border-radius: 20px;
-    transition: height 0.25s ease;
+    overflow: hidden;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    transition: background-image 0.25s ease;
 }
 
-/* Crop Name Pill (covers baked-in static label on crop_plots_map.jpg) */
+.dynamic-plots-grid {
+    display: grid;
+    gap: 14px;
+    width: 100%;
+    height: 100%;
+    align-content: stretch;
+}
+
+/* Specific layouts for different plot counts */
+.dynamic-plots-grid.grid-1 {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    padding: 16px;
+}
+.dynamic-plots-grid.grid-2 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    padding: 14px;
+}
+.dynamic-plots-grid.grid-3 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    padding: 10px;
+}
+.dynamic-plots-grid.grid-3 .dynamic-plot-bed:last-child {
+    grid-column: span 2;
+}
+.dynamic-plots-grid.grid-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 24px;
+    padding: 12px;
+}
+.dynamic-plots-grid.grid-6 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 8px;
+}
+.dynamic-plots-grid.grid-many {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    padding: 8px;
+    overflow-y: auto;
+}
+
+/* Individual Top-down Cozy Soil Bed */
+.dynamic-plot-bed {
+    position: relative;
+    background: radial-gradient(ellipse at center, #6A4426 0%, #4D2E16 85%, #381E0C 100%);
+    border: 3.5px solid #84532B;
+    border-radius: 18px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), inset 0 -3px 0 rgba(40,20,5,0.6), 0 4px 8px rgba(0,0,0,0.3);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+    user-select: none;
+    overflow: visible !important;
+}
+
+.dynamic-plot-bed::before {
+    /* Subtle furrow furrow texture lines */
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.2) 0px,
+        rgba(0, 0, 0, 0.2) 3px,
+        transparent 3px,
+        transparent 14px
+    );
+    pointer-events: none;
+    border-radius: 14px;
+    opacity: 0.85;
+}
+
+.dynamic-plot-bed:hover {
+    transform: translateY(-2px) scale(1.02);
+    border-color: #FACC15;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), 0 8px 16px rgba(0,0,0,0.4), 0 0 0 3px rgba(250, 204, 21, 0.4);
+    z-index: 25;
+}
+
+.dynamic-plot-bed.selected {
+    border-color: #FACC15 !important;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.45), 0 0 0 3.5px #FACC15 !important;
+    transform: translateY(-2px) scale(1.02);
+    z-index: 26;
+}
+
+/* Overlay Crop Name Pill at Top Edge of each plot */
 .map-crop-pill {
     position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
     background: #FFFDF9;
     border: 2px solid #523E31;
     border-radius: 9999px;
-    box-shadow: 0 2px 0 #523E31;
+    box-shadow: 0 2.5px 0 #523E31;
     padding: 3px 14px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 800;
     color: #3E2B1E;
-    z-index: 15;
-    pointer-events: none;
     white-space: nowrap;
-    transform: translateX(-50%);
-    transition: all 0.15s ease;
+    pointer-events: none;
 }
-
 .map-crop-pill img {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
     object-fit: contain;
 }
 
-/* Interactive Plot Bed Hotspot on top of the image */
+/* Furrow plants growing in rows filling the entire bed */
+.bed-furrow-plants {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 100%;
+    padding: 10px 4px 4px;
+    gap: 4px;
+}
+
+.bed-furrow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+}
+
+.bed-sprout-icon {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
+    transition: transform 0.18s ease;
+}
+.dynamic-plot-bed:hover .bed-sprout-icon {
+    transform: scale(1.12);
+}
+
+/* Empty furrow soil lines for available / unplanted beds */
+.bed-empty-soil-lines {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    padding: 12px 6px 6px;
+}
+.furrow-soil-line {
+    width: 85%;
+    height: 7px;
+    margin: 0 auto;
+    background: rgba(40, 20, 8, 0.55);
+    border-radius: 9999px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.65), 0 1px 0 rgba(140, 90, 48, 0.4);
+}
+.map-crop-pill.available-pill {
+    color: #166534;
+}
+.map-crop-pill.maint-pill {
+    color: #92400E;
+}
+
 .map-plot-hotspot {
     position: absolute;
     cursor: pointer;
-    border-radius: 18px;
+    border-radius: 16px;
     transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 10;
-    border: 2.5px solid transparent;
+    border: 2px solid transparent;
 }
 .map-plot-hotspot:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.75);
-    box-shadow: 0 0 0 3px rgba(127, 166, 104, 0.45), 0 6px 14px rgba(0,0,0,0.18);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 3px rgba(127, 166, 104, 0.4), 0 6px 14px rgba(0,0,0,0.15);
     z-index: 20;
 }
 .map-plot-hotspot.selected {
-    background: rgba(127, 166, 104, 0.18);
+    background: rgba(127, 166, 104, 0.15);
     border-color: #7FA668;
-    box-shadow: 0 0 0 3.5px #7FA668, 0 8px 18px rgba(0,0,0,0.22);
+    box-shadow: 0 0 0 3.5px #7FA668, 0 8px 18px rgba(0,0,0,0.2);
     z-index: 25;
 }
 
@@ -351,7 +515,7 @@ include '../includes/sidebar.php';
                         <span id="currentLandAddress">Loading farm location...</span>
                     </p>
                     <p class="text-secondary mb-0" id="currentLandDescription" style="font-size: 0.84rem; max-width: 650px;">
-                        Interactive top-down partition map and plots management. You can add, edit, configure permitted seed varieties, and review lease statuses.
+                        Interactive top-down partition map and plots management. You can add, edit, configure crops, and review lease statuses.
                     </p>
                 </div>
                 <!-- Mini Stats Chips -->
@@ -396,59 +560,52 @@ include '../includes/sidebar.php';
                             </p>
                         </div>
 
-                        <!-- View Mode Switcher: Crops Only (Default) vs Full Homestead (Option) -->
-                        <div class="d-flex align-items-center gap-1">
-                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 view-mode-btn active" id="modeCropsBtn" onclick="setMapViewMode('crops')">
-                                <i class="bi bi-flower1 me-1"></i> Crops Only
+                        <?php if ($show_homestead_switcher): ?>
+                        <div class="d-flex align-items-center gap-1 p-1 rounded-pill" style="border: 1.5px solid #523E31; background: #FAF6EF;">
+                            <button class="btn btn-sm rounded-pill px-2.5 py-1 view-mode-btn <?php echo ($admin_map_mode === 'crops' ? 'active' : ''); ?>" id="modeCropsBtn" onclick="setMapViewMode('crops')">
+                                <i class="bi bi-grid-fill me-1"></i> Crops Only
                             </button>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 py-1 view-mode-btn" id="modeHomesteadBtn" onclick="setMapViewMode('homestead')">
-                                <i class="bi bi-house-door me-1"></i> Full Homestead
+                            <button class="btn btn-sm rounded-pill px-2.5 py-1 view-mode-btn <?php echo ($admin_map_mode === 'homestead' ? 'active' : ''); ?>" id="modeHomesteadBtn" onclick="setMapViewMode('homestead')">
+                                <i class="bi bi-house-door-fill me-1"></i> Homestead
                             </button>
                         </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Top-Down Cozy Game Farm Map Canvas -->
                     <div class="farm-map-canvas-container flex-grow-1 position-relative my-auto" id="farmMapCanvas">
-                        <!-- VIEW 1: CROPS ONLY (Default - Uses crop_plots_map.jpg with dynamic plots & permitted crops overlay) -->
-                        <div id="cropsMapViewContainer" class="position-relative">
-                            <img src="../assets/images/crop_plots_map.jpg" alt="Farm Plots Layout" class="farm-map-image" id="farmMapImage">
-                            <div id="dynamicCropOverlays"></div>
+                        <!-- DYNAMIC CROP PARTITION BEDS (Dynamically reflects selected farm & its exact plots) -->
+                        <div id="dynamicFarmMapWrapper" class="dynamic-farm-map-wrapper <?php echo ($admin_map_mode === 'homestead' && !$show_homestead_switcher ? 'd-none' : ''); ?>">
+                            <!-- Populated dynamically by renderDynamicFarmMap() based on currentLandId and its exact plots -->
                         </div>
 
-                        <!-- VIEW 2: FULL HOMESTEAD & AMENITIES (Optional View) -->
-                        <div id="homesteadViewContainer" class="d-none position-relative">
-                            <img src="../assets/images/farm_plots_map.jpg" alt="Full Homestead Layout" class="farm-map-image" id="homesteadMapImage">
-                            <div id="hotspotsHomestead">
-                                <!-- Zone 1: House / Main Facility (Top-Left) -->
-                                <div class="map-plot-hotspot" style="top: 4%; left: 5%; width: 40%; height: 27%;"
-                                     onclick="selectMapZone('zone_house', 'Farmhouse & Living Quarter', 'Residential', 'Residence', 'House')"
-                                     title="Farmhouse & Living Quarter"></div>
-                                <!-- Zone 2: Tomatoes Plot (Top-Right) -->
-                                <div class="map-plot-hotspot" style="top: 4%; left: 50%; width: 45%; height: 27%;"
-                                     onclick="selectMapZone('zone_tomatoes', 'Plot A-1 (Tomatoes)', 'Tomato', '500 m²', 'Tomatoes')"
-                                     title="Plot A-1 (Tomatoes)"></div>
-                                <!-- Zone 3: Vegetables Plot (Middle-Left) -->
-                                <div class="map-plot-hotspot" style="top: 34%; left: 5%; width: 40%; height: 25%;"
-                                     onclick="selectMapZone('zone_vegetables', 'Plot A-2 (Mixed Vegetables)', 'Vegetables', '450 m²', 'Vegetables')"
-                                     title="Plot A-2 (Mixed Vegetables)"></div>
-                                <!-- Zone 4: Corn Plot (Middle-Right) -->
-                                <div class="map-plot-hotspot" style="top: 34%; left: 50%; width: 45%; height: 25%;"
-                                     onclick="selectMapZone('zone_corn', 'Plot A-3 (Sweet Corn)', 'Corn', '600 m²', 'Corn')"
-                                     title="Plot A-3 (Sweet Corn)"></div>
-                                <!-- Zone 5: Animals & Pasture (Bottom-Left) -->
-                                <div class="map-plot-hotspot" style="top: 63%; left: 5%; width: 50%; height: 32%;"
-                                     onclick="selectMapZone('zone_animals', 'Pasture & Livestock Area', 'Livestock', '1,200 m²', 'Animals')"
-                                     title="Pasture & Livestock Area"></div>
-                                <!-- Zone 6: Water Facility (Bottom-Right Top) -->
-                                <div class="map-plot-hotspot" style="top: 63%; left: 60%; width: 35%; height: 16%;"
-                                     onclick="selectMapZone('zone_water', 'Irrigation Pond & Water Tank', 'Irrigation', '350 m²', 'Water')"
-                                     title="Irrigation Pond & Water Tank"></div>
-                                <!-- Zone 7: Storage & Barn (Bottom-Right Bottom) -->
-                                <div class="map-plot-hotspot" style="top: 80%; left: 60%; width: 35%; height: 16%;"
-                                     onclick="selectMapZone('zone_storage', 'Crop Silos & Equipment Storage', 'Storage', '300 m²', 'Storage')"
-                                     title="Crop Silos & Equipment Storage"></div>
+                        <?php if ($show_homestead_switcher || $admin_map_mode === 'homestead'): ?>
+                        <!-- HOMESTEAD OVERVIEW MAP (Configured via Admin Settings) -->
+                        <div id="homesteadViewContainer" class="<?php echo ($admin_map_mode === 'homestead' ? '' : 'd-none'); ?> position-relative w-100 h-100">
+                            <img src="../assets/images/farm_plots_map.jpg" alt="Farm Homestead Map" class="farm-map-image">
+                            <!-- Hotspots -->
+                            <div class="map-plot-hotspot" style="top: 10%; left: 12%; width: 34%; height: 26%;"
+                                onclick="selectMapZone('zoneA', 'Plot A - North Field', 'Tomato', '450 m²', 'Available')"
+                                title="Plot A - North Field">
+                                <span class="badge farm-badge-pill bg-white px-2 py-1 shadow-sm">Plot A</span>
+                            </div>
+                            <div class="map-plot-hotspot" style="top: 40%; left: 12%; width: 34%; height: 26%;"
+                                onclick="selectMapZone('zoneB', 'Plot B - West Field', 'Carrot', '350 m²', 'Occupied')"
+                                title="Plot B - West Field">
+                                <span class="badge farm-badge-pill bg-white px-2 py-1 shadow-sm">Plot B</span>
+                            </div>
+                            <div class="map-plot-hotspot" style="top: 70%; left: 12%; width: 34%; height: 25%;"
+                                onclick="selectMapZone('zoneC', 'Plot C - South Field', 'Lettuce', '400 m²', 'Available')"
+                                title="Plot C - South Field">
+                                <span class="badge farm-badge-pill bg-white px-2 py-1 shadow-sm">Plot C</span>
+                            </div>
+                            <div class="map-plot-hotspot" style="top: 70%; left: 52%; width: 36%; height: 25%;"
+                                onclick="selectMapZone('zoneD', 'Plot D - East Field', 'Eggplant', '500 m²', 'Available')"
+                                title="Plot D - East Field">
+                                <span class="badge farm-badge-pill bg-white px-2 py-1 shadow-sm">Plot D</span>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Map Selected Zone Callout Card -->
@@ -555,21 +712,7 @@ include '../includes/sidebar.php';
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-dark" style="font-size:0.82rem;">Primary Crop</label>
-                        <select id="addPlotCrop" class="form-select rounded-3" style="border: 1.5px solid #523E31;">
-                            <option value="Tomato" data-icon="tomato/tomato.svg">🍅 Tomato</option>
-                            <option value="Lettuce" data-icon="romaine/romaine.svg">🥬 Lettuce / Leafy Greens</option>
-                            <option value="Corn" data-icon="corn/corn.svg">🌽 Sweet Corn</option>
-                            <option value="Carrot" data-icon="carrot/carrot.svg">🥕 Carrot</option>
-                            <option value="Pepper" data-icon="red-bell-pepper/red-bell-pepper.svg">🫑 Bell Pepper</option>
-                            <option value="Eggplant" data-icon="eggplant/eggplant.svg">🍆 Eggplant</option>
-                            <option value="Herbs" data-icon="basil/basil.svg">🌿 Basil & Herbs</option>
-                            <option value="Cucumber" data-icon="cucumber/cucumber.svg">🥒 Cucumber</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark" style="font-size:0.82rem;">Permitted Crops for Tenant</label>
+                        <label class="form-label fw-bold text-dark" style="font-size:0.82rem;">Crops</label>
                         <div class="d-flex flex-wrap gap-2 p-2 bg-light rounded-3 border" id="addPlotSeedsCheckboxes" style="max-height: 120px; overflow-y: auto;">
                             <!-- Populated dynamically -->
                         </div>
@@ -618,28 +761,13 @@ include '../includes/sidebar.php';
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-bold text-dark" style="font-size:0.82rem;">Lease Status</label>
-                            <select id="editPlotStatus" class="form-select rounded-3" style="border: 1.5px solid #523E31;">
-                                <option value="available">🌿 Available</option>
-                                <option value="occupied">👨‍🌾 Occupied / Leased</option>
-                                <option value="maintenance">🛠️ Maintenance</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-bold text-dark" style="font-size:0.82rem;">Primary Crop</label>
-                            <select id="editPlotCrop" class="form-select rounded-3" style="border: 1.5px solid #523E31;">
-                                <option value="Tomato" data-icon="tomato/tomato.svg">🍅 Tomato</option>
-                                <option value="Lettuce" data-icon="romaine/romaine.svg">🥬 Lettuce</option>
-                                <option value="Corn" data-icon="corn/corn.svg">🌽 Corn</option>
-                                <option value="Carrot" data-icon="carrot/carrot.svg">🥕 Carrot</option>
-                                <option value="Pepper" data-icon="red-bell-pepper/red-bell-pepper.svg">🫑 Pepper</option>
-                                <option value="Eggplant" data-icon="eggplant/eggplant.svg">🍆 Eggplant</option>
-                                <option value="Herbs" data-icon="basil/basil.svg">🌿 Herbs</option>
-                                <option value="Cucumber" data-icon="cucumber/cucumber.svg">🥒 Cucumber</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark" style="font-size:0.82rem;">Lease Status</label>
+                        <select id="editPlotStatus" class="form-select rounded-3" style="border: 1.5px solid #523E31;">
+                            <option value="available">🌿 Available</option>
+                            <option value="occupied">👨‍🌾 Occupied / Leased</option>
+                            <option value="maintenance">🛠️ Maintenance</option>
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -667,7 +795,7 @@ include '../includes/sidebar.php';
                 <div>
                     <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
                         <i class="bi bi-flower1 text-success"></i>
-                        <span>Permitted Seed Varieties</span>
+                        <span>Crops</span>
                     </h5>
                     <p class="text-muted mb-0 mt-0.5" style="font-size:0.78rem;" id="cropPermPlotTitle">Plot A-1</p>
                 </div>
@@ -676,7 +804,7 @@ include '../includes/sidebar.php';
             <div class="modal-body pt-3">
                 <input type="hidden" id="cropPermPlotId">
                 <p class="text-secondary mb-2" style="font-size:0.8rem;">
-                    Check the seed types that gardeners are allowed to cultivate in this plot:
+                    Select crops for this plot:
                 </p>
                 <div class="row g-2" id="cropPermGrid" style="max-height: 280px; overflow-y: auto;">
                     <!-- Populated dynamically -->
@@ -685,7 +813,7 @@ include '../includes/sidebar.php';
                 <div class="d-flex justify-content-end gap-2 pt-3 mt-3 border-top">
                     <button type="button" class="btn btn-sm farm-btn farm-btn-secondary px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-sm farm-btn farm-btn-primary px-4" onclick="saveCropPermissions()">
-                        Save Permissions
+                        Save Crops
                     </button>
                 </div>
             </div>
@@ -748,11 +876,6 @@ include '../includes/sidebar.php';
             if (e.target.value) {
                 switchLand(e.target.value);
             }
-        });
-
-        // Window resize re-clips map image
-        window.addEventListener('resize', () => {
-            renderDynamicFarmMap();
         });
 
         loadFarmPlotsData();
@@ -932,9 +1055,10 @@ include '../includes/sidebar.php';
         container.innerHTML = `
             <div class="row g-3">
                 ${filtered.map(plot => {
-                    const iconUrl = getCropIconUrl(plot.crop, plot.crop_icon);
-                    const isOccupied = plot.status === 'occupied';
+                    const isOccupied = (plot.status === 'occupied') && (plot.farmer_name || plot.crop);
                     const isMaintenance = plot.status === 'maintenance';
+                    const hasPlantedCrop = isOccupied && plot.crop;
+                    const iconUrl = hasPlantedCrop ? getCropIconUrl(plot.crop, plot.crop_icon) : '../assets/crop-icons/generic-plant/generic-plant.svg';
 
                     let statusBadgeHtml = '';
                     if (plot.status === 'available') {
@@ -945,9 +1069,9 @@ include '../includes/sidebar.php';
                         statusBadgeHtml = `<span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5" style="font-size:0.72rem;">🛠️ Maintenance</span>`;
                     }
 
-                    // Seeds pills
-                    const seeds = Array.isArray(plot.crops) ? plot.crops : (plot.crop ? [plot.crop] : ['Tomato']);
-                    const seedsHtml = seeds.slice(0, 3).map(s => {
+                    // Allowed / Suitable seeds set by landowner
+                    const allowedSeeds = Array.isArray(plot.crops) && plot.crops.length > 0 ? plot.crops : (plot.allowed_seeds || (plot.crop ? [plot.crop] : ['Vegetables']));
+                    const seedsHtml = allowedSeeds.slice(0, 3).map(s => {
                         const sIcon = getCropIconUrl(s);
                         return `<span class="seed-tag"><img src="${sIcon}" style="width:12px; height:12px;"> ${s}</span>`;
                     }).join('');
@@ -959,11 +1083,17 @@ include '../includes/sidebar.php';
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="rounded-circle p-1.5 bg-light border d-flex align-items-center justify-content-center" style="width:36px; height:36px; border-color: #523E31 !important;">
-                                                <img src="${iconUrl}" alt="${plot.crop}" style="width:22px; height:22px; object-fit:contain;">
+                                                ${hasPlantedCrop ? `
+                                                    <img src="${iconUrl}" alt="${plot.crop}" style="width:22px; height:22px; object-fit:contain;">
+                                                ` : `
+                                                    <i class="bi bi-grid-3x3-gap text-secondary" style="font-size:18px;"></i>
+                                                `}
                                             </div>
                                             <div>
                                                 <h6 class="fw-bold text-dark mb-0" style="font-size:0.95rem;">${plot.plot_number}</h6>
-                                                <span class="text-muted" style="font-size:0.76rem;">Crop: <strong class="text-dark">${plot.crop || 'Unassigned'}</strong></span>
+                                                <span class="text-muted" style="font-size:0.76rem;">
+                                                    ${hasPlantedCrop ? `Planted Crop: <strong class="text-success">${plot.crop}</strong>` : `Planted Crop: <strong class="text-secondary">None (Unplanted)</strong>`}
+                                                </span>
                                             </div>
                                         </div>
                                         ${statusBadgeHtml}
@@ -980,18 +1110,23 @@ include '../includes/sidebar.php';
                                         </div>
                                         ${isOccupied && plot.farmer_name ? `
                                             <div class="d-flex justify-content-between text-secondary mt-1" style="font-size:0.78rem;">
-                                                <span>Tenant:</span>
+                                                <span>Tenant / Gardener:</span>
                                                 <strong class="text-primary">${plot.farmer_name}</strong>
                                             </div>
-                                        ` : ''}
+                                        ` : `
+                                            <div class="d-flex justify-content-between text-secondary mt-1" style="font-size:0.78rem;">
+                                                <span>Tenant:</span>
+                                                <span class="text-muted">None (Available for leasing)</span>
+                                            </div>
+                                        `}
                                     </div>
 
-                                    <!-- Allowed Seeds -->
+                                    <!-- Crops configured for plot -->
                                     <div class="mb-3">
-                                        <div class="text-muted fw-bold mb-1" style="font-size:0.7rem; text-transform:uppercase;">Allowed Crops:</div>
+                                        <div class="text-muted fw-bold mb-1" style="font-size:0.7rem; text-transform:uppercase;">Crops:</div>
                                         <div class="d-flex flex-wrap gap-1">
                                             ${seedsHtml}
-                                            ${seeds.length > 3 ? `<span class="seed-tag">+${seeds.length - 3} more</span>` : ''}
+                                            ${allowedSeeds.length > 3 ? `<span class="seed-tag">+${allowedSeeds.length - 3} more</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -1021,97 +1156,153 @@ include '../includes/sidebar.php';
         renderDynamicFarmMap();
     }
 
-    // Render the Crop Pills directly on crop_plots_map.jpg based on current farm and its plots
+    // Render the Dynamic Top-Down Visual Farm Map matching exact plots
     function renderDynamicFarmMap() {
-        const container = document.getElementById('dynamicCropOverlays');
-        const viewContainer = document.getElementById('cropsMapViewContainer');
-        const img = document.getElementById('farmMapImage');
-        if (!container || !viewContainer) return;
+        const wrapper = document.getElementById('dynamicFarmMapWrapper');
+        if (!wrapper) return;
 
         const land = allLands.find(l => l.id == currentLandId);
         const landPlots = allPlots.filter(p => p.land_id == currentLandId);
         const count = landPlots.length;
 
-        // Clip container height so if managing 4 plots, it shows only the 4 plots!
-        function updateMapClipHeight() {
-            if (!img || !img.clientHeight) return;
-            if (count <= 2) {
-                viewContainer.style.height = (img.clientHeight * 0.34) + 'px';
-            } else if (count <= 4) {
-                viewContainer.style.height = (img.clientHeight * 0.655) + 'px';
-            } else {
-                viewContainer.style.height = 'auto';
-            }
+        // Determine responsive grid layout and background based on exact plot count
+        let gridClass = 'grid-4';
+        if (count === 4) {
+            wrapper.style.backgroundImage = "url('../assets/images/farm_field_quad.jpg')";
+            gridClass = 'grid-4';
+        } else {
+            wrapper.style.backgroundImage = "url('../assets/images/farm_field_open.jpg')";
+            if (count === 1) gridClass = 'grid-1';
+            else if (count === 2) gridClass = 'grid-2';
+            else if (count === 3) gridClass = 'grid-3';
+            else if (count === 5 || count === 6) gridClass = 'grid-6';
+            else if (count > 6) gridClass = 'grid-many';
         }
 
-        if (img && img.complete) {
-            updateMapClipHeight();
-        } else if (img) {
-            img.onload = updateMapClipHeight;
-        }
-
-        // Coordinates of the 6 beds on crop_plots_map.jpg
-        const bedCoords = [
-            // Row 0: Top-Left, Top-Right
-            { top: '3.5%', left: '5%', width: '43%', height: '28%', pillTop: '4.5%', pillLeft: '26.5%' },
-            { top: '3.5%', left: '52%', width: '43%', height: '28%', pillTop: '4.5%', pillLeft: '73.5%' },
-            // Row 1: Middle-Left, Middle-Right
-            { top: '35.5%', left: '5%', width: '43%', height: '28%', pillTop: '36.5%', pillLeft: '26.5%' },
-            { top: '35.5%', left: '52%', width: '43%', height: '28%', pillTop: '36.5%', pillLeft: '73.5%' },
-            // Row 2: Bottom-Left, Bottom-Right
-            { top: '67.5%', left: '5%', width: '43%', height: '28%', pillTop: '68.5%', pillLeft: '26.5%' },
-            { top: '67.5%', left: '52%', width: '43%', height: '28%', pillTop: '68.5%', pillLeft: '73.5%' }
-        ];
-
-        let html = '';
-
-        // Only render the beds belonging to this farm! (e.g. 4 beds for 4 plots)
-        const visibleCount = Math.min(count, 6);
-        for (let i = 0; i < visibleCount; i++) {
-            const coord = bedCoords[i];
-            const plot = landPlots[i];
-            const cropName = plot.crop || (Array.isArray(plot.crops) && plot.crops[0]) || 'Vegetables';
-            const cropIconUrl = getCropIconUrl(cropName, plot.crop_icon);
-
-            html += `
-                <!-- Hotspot for ${plot.plot_number} -->
-                <div class="map-plot-hotspot" id="map-hotspot-${plot.id}"
-                     style="top: ${coord.top}; left: ${coord.left}; width: ${coord.width}; height: ${coord.height};"
-                     onclick="selectDynamicPlotBed(${plot.id}, this)"
-                     title="${plot.plot_number} (${cropName})">
-                </div>
-
-                <!-- Crop Pill showing the crop name matching the farm plot -->
-                <div class="map-crop-pill" style="top: ${coord.pillTop}; left: ${coord.pillLeft};">
-                    <img src="${cropIconUrl}" alt="${cropName}">
-                    <span>${cropName}</span>
+        if (count === 0) {
+            wrapper.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center text-center p-4 my-auto" style="min-height: 380px;">
+                    <div class="rounded-circle p-3 mb-3" style="background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.4);">
+                        <img src="../assets/crop-icons/generic-plant/generic-plant.svg" style="width: 52px; height: 52px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">
+                    </div>
+                    <h5 class="fw-bold text-white mb-1" style="text-shadow: 0 2px 4px rgba(0,0,0,0.8);">No Plots Partitioned Yet</h5>
+                    <p class="text-white-50 small mb-3" style="max-width: 320px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">
+                        This farm has no active partition beds. Click "Add Partition Plot" to divide this farm into cultivation beds!
+                    </p>
+                    <button class="btn btn-sm farm-btn farm-btn-primary px-3 py-1.5" onclick="openAddPlotModal()">
+                        <i class="bi bi-plus-circle me-1"></i> Add First Plot
+                    </button>
                 </div>
             `;
+            return;
         }
 
-        container.innerHTML = html;
-        updateMapClipHeight();
+        const bedsHtml = landPlots.map((plot, index) => {
+            const isOccupied = (plot.status === 'occupied') && (plot.farmer_name || plot.crop);
+            const isMaintenance = plot.status === 'maintenance';
+
+            if (isOccupied && plot.crop) {
+                // Gardener has rented and planted this plot!
+                const cropList = plot.crop.split(',').map(s => s.trim()).filter(Boolean);
+                const primaryCrop = cropList[0] || 'Crop';
+                const primaryIconUrl = getCropIconUrl(primaryCrop, plot.crop_icon);
+                const primaryDisplay = primaryCrop.charAt(0).toUpperCase() + primaryCrop.slice(1);
+                const othersCount = cropList.length - 1;
+                const pillLabel = othersCount > 0 ? `${primaryDisplay} & +${othersCount} other${othersCount > 1 ? 's' : ''}` : primaryDisplay;
+
+                // Fill the plot bed with rows of crops planted by the gardener
+                const furrowRows = [0, 1, 2].map((rIdx) => {
+                    const rowCrop = cropList[rIdx % cropList.length];
+                    const rowIconUrl = getCropIconUrl(rowCrop);
+                    return `
+                        <div class="bed-furrow-row">
+                            <img src="${rowIconUrl}" class="bed-sprout-icon" alt="${rowCrop}">
+                            <img src="${rowIconUrl}" class="bed-sprout-icon" alt="${rowCrop}">
+                            <img src="${rowIconUrl}" class="bed-sprout-icon" alt="${rowCrop}">
+                            <img src="${rowIconUrl}" class="bed-sprout-icon" alt="${rowCrop}">
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="dynamic-plot-bed" id="dynamic-bed-${plot.id}" onclick="selectDynamicPlotBed(${plot.id}, this)" title="${plot.plot_number}: Planted by ${plot.farmer_name || 'Gardener'} (${cropList.join(', ')})">
+                        <div class="map-crop-pill">
+                            <img src="${primaryIconUrl}" alt="${primaryDisplay}">
+                            <span>${pillLabel}</span>
+                        </div>
+                        <div class="bed-furrow-plants">
+                            ${furrowRows}
+                        </div>
+                    </div>
+                `;
+            } else if (isMaintenance) {
+                // Maintenance bed: empty prepared soil
+                return `
+                    <div class="dynamic-plot-bed" id="dynamic-bed-${plot.id}" onclick="selectDynamicPlotBed(${plot.id}, this)" title="${plot.plot_number}: Under Maintenance">
+                        <div class="map-crop-pill maint-pill">
+                            <i class="bi bi-tools text-warning" style="font-size:0.85rem;"></i>
+                            <span>Maintenance</span>
+                        </div>
+                        <div class="bed-empty-soil-lines">
+                            <div class="furrow-soil-line"></div>
+                            <div class="furrow-soil-line"></div>
+                            <div class="furrow-soil-line"></div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Available / Unplanted bed: clean furrow soil, NO premature crop icons!
+                return `
+                    <div class="dynamic-plot-bed" id="dynamic-bed-${plot.id}" onclick="selectDynamicPlotBed(${plot.id}, this)" title="${plot.plot_number}: Available for gardeners">
+                        <div class="map-crop-pill available-pill">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size:0.85rem;"></i>
+                            <span>Available</span>
+                        </div>
+                        <div class="bed-empty-soil-lines">
+                            <div class="furrow-soil-line"></div>
+                            <div class="furrow-soil-line"></div>
+                            <div class="furrow-soil-line"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+
+        wrapper.innerHTML = `
+            <!-- Plots Layout Grid matching exact count -->
+            <div class="dynamic-plots-grid ${gridClass}">
+                ${bedsHtml}
+            </div>
+        `;
     }
 
     // Select dynamic plot bed on map
     function selectDynamicPlotBed(plotId, element) {
-        document.querySelectorAll('.map-plot-hotspot').forEach(b => b.classList.remove('selected'));
-        if (element) {
-            element.classList.add('selected');
-        } else {
-            const h = document.getElementById(`map-hotspot-${plotId}`);
-            if (h) h.classList.add('selected');
-        }
+        document.querySelectorAll('.dynamic-plot-bed').forEach(b => b.classList.remove('selected'));
+        if (element) element.classList.add('selected');
 
         const plot = allPlots.find(p => p.id == plotId);
         if (!plot) return;
 
+        const isOccupied = (plot.status === 'occupied') && (plot.farmer_name || plot.crop);
+        const isMaintenance = plot.status === 'maintenance';
+
         // Update callout card
         const calloutTitle = document.getElementById('calloutTitle');
         const calloutSub = document.getElementById('calloutSub');
+        if (calloutTitle) {
+            if (isOccupied && plot.crop) {
+                calloutTitle.textContent = `${plot.plot_number} • Planted: ${plot.crop} (Gardener: ${plot.farmer_name || 'Assigned'})`;
+            } else if (isMaintenance) {
+                calloutTitle.textContent = `${plot.plot_number} • Under Maintenance`;
+            } else {
+                calloutTitle.textContent = `${plot.plot_number} • Available (Unplanted)`;
+            }
+        }
         const seeds = Array.isArray(plot.crops) ? plot.crops.join(', ') : (plot.crop || 'None');
-        if (calloutTitle) calloutTitle.textContent = `${plot.plot_number} (${plot.crop || 'Crop'})`;
-        if (calloutSub) calloutSub.textContent = `Area: ${parseFloat(plot.area).toLocaleString()} m² • Permitted: ${seeds} • Click 'Jump to Plot' to manage`;
+        if (calloutSub) {
+            calloutSub.textContent = `Area: ${parseFloat(plot.area).toLocaleString()} m² • Suitable to Grow: ${seeds} • Click 'Jump to Plot' to manage`;
+        }
 
         // Highlight and scroll to matching plot card
         document.querySelectorAll('.plot-item-card').forEach(c => c.classList.remove('highlighted'));
@@ -1122,6 +1313,7 @@ include '../includes/sidebar.php';
             card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
+
 
     // Filter Chips click
     function setPlotFilter(filter, btn) {
@@ -1135,11 +1327,11 @@ include '../includes/sidebar.php';
         renderCurrentPlots();
     }
 
-    // Switch between Crop Plots Only (Default) and Full Homestead (Option)
-    let currentMapViewMode = 'crops';
+    // Switch between Crop Plots Only (Default) and Full Homestead (Configured in Admin Settings)
+    let currentMapViewMode = <?php echo json_encode($admin_map_mode); ?> || 'crops';
     function setMapViewMode(mode) {
         currentMapViewMode = mode;
-        const cropsContainer = document.getElementById('cropsMapViewContainer');
+        const dynamicWrapper = document.getElementById('dynamicFarmMapWrapper');
         const homesteadContainer = document.getElementById('homesteadViewContainer');
         const cropsBtn = document.getElementById('modeCropsBtn');
         const homesteadBtn = document.getElementById('modeHomesteadBtn');
@@ -1148,28 +1340,29 @@ include '../includes/sidebar.php';
         const land = allLands.find(l => l.id == currentLandId);
 
         if (mode === 'crops') {
-            if (cropsContainer) cropsContainer.classList.remove('d-none');
+            if (dynamicWrapper) dynamicWrapper.classList.remove('d-none');
             if (homesteadContainer) homesteadContainer.classList.add('d-none');
 
-            cropsBtn.classList.add('active');
-            homesteadBtn.classList.remove('active');
+            if (cropsBtn) cropsBtn.classList.add('active');
+            if (homesteadBtn) homesteadBtn.classList.remove('active');
 
             renderDynamicFarmMap();
 
-            if (calloutTitle) calloutTitle.textContent = 'Crop Plots Map';
-            if (calloutSub) calloutSub.textContent = `Showing active plots & permitted crop varieties for ${land ? land.title : 'this farm'}.`;
+            if (calloutTitle) calloutTitle.textContent = 'Dynamic Farm Plots Grid';
+            if (calloutSub) calloutSub.textContent = `Showing plots and crops for ${land ? land.title : 'this farm'}.`;
         } else {
-            if (cropsContainer) cropsContainer.classList.add('d-none');
+            if (dynamicWrapper) dynamicWrapper.classList.add('d-none');
             if (homesteadContainer) homesteadContainer.classList.remove('d-none');
 
-            homesteadBtn.classList.add('active');
-            cropsBtn.classList.remove('active');
+            if (homesteadBtn) homesteadBtn.classList.add('active');
+            if (cropsBtn) cropsBtn.classList.remove('active');
 
             if (calloutTitle) calloutTitle.textContent = 'Full Homestead & Facilities';
             if (calloutSub) calloutSub.textContent = 'Includes farmhouse residence, pasture, water reservoir, and storage silos.';
         }
 
         document.querySelectorAll('.map-plot-hotspot').forEach(h => h.classList.remove('selected'));
+        document.querySelectorAll('.dynamic-plot-bed').forEach(b => b.classList.remove('selected'));
     }
 
     // Interactive Map Zone Selection
@@ -1237,10 +1430,6 @@ include '../includes/sidebar.php';
         const plotNumber = document.getElementById('addPlotNumber').value.trim();
         const area = parseFloat(document.getElementById('addPlotArea').value);
         const price = parseFloat(document.getElementById('addPlotPrice').value);
-        const cropSelect = document.getElementById('addPlotCrop');
-        const crop = cropSelect.value;
-        const cropIcon = cropSelect.options[cropSelect.selectedIndex].getAttribute('data-icon') || 'tomato/tomato.svg';
-
         const checkedSeeds = Array.from(document.querySelectorAll('.add-seed-chk:checked')).map(cb => cb.value);
 
         const btn = document.getElementById('saveAddPlotBtn');
@@ -1257,9 +1446,9 @@ include '../includes/sidebar.php';
                     plot_number: plotNumber,
                     area: area,
                     rental_price_per_year: price,
-                    crop: crop,
-                    crop_icon: cropIcon,
-                    crops: checkedSeeds.length > 0 ? checkedSeeds : [crop]
+                    crop: '',
+                    crop_icon: '',
+                    crops: checkedSeeds
                 })
             });
             const res = await response.json();
@@ -1288,7 +1477,6 @@ include '../includes/sidebar.php';
         document.getElementById('editPlotArea').value = plot.area;
         document.getElementById('editPlotPrice').value = plot.rental_price_per_year || 110000;
         document.getElementById('editPlotStatus').value = plot.status || 'available';
-        document.getElementById('editPlotCrop').value = plot.crop || 'Tomato';
         document.getElementById('editPlotFarmer').value = plot.farmer_name || '';
 
         editPlotModalInst.show();
@@ -1301,9 +1489,6 @@ include '../includes/sidebar.php';
         const area = parseFloat(document.getElementById('editPlotArea').value);
         const price = parseFloat(document.getElementById('editPlotPrice').value);
         const status = document.getElementById('editPlotStatus').value;
-        const cropSelect = document.getElementById('editPlotCrop');
-        const crop = cropSelect.value;
-        const cropIcon = cropSelect.options[cropSelect.selectedIndex].getAttribute('data-icon') || 'tomato/tomato.svg';
         const farmerName = document.getElementById('editPlotFarmer').value.trim();
 
         const btn = document.getElementById('saveEditPlotBtn');
@@ -1312,7 +1497,9 @@ include '../includes/sidebar.php';
 
         try {
             const plot = allPlots.find(p => p.id == plotId);
-            const crops = plot && Array.isArray(plot.crops) ? plot.crops : [crop];
+            const crops = plot && Array.isArray(plot.crops) ? plot.crops : [];
+            const crop = plot ? (plot.crop || '') : '';
+            const cropIcon = plot ? (plot.crop_icon || '') : '';
 
             const response = await fetch('../api/lands.php', {
                 method: 'POST',
@@ -1346,15 +1533,15 @@ include '../includes/sidebar.php';
         }
     }
 
-    // Crop Permissions Modal
+    // Crop Modal (Landowner configures what crops can grow)
     function openCropPermissionsModal(plotId) {
         const plot = allPlots.find(p => p.id == plotId);
         if (!plot) return;
 
         document.getElementById('cropPermPlotId').value = plot.id;
-        document.getElementById('cropPermPlotTitle').textContent = `${plot.plot_number} (${plot.crop || 'Crop'})`;
+        document.getElementById('cropPermPlotTitle').textContent = `${plot.plot_number} • Crops`;
 
-        const allowedSeeds = Array.isArray(plot.crops) ? plot.crops : [plot.crop || 'Tomato'];
+        const allowedSeeds = Array.isArray(plot.crops) && plot.crops.length > 0 ? plot.crops : (plot.crop ? [plot.crop] : ['Tomato']);
 
         const grid = document.getElementById('cropPermGrid');
         grid.innerHTML = cropCatalog.map(c => {
@@ -1378,23 +1565,19 @@ include '../includes/sidebar.php';
         const checkedSeeds = Array.from(document.querySelectorAll('.perm-seed-chk:checked')).map(cb => cb.value);
 
         if (checkedSeeds.length === 0) {
-            alert('Please select at least one permitted crop.');
+            alert('Please select at least one crop.');
             return;
         }
 
         try {
-            const primaryCrop = checkedSeeds[0];
-            const primaryIcon = cropCatalog.find(c => c.name === primaryCrop)?.icon || 'tomato/tomato.svg';
-
+            // Landowner only configures crops for plot; does not set planted crop
             const response = await fetch('../api/lands.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'update_plot_crops',
                     plot_id: plotId,
-                    crops: checkedSeeds,
-                    crop: primaryCrop,
-                    crop_icon: primaryIcon
+                    crops: checkedSeeds
                 })
             });
             const res = await response.json();
@@ -1402,10 +1585,10 @@ include '../includes/sidebar.php';
                 cropPermModalInst.hide();
                 await loadFarmPlotsData();
             } else {
-                alert(res.message || 'Failed to update permitted crops.');
+                alert(res.message || 'Failed to update crops.');
             }
         } catch (err) {
-            console.error('Error updating crop permissions:', err);
+            console.error('Error updating crops:', err);
             alert('An unexpected error occurred.');
         }
     }

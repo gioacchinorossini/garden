@@ -94,14 +94,14 @@
             },
             {
                 centered: false,
-                badge: '📅 Garden Tasks & Eco-Impact',
-                iconHtml: `<img src="${BASE}assets/images/tasks/watering.png" alt="Schedules" style="width:34px;height:34px;object-fit:contain;" />`,
-                title: 'Tasks & Stewardship Score',
-                subtitle: 'Coordinate Care & Track Real Impact',
-                desc: 'Coordinate maintenance, watering, compost routines, and harvest milestones. Watch your live environmental stewardship score climb: CO₂ absorbed, liters of water managed, and consecutive care streak rewards!',
-                actionLink: { text: 'Open Schedules', url: `${BASE}landowner/schedules.php` },
-                targetDesktop: '#mainSidebar a[href*="schedules.php"]',
-                targetMobile: '#mobileBottomNavDock a[href*="schedules.php"], #addTaskFab'
+                badge: '📊 Earnings & Eco-Impact',
+                iconHtml: `<i class="bi bi-bar-chart-fill text-emerald-600" style="font-size:1.8rem;"></i>`,
+                title: 'Rental Earnings & Reports',
+                subtitle: 'Track Revenue & Land Stewardship',
+                desc: 'Monitor rental earnings across all your parcels, filter financial summaries by month and year, and review active plot contracts and tenure histories at a glance.',
+                actionLink: { text: 'Open Reports', url: `${BASE}landowner/reports.php` },
+                targetDesktop: '#mainSidebar a[href*="reports.php"]',
+                targetMobile: '#mobileBottomNavDock a[href*="reports.php"]'
             },
             {
                 centered: true,

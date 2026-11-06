@@ -1,3 +1,9 @@
+/**
+ * Gardener Requests Management JS
+ * Handles responsive desktop table & mobile cards, filters, search, modals, and actions.
+ * Matches Landowner Requests UI architecture and styling.
+ */
+
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -8,16 +14,40 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     let requestsList = [];
     let currentFilter = 'all';
+    let searchQuery = '';
 
-    // DOM elements
+    // DOM Elements - Desktop & Mobile
     const requestsTableBody = document.getElementById('requestsTableBody');
-    const viewResponseModalEl = document.getElementById('viewResponseModal');
+    const requestsMobileCards = document.getElementById('requestsMobileCards');
+    const desktopSearch = document.getElementById('requestsSearchInput');
+    const mobileSearch = document.getElementById('mobileSearchInput') || document.getElementById('mobileRequestsSearchInput');
 
+    // Count Badges - Desktop
+    const countAll = document.getElementById('countAll') || document.getElementById('filterCountAll');
+    const countPending = document.getElementById('countPending') || document.getElementById('filterCountPending');
+    const countOffer = document.getElementById('countOffer') || document.getElementById('filterCountOffer');
+    const countCounter = document.getElementById('countCounter') || document.getElementById('filterCountCounter');
+    const countApproved = document.getElementById('countApproved') || document.getElementById('filterCountApproved');
+    const countRejected = document.getElementById('countRejected') || document.getElementById('filterCountRejected');
+
+    // Count Badges - Mobile
+    const mCountAll = document.getElementById('mCountAll') || document.getElementById('mFilterCountAll');
+    const mCountPending = document.getElementById('mCountPending') || document.getElementById('mFilterCountPending');
+    const mCountOffer = document.getElementById('mCountOffer') || document.getElementById('mFilterCountOffer');
+    const mCountCounter = document.getElementById('mCountCounter') || document.getElementById('mFilterCountCounter');
+    const mCountApproved = document.getElementById('mCountApproved') || document.getElementById('mFilterCountApproved');
+    const mCountRejected = document.getElementById('mCountRejected') || document.getElementById('mFilterCountRejected');
+
+    // Modals & Feedback
+    const viewResponseModalEl = document.getElementById('viewResponseModal');
+    const requestToastEl = document.getElementById('requestToast');
+
+    // Land Icon SVG generator
     function getLandIconSvg() {
-        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" class="gardener-request-icon-img" aria-label="Land Plot">
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="40" height="40" class="gardener-request-icon-img" aria-label="Land Plot">
   <defs>
     <linearGradient id="landSkyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#EBF5E9" />
@@ -49,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function timeAgo(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr.replace(' ', 'T'));
-        if (isNaN(d)) return dateStr;
+        if (isNaN(d.getTime())) return dateStr;
         const now = new Date();
         const diffSec = Math.floor((now - d) / 1000);
         if (diffSec < 60) return 'Just now';
@@ -63,14 +93,31 @@ document.addEventListener("DOMContentLoaded", function() {
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
+    function showToast(message, isSuccess = true) {
+        if (!requestToastEl) {
+            alert(message);
+            return;
+        }
+        const toastMsg = document.getElementById('toastMsg');
+        const toastIcon = document.getElementById('toastIcon');
+        if (toastMsg) toastMsg.textContent = message;
+        if (toastIcon) {
+            toastIcon.className = isSuccess 
+                ? 'bi bi-check-circle-fill text-success fs-5'
+                : 'bi bi-exclamation-triangle-fill text-danger fs-5';
+        }
+        const toast = new bootstrap.Toast(requestToastEl, { delay: 3500 });
+        toast.show();
+    }
+
+    // Fetch requests from API
     async function loadRequests() {
-        if (!requestsTableBody) return;
         try {
             const response = await fetch('../api/requests.php');
             const res = await response.json();
             if (res.status === 'success') {
-                requestsList = res.data.requests;
-                updateFilterCounters();
+                requestsList = res.data.requests || [];
+                updateCounts();
                 renderRequests();
                 updateBadge();
             } else {
@@ -93,235 +140,408 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    function updateFilterCounters() {
-        const counts = {
-            all: requestsList.length,
-            pending: requestsList.filter(r => r.status === 'pending').length,
-            offer_sent: requestsList.filter(r => r.status === 'offer_sent').length,
-            approved: requestsList.filter(r => r.status === 'approved').length,
-            rejected: requestsList.filter(r => r.status === 'rejected' || r.status === 'declined').length
-        };
+    // Update Counts on Badges
+    function updateCounts() {
+        const total = requestsList.length;
+        const pending = requestsList.filter(r => r.status === 'pending').length;
+        const offers = requestsList.filter(r => r.status === 'offer_sent').length;
+        const counterOffered = requestsList.filter(r => r.status === 'counter_offered').length;
+        const approved = requestsList.filter(r => r.status === 'approved').length;
+        const rejected = requestsList.filter(r => r.status === 'rejected' || r.status === 'declined').length;
 
-        const elAll = document.getElementById('filterCountAll');
-        const elPending = document.getElementById('filterCountPending');
-        const elOffer = document.getElementById('filterCountOffer');
-        const elApproved = document.getElementById('filterCountApproved');
-        const elRejected = document.getElementById('filterCountRejected');
+        if (countAll) countAll.textContent = total;
+        if (countPending) countPending.textContent = pending;
+        if (countOffer) countOffer.textContent = offers;
+        if (countCounter) countCounter.textContent = counterOffered;
+        if (countApproved) countApproved.textContent = approved;
+        if (countRejected) countRejected.textContent = rejected;
 
-        if (elAll) elAll.innerText = counts.all;
-        if (elPending) elPending.innerText = counts.pending;
-        if (elOffer) elOffer.innerText = counts.offer_sent;
-        if (elApproved) elApproved.innerText = counts.approved;
-        if (elRejected) elRejected.innerText = counts.rejected;
+        if (mCountAll) mCountAll.textContent = total;
+        if (mCountPending) mCountPending.textContent = pending;
+        if (mCountOffer) mCountOffer.textContent = offers;
+        if (mCountCounter) mCountCounter.textContent = counterOffered;
+        if (mCountApproved) mCountApproved.textContent = approved;
+        if (mCountRejected) mCountRejected.textContent = rejected;
     }
 
-    window.filterGardenerRequests = function(statusKey) {
-        currentFilter = statusKey;
-
-        // Toggle active chip style
-        const chips = document.querySelectorAll('.request-filter-chip');
-        chips.forEach(chip => {
-            if (chip.getAttribute('data-filter') === statusKey) {
-                chip.classList.add('active');
-            } else {
-                chip.classList.remove('active');
+    // Filter and Search logic
+    function getFilteredList() {
+        return requestsList.filter(req => {
+            // Status filter
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'rejected') {
+                    if (req.status !== 'rejected' && req.status !== 'declined') return false;
+                } else if (req.status !== currentFilter) {
+                    return false;
+                }
             }
+            // Search filter
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                const matchLand = (req.land_title || '').toLowerCase().includes(q);
+                const matchOwner = (req.landowner || '').toLowerCase().includes(q);
+                const matchPlot = (req.plot_num || '').toLowerCase().includes(q);
+                const matchPurpose = (req.purpose || '').toLowerCase().includes(q);
+                const matchAddress = (req.land_address || '').toLowerCase().includes(q);
+                return matchLand || matchOwner || matchPlot || matchPurpose || matchAddress;
+            }
+            return true;
         });
+    }
 
-        const label = document.getElementById('requestsCountLabel');
-        if (label) {
-            if (statusKey === 'all') {
-                label.innerText = `Showing all applications (${requestsList.length})`;
+    // Render both desktop table and mobile cards
+    function renderRequests() {
+        const filtered = getFilteredList();
+
+        // 1. Render Desktop Table Body
+        if (requestsTableBody) {
+            if (filtered.length === 0) {
+                requestsTableBody.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                        <span class="fw-semibold">No applications found</span>
+                        <p class="small text-muted mb-0 mt-1">There are no plot requests matching the current filter or search criteria.</p>
+                    </div>
+                `;
             } else {
-                const count = requestsList.filter(r => r.status === statusKey).length;
-                label.innerText = `Showing ${statusKey.replace('_', ' ')} applications (${count})`;
+                requestsTableBody.innerHTML = filtered.map(req => {
+                    const time = timeAgo(req.requested_at);
+                    const iconHtml = getLandIconSvg();
+
+                    let statusBadge = '';
+                    if (req.status === 'approved') {
+                        statusBadge = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1"><i class="bi bi-check-circle-fill"></i> Approved</span>`;
+                    } else if (req.status === 'pending') {
+                        statusBadge = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1"><i class="bi bi-clock-history"></i> Pending</span>`;
+                    } else if (req.status === 'offer_sent') {
+                        const monthlyRate = req.offered_rental_rate ? Math.round(parseFloat(req.offered_rental_rate) / 12) : 9167;
+                        const rateStr = `₱${monthlyRate.toLocaleString()}/mo`;
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Offer: ${rateStr}"><i class="bi bi-tag-fill text-warning"></i> Offer (${rateStr})</span>`;
+                    } else if (req.status === 'counter_offered') {
+                        const counterMonthly = req.counter_rental_rate ? Math.round(parseFloat(req.counter_rental_rate) / 12) : 0;
+                        const counterRateStr = counterMonthly ? `₱${counterMonthly.toLocaleString()}/mo` : '₱.../mo';
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;" title="Counter: ${counterRateStr}"><i class="bi bi-arrow-left-right text-primary"></i> Counter: ${counterRateStr}</span>`;
+                    } else if (req.status === 'declined') {
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1 bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill"></i> Declined</span>`;
+                    } else {
+                        statusBadge = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1" title="Feedback: ${escapeHtml(req.notes || '')}"><i class="bi bi-x-circle-fill"></i> Rejected</span>`;
+                    }
+
+                    // Desktop action buttons
+                    let actionsHtml = `
+                        <button onclick="openDetailsModal(${req.id})" class="request-action-btn request-btn-view flex-shrink-0" title="View application details">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    `;
+
+                    if (req.status === 'offer_sent') {
+                        actionsHtml += `
+                            <button onclick="decideRentalOffer(${req.id}, 'approved')" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-xs fw-semibold text-white d-inline-flex align-items-center gap-1 shadow-xs flex-shrink-0" title="Approve & Lease Plot">
+                                <i class="bi bi-check-circle-fill"></i> Approve
+                            </button>
+                            <button onclick="openCounterOfferPrompt(${req.id})" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold flex-shrink-0" title="Propose Counter-Offer">
+                                <i class="bi bi-arrow-left-right"></i> Counter
+                            </button>
+                            <button onclick="decideRentalOffer(${req.id}, 'declined')" class="request-action-btn request-btn-reject flex-shrink-0" title="Decline Offer">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        `;
+                    } else if (req.status === 'counter_offered') {
+                        actionsHtml += `
+                            <span class="text-[11px] text-muted font-medium text-nowrap d-inline-flex align-items-center gap-1 flex-shrink-0" title="Awaiting landowner response">
+                                <i class="bi bi-hourglass-split text-primary"></i> Awaiting Owner
+                            </span>
+                        `;
+                    }
+
+                    return `
+                        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom request-table-row">
+                            <!-- Land & Owner -->
+                            <div style="width: 23%; min-width: 170px;" class="d-flex align-items-center gap-2.5 min-w-0 pe-2">
+                                <div class="flex-shrink-0" style="width: 40px; height: 40px;">
+                                    ${iconHtml}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="fw-bold text-dark text-truncate">${req.land_title}</div>
+                                    <div class="text-muted small text-truncate" style="font-size: 11px;">
+                                        ${req.landowner ? `Managed by ${req.landowner}` : (req.land_address || 'Community Land')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Plot & Details -->
+                            <div style="width: 23%; min-width: 170px;" class="pe-2 min-w-0">
+                                <div class="d-flex align-items-center gap-1.5 min-w-0">
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 flex-shrink-0" style="font-size: 10px;">
+                                        <i class="bi bi-grid-3x3 text-success me-1"></i>${req.plot_num}
+                                    </span>
+                                    <span class="text-muted text-truncate" style="font-size: 11px;">• ${time}</span>
+                                </div>
+                                <div class="text-muted small text-truncate mt-0.5" style="font-size: 11px;" title="${escapeHtml(req.land_address || req.land_title)}">
+                                    <i class="bi bi-geo-alt text-success me-1 flex-shrink-0"></i>${escapeHtml(req.land_address || req.land_title)}
+                                </div>
+                            </div>
+
+                            <!-- Purpose / Term -->
+                            <div style="width: 17%; min-width: 130px;" class="pe-2 min-w-0">
+                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1 mb-1 font-monospace" style="font-size: 10px;">
+                                    ${req.duration}
+                                </span>
+                                <div class="text-muted text-truncate" style="font-size: 11px; max-width: 160px;" title="${escapeHtml(req.purpose)}">
+                                    ${escapeHtml(req.purpose)}
+                                </div>
+                            </div>
+
+                            <!-- Status -->
+                            <div style="width: 13%; min-width: 100px;" class="pe-2">
+                                ${statusBadge}
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="width: 24%; min-width: 215px;" class="text-end d-flex align-items-center justify-content-end gap-1 flex-shrink-0 flex-nowrap pe-1">
+                                ${actionsHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
         }
 
+        // 2. Render Mobile Cards View
+        if (requestsMobileCards) {
+            if (filtered.length === 0) {
+                requestsMobileCards.innerHTML = `
+                    <div class="text-center py-5 text-muted bg-white rounded-4 border border-light-subtle p-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                        <span class="fw-semibold">No applications found</span>
+                        <p class="small text-muted mb-0 mt-1">There are no plot requests matching the current filter or search criteria.</p>
+                    </div>
+                `;
+            } else {
+                requestsMobileCards.innerHTML = filtered.map(req => {
+                    const time = timeAgo(req.requested_at);
+                    const iconHtml = getLandIconSvg();
+
+                    let statusBadge = '';
+                    if (req.status === 'approved') {
+                        statusBadge = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1 text-xs fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>`;
+                    } else if (req.status === 'pending') {
+                        statusBadge = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs fw-semibold"><i class="bi bi-clock-history me-1"></i>Pending</span>`;
+                    } else if (req.status === 'offer_sent') {
+                        const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Offer ${rateStr} received"><i class="bi bi-tag-fill me-1 text-warning"></i>Offer Received</span>`;
+                    } else if (req.status === 'counter_offered') {
+                        const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;"><i class="bi bi-arrow-left-right me-1 text-primary"></i>Counter: ${counterRateStr}</span>`;
+                    } else if (req.status === 'declined') {
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i>Declined</span>`;
+                    } else {
+                        statusBadge = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1 text-xs fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>`;
+                    }
+
+                    let mobileActions = '';
+                    if (req.status === 'offer_sent') {
+                        const monthlyRate = req.offered_rental_rate ? Math.round(parseFloat(req.offered_rental_rate) / 12) : 9167;
+                        const rateStr = `₱${monthlyRate.toLocaleString()}/mo`;
+                        mobileActions = `
+                            <div class="d-flex align-items-center gap-1.5 pt-2 border-top w-100 flex-wrap" onclick="event.stopPropagation()">
+                                <button onclick="decideRentalOffer(${req.id}, 'approved')" class="btn btn-sm btn-success rounded-pill px-2.5 py-1.5 flex-grow-1 text-white fw-semibold shadow-xs" style="font-size: 0.78rem;">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Approve (${rateStr})
+                                </button>
+                                <button onclick="openCounterOfferPrompt(${req.id})" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1.5 fw-semibold" style="font-size: 0.78rem;">
+                                    <i class="bi bi-arrow-left-right me-1"></i> Counter
+                                </button>
+                                <button onclick="decideRentalOffer(${req.id}, 'declined')" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1.5 fw-semibold" style="font-size: 0.78rem;">
+                                    <i class="bi bi-x-lg me-1"></i> Decline
+                                </button>
+                            </div>
+                        `;
+                    } else if (req.status === 'counter_offered') {
+                        const counterMonthly = req.counter_rental_rate ? Math.round(parseFloat(req.counter_rental_rate) / 12) : 0;
+                        const counterRateStr = counterMonthly ? `₱${counterMonthly.toLocaleString()}/mo` : '';
+                        mobileActions = `
+                            <div class="pt-2 border-top w-100 text-center" onclick="event.stopPropagation()">
+                                <span class="badge bg-light text-primary border rounded-pill px-3 py-1.5 text-xs fw-medium d-inline-flex align-items-center gap-1.5">
+                                    <i class="bi bi-hourglass-split text-primary"></i> Counter Sent (${counterRateStr}) • Awaiting Landowner
+                                </span>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="request-mobile-card shadow-xs" onclick="openDetailsModal(${req.id})" role="button" tabindex="0" style="cursor: pointer;">
+                            <!-- Card Header: Avatar/Icon, Title, Status -->
+                            <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                <div class="d-flex align-items-center gap-2 min-w-0">
+                                    <div class="flex-shrink-0" style="width: 34px; height: 34px;">
+                                        ${iconHtml}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">${req.land_title}</div>
+                                        <div class="text-muted" style="font-size: 11px;">${time} • ${req.landowner ? `Managed by ${req.landowner}` : 'Land Plot'}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-1.5">
+                                    ${statusBadge}
+                                    <i class="bi bi-chevron-right text-muted opacity-50 ms-1" style="font-size: 0.75rem;"></i>
+                                </div>
+                            </div>
+
+                            <!-- Land & Plot meta -->
+                            <div class="p-2.5 bg-light rounded-3 mb-2.5 border border-light-subtle">
+                                <div class="d-flex align-items-center justify-content-between mb-1 min-w-0">
+                                    <div class="min-w-0 flex-grow-1 me-2">
+                                        <strong class="text-dark small text-truncate d-block" title="${escapeHtml(req.land_address || req.land_title)}">
+                                            <i class="bi bi-geo-alt text-success me-1"></i>${escapeHtml(req.land_address || req.land_title)}
+                                        </strong>
+                                    </div>
+                                    <span class="badge bg-white text-success border rounded-pill px-2 py-0.5 flex-shrink-0" style="font-size: 10px;">${req.plot_num}</span>
+                                </div>
+                                <div class="text-muted small mt-1" style="font-size: 0.78rem;">
+                                    <i class="bi bi-calendar3 me-1"></i>Term: <strong class="text-dark">${req.duration}</strong>
+                                </div>
+                            </div>
+
+                            <!-- Purpose Quote -->
+                            <div class="mb-2 text-secondary" style="font-size: 0.82rem; line-height: 1.4;">
+                                "${escapeHtml(req.purpose)}"
+                            </div>
+
+                            <!-- Footer Actions -->
+                            ${mobileActions}
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+
+    // Filter Buttons Event Delegation
+    document.querySelectorAll('.request-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const filter = this.getAttribute('data-filter');
+            // Toggle filter: clicking active filter returns to default ('all')
+            if (currentFilter === filter) {
+                currentFilter = 'all';
+            } else {
+                currentFilter = filter;
+            }
+
+            // Sync all filter buttons across desktop and mobile
+            document.querySelectorAll('.request-filter-btn').forEach(b => {
+                if (currentFilter !== 'all' && b.getAttribute('data-filter') === currentFilter) {
+                    b.classList.add('active');
+                    b.classList.remove('text-secondary', 'bg-white');
+                } else {
+                    b.classList.remove('active');
+                    b.classList.add('text-secondary');
+                }
+            });
+
+            renderRequests();
+        });
+    });
+
+    // Global filter helper for onclick attributes
+    window.filterGardenerRequests = function(statusKey) {
+        if (currentFilter === statusKey) {
+            currentFilter = 'all';
+        } else {
+            currentFilter = statusKey;
+        }
+        document.querySelectorAll('.request-filter-btn').forEach(b => {
+            if (currentFilter !== 'all' && b.getAttribute('data-filter') === currentFilter) {
+                b.classList.add('active');
+                b.classList.remove('text-secondary', 'bg-white');
+            } else {
+                b.classList.remove('active');
+                b.classList.add('text-secondary');
+            }
+        });
         renderRequests();
     };
 
-    function renderRequests() {
-        if (!requestsTableBody) return;
-
-        if (requestsList.length === 0) {
-            requestsTableBody.innerHTML = `
-                <div class="text-center py-5 px-3 bg-white rounded-4 border border-light-subtle shadow-xs">
-                    <div class="rounded-circle bg-light d-inline-flex p-3 mb-2">
-                        <i class="bi bi-send text-secondary" style="font-size: 2rem;"></i>
-                    </div>
-                    <div class="fw-semibold text-dark mb-1">No Plot Applications Yet</div>
-                    <p class="text-secondary small mb-3">Browse available community lands and request your preferred plot.</p>
-                    <button type="button" class="btn btn-drive-primary btn-sm rounded-pill px-3.5 py-1.5 fw-semibold" onclick="typeof switchGardenerTab === 'function' ? switchGardenerTab('browse') : (window.location.href='browse.php')">
-                        <i class="bi bi-compass me-1"></i> Browse Lands
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        const filteredList = currentFilter === 'all'
-            ? requestsList
-            : requestsList.filter(r => r.status === currentFilter);
-
-        if (filteredList.length === 0) {
-            requestsTableBody.innerHTML = `
-                <div class="text-center py-5 px-3 bg-white rounded-4 border border-light-subtle shadow-xs">
-                    <i class="bi bi-filter-circle fs-1 text-secondary opacity-50 d-block mb-2"></i>
-                    <div class="fw-semibold text-dark mb-1">No ${currentFilter.replace('_', ' ')} applications found</div>
-                    <p class="text-secondary small mb-3">There are currently no requests with "${currentFilter.replace('_', ' ')}" status.</p>
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3.5 py-1.5 fw-semibold" onclick="filterGardenerRequests('all')">
-                        View All Applications
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        const landIconSvgHtml = getLandIconSvg();
-
-        requestsTableBody.innerHTML = filteredList.map(req => {
-            let statusBadge = '';
-            if (req.status === 'approved') {
-                statusBadge = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1"><i class="bi bi-check-circle-fill"></i> Approved</span>`;
-            } else if (req.status === 'pending') {
-                statusBadge = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1"><i class="bi bi-clock-history"></i> Pending</span>`;
-            } else if (req.status === 'offer_sent') {
-                const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
-                statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Rental Offer: ${rateStr}"><i class="bi bi-tag-fill text-warning"></i> Offer Received</span>`;
-            } else if (req.status === 'counter_offered') {
-                const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
-                statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;" title="Counter-Offer: ${counterRateStr}"><i class="bi bi-arrow-left-right text-primary"></i> Counter Sent</span>`;
-            } else if (req.status === 'declined') {
-                statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1"><i class="bi bi-x-circle-fill"></i> Declined</span>`;
-            } else {
-                statusBadge = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1 text-xs fw-bold d-inline-flex align-items-center gap-1"><i class="bi bi-x-circle-fill"></i> Rejected</span>`;
-            }
-
-            const formattedTime = req.requested_at ? timeAgo(req.requested_at) : '';
-
-            // If offer received, show action banner on card
-            let offerActionBanner = '';
-            if (req.status === 'offer_sent') {
-                const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
-                offerActionBanner = `
-                    <div class="mt-2.5 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-2" onclick="event.stopPropagation()">
-                        <div class="small fw-semibold text-dark d-flex align-items-center gap-1">
-                            <span class="text-secondary" style="font-size:11px;">Rental Rate:</span>
-                            <span class="text-success fw-bold">${rateStr}</span>
-                            <span class="text-muted" style="font-size:10px;">(${req.rental_duration || '1 Year'})</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-1.5 ms-auto">
-                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 text-xs fw-semibold" onclick="decideRentalOffer(${req.id}, 'declined')">
-                                <i class="bi bi-x-circle me-1"></i> Decline
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold" onclick="openCounterOfferPrompt(${req.id})">
-                                <i class="bi bi-arrow-left-right me-1"></i> Counter
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 text-xs fw-semibold text-white shadow-xs" onclick="decideRentalOffer(${req.id}, 'approved')">
-                                <i class="bi bi-check-circle-fill me-1"></i> Approve
-                            </button>
-                        </div>
-                    </div>
-                `;
-            } else if (req.status === 'counter_offered') {
-                const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
-                offerActionBanner = `
-                    <div class="mt-2.5 pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-2" onclick="event.stopPropagation()">
-                        <div class="small fw-semibold text-dark d-flex align-items-center gap-1">
-                            <span class="text-secondary" style="font-size:11px;">Your Counter-Offer:</span>
-                            <span class="text-primary fw-bold">${counterRateStr}</span>
-                        </div>
-                        <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 text-xs fw-medium d-inline-flex align-items-center gap-1">
-                            <i class="bi bi-hourglass-split text-primary"></i> Awaiting Owner Decision
-                        </span>
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="gardener-request-card" data-id="${req.id}" data-status="${req.status}" onclick="openDetailsModal(${req.id})" role="button" tabindex="0">
-                    <!-- Left: SVG Land Icon -->
-                    <div class="gardener-request-icon-wrap" title="${req.land_title} — ${req.plot_num}">
-                        ${landIconSvgHtml}
-                    </div>
-
-                    <!-- Center/Right Details -->
-                    <div class="gardener-request-info">
-                        <!-- Row 1: Title & Plot Badge on Left, Status Badge on Right -->
-                        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                            <div class="d-flex align-items-center gap-1.5 min-w-0">
-                                <h3 class="gardener-request-title mb-0 text-truncate">${req.land_title}</h3>
-                                <span class="badge rounded-pill px-2 py-0.5 text-xs fw-bold flex-shrink-0" style="background:#EBF3E8;color:#2D5A27;border:1px solid #BDDAB8;font-size:0.7rem;">
-                                    ${req.plot_num}
-                                </span>
-                            </div>
-                            <div class="flex-shrink-0">
-                                ${statusBadge}
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Purpose text -->
-                        <p class="gardener-request-purpose mb-1.5 text-truncate" title="${escapeHtml(req.purpose)}">
-                            "${escapeHtml(req.purpose)}"
-                        </p>
-
-                        <!-- Row 3: Meta Pills on Left + Subtle Chevron on Right -->
-                        <div class="d-flex align-items-center justify-content-between gap-2">
-                            <div class="gardener-request-meta-pills">
-                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 text-xs d-inline-flex align-items-center gap-1">
-                                    <i class="bi bi-clock-history text-primary"></i> ${req.duration}
-                                </span>
-                                ${formattedTime ? `
-                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 text-xs d-inline-flex align-items-center gap-1">
-                                    <i class="bi bi-calendar-event text-secondary"></i> ${formattedTime}
-                                </span>` : ''}
-                                ${req.notes ? `
-                                <span class="badge rounded-pill px-2 py-0.5 text-xs d-inline-flex align-items-center gap-1" style="background:#E8F3F8;color:#204E6E;border:1px solid #C4DCEB;">
-                                    <i class="bi bi-chat-quote-fill"></i> <span class="d-none d-sm-inline">Landowner</span> Note
-                                </span>` : ''}
-                            </div>
-
-                            <div class="text-secondary opacity-50 flex-shrink-0" style="font-size:0.75rem;">
-                                <i class="bi bi-chevron-right"></i>
-                            </div>
-                        </div>
-
-                        <!-- Offer Action Banner (if offer_sent) -->
-                        ${offerActionBanner}
-                    </div>
-                </div>
-            `;
-        }).join('');
+    // Search bar event listeners (keeps desktop & mobile in sync)
+    if (desktopSearch) {
+        desktopSearch.addEventListener('input', function () {
+            searchQuery = this.value;
+            if (mobileSearch && mobileSearch !== this) mobileSearch.value = this.value;
+            renderRequests();
+        });
     }
 
+    if (mobileSearch) {
+        mobileSearch.addEventListener('input', function () {
+            searchQuery = this.value;
+            if (desktopSearch && desktopSearch !== this) desktopSearch.value = this.value;
+            renderRequests();
+        });
+    }
+
+    // Details Modal Map Instance
     let _detailsModalMap = null;
 
-    window.openDetailsModal = function(id) {
+    window.openDetailsModal = function (id) {
         const req = requestsList.find(r => r.id === id);
         if (!req) return;
 
-        document.getElementById('modal_land_title').innerText = req.land_title + ' — ' + req.plot_num;
-        document.getElementById('modal_purpose').innerText = req.purpose;
-        document.getElementById('modal_duration').innerText = req.duration;
-
-        let currentGardenerReqId = req.id;
         window._activeGardenerReqId = req.id;
 
+        // Avatar & Header Details (Mirroring Landowner Request Modal)
+        const avatarEl = document.getElementById('modal_avatar');
+        if (avatarEl) {
+            const name = req.landowner || req.land_title || 'LD';
+            const parts = name.trim().split(/\s+/);
+            avatarEl.innerText = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
+        }
+
+        const reqTitleEl = document.getElementById('modal_request_title');
+        if (reqTitleEl) reqTitleEl.innerText = 'Request Details';
+
+        const reqDateEl = document.getElementById('modal_request_date');
+        if (reqDateEl) reqDateEl.innerText = req.requested_at ? `Submitted ${timeAgo(req.requested_at)}` : '';
+
+        // Land & Landowner Info Card
+        const titleEl = document.getElementById('modal_land_title');
+        if (titleEl) titleEl.innerText = req.land_title;
+
+        const contactEl = document.getElementById('modal_landowner_contact');
+        if (contactEl) {
+            const ownerHtml = req.landowner ? `<span><i class="bi bi-person text-success me-1"></i>${escapeHtml(req.landowner)}</span>` : '';
+            const addrHtml = req.land_address ? `<span><i class="bi bi-geo-alt text-success me-1"></i>${escapeHtml(req.land_address)}</span>` : '';
+            contactEl.innerHTML = [ownerHtml, addrHtml].filter(Boolean).join(' • ');
+        }
+
+        // Plot & Duration 2-Column Row
+        const plotEl = document.getElementById('modal_plot');
+        if (plotEl) {
+            plotEl.innerHTML = `<i class="bi bi-geo-alt text-success me-1"></i>${escapeHtml(req.land_title)} <span class="badge bg-white text-secondary border ms-1">${escapeHtml(req.plot_num)}</span>`;
+        }
+
+        const durationEl = document.getElementById('modal_duration');
+        if (durationEl) durationEl.innerText = req.duration;
+
+        // Purpose
+        const purposeEl = document.getElementById('modal_purpose');
+        if (purposeEl) purposeEl.innerText = req.purpose || 'No description provided.';
+
+        // Status Badge in Info Card (Mirroring Landowner)
         const statusBadgeEl = document.getElementById('modal_status_badge');
         if (statusBadgeEl) {
             if (req.status === 'approved') {
-                statusBadgeEl.innerHTML = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1 text-xs fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>`;
+                statusBadgeEl.innerHTML = `<span class="badge request-badge-approved rounded-pill px-2.5 py-1 text-xs"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>`;
             } else if (req.status === 'pending') {
-                statusBadgeEl.innerHTML = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs fw-bold"><i class="bi bi-clock-history me-1"></i>Pending</span>`;
+                statusBadgeEl.innerHTML = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs"><i class="bi bi-clock-history me-1"></i>Pending</span>`;
             } else if (req.status === 'offer_sent') {
-                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;"><i class="bi bi-tag-fill me-1 text-warning"></i>Offer Received</span>`;
+                const monthlyRate = req.offered_rental_rate ? Math.round(parseFloat(req.offered_rental_rate) / 12) : 9167;
+                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;"><i class="bi bi-tag-fill me-1 text-warning"></i>Offer: ₱${monthlyRate.toLocaleString()}/mo</span>`;
             } else if (req.status === 'counter_offered') {
-                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;"><i class="bi bi-arrow-left-right me-1 text-primary"></i>Counter-Offer Sent</span>`;
+                const counterRate = req.counter_rental_rate ? Math.round(parseFloat(req.counter_rental_rate) / 12) : 0;
+                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;"><i class="bi bi-arrow-left-right me-1 text-primary"></i>Counter: ₱${counterRate.toLocaleString()}/mo</span>`;
             } else if (req.status === 'declined') {
-                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-bold bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i>Declined</span>`;
+                statusBadgeEl.innerHTML = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i>Declined</span>`;
             } else {
-                statusBadgeEl.innerHTML = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1 text-xs fw-bold"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>`;
+                statusBadgeEl.innerHTML = `<span class="badge request-badge-rejected rounded-pill px-2.5 py-1 text-xs"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>`;
             }
         }
 
@@ -332,30 +552,26 @@ document.addEventListener("DOMContentLoaded", function() {
         if (offerSection) {
             if (req.status === 'offer_sent') {
                 offerSection.classList.remove('d-none');
-                const rate = req.offered_rental_rate ? parseFloat(req.offered_rental_rate) : 110000;
+                const annualRate = req.offered_rental_rate ? parseFloat(req.offered_rental_rate) : 110000;
+                const monthlyRate = annualRate / 12;
                 const rateEl = document.getElementById('modal_offer_rate');
                 const durEl = document.getElementById('modal_offer_duration');
+                const annualEl = document.getElementById('modal_offer_annual');
                 const termsEl = document.getElementById('modal_offer_terms');
+                const timeEl = document.getElementById('modal_offer_time');
 
-                if (rateEl) rateEl.innerText = `₱${rate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                if (durEl) durEl.innerText = `/ ${req.rental_duration || '1 Year'}`;
-                if (termsEl) termsEl.innerText = req.terms_conditions || 'Standard 50 sq. m. community plot lease. Organic vegetables, composting, and water access included.';
+                if (rateEl) rateEl.innerText = `₱${monthlyRate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (durEl) durEl.innerText = `/ Month`;
+                if (annualEl) annualEl.innerText = `(₱${annualRate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/yr)`;
+                if (termsEl) termsEl.innerText = req.terms_conditions || 'Standard community plot lease. Organic vegetables, composting, and water access included.';
+                if (timeEl) timeEl.innerText = req.requested_at ? timeAgo(req.requested_at) : '';
 
-                // Setup counter inputs default value
+                // Setup counter inputs default value (monthly fee)
                 const counterInput = document.getElementById('modal_counter_rate_input');
-                if (counterInput) counterInput.value = rate;
+                if (counterInput) counterInput.value = Math.round(monthlyRate);
                 const counterForm = document.getElementById('modal_counter_form_container');
                 if (counterForm) counterForm.classList.add('d-none');
                 updateCounterMonthlyCalc();
-
-                const btnApprove = document.getElementById('btnModalApproveOffer');
-                if (btnApprove) {
-                    btnApprove.onclick = () => window.decideRentalOffer(req.id, 'approved');
-                }
-                const btnDecline = document.getElementById('btnModalDeclineOffer');
-                if (btnDecline) {
-                    btnDecline.onclick = () => window.decideRentalOffer(req.id, 'declined');
-                }
             } else {
                 offerSection.classList.add('d-none');
             }
@@ -365,28 +581,83 @@ document.addEventListener("DOMContentLoaded", function() {
             if (req.status === 'counter_offered') {
                 counterSection.classList.remove('d-none');
                 const cRate = req.counter_rental_rate ? parseFloat(req.counter_rental_rate) : 0;
+                const cRateMonthly = cRate / 12;
                 const cRateEl = document.getElementById('modal_counter_rate_display');
                 const cMonthlyEl = document.getElementById('modal_counter_monthly_display');
                 const cNotesEl = document.getElementById('modal_counter_notes_display');
 
-                if (cRateEl) cRateEl.innerText = `₱${cRate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                if (cMonthlyEl) cMonthlyEl.innerText = `(₱${(cRate / 12).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo)`;
+                if (cRateEl) cRateEl.innerText = `₱${cRateMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (cMonthlyEl) cMonthlyEl.innerText = `(₱${cRate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/yr)`;
                 if (cNotesEl) cNotesEl.innerText = req.counter_notes ? `"${escapeHtml(req.counter_notes)}"` : 'No counter notes specified.';
             } else {
                 counterSection.classList.add('d-none');
             }
         }
 
+        // Feedback section matching Landowner
         const feedbackSection = document.getElementById('modal_feedback_section');
-        if (req.notes) {
-            feedbackSection.classList.remove('d-none');
-            feedbackSection.classList.remove('hidden');
-            document.getElementById('modal_feedback').innerText = req.notes;
-        } else {
-            feedbackSection.classList.add('d-none');
+        const feedbackEl = document.getElementById('modal_feedback');
+        if (feedbackSection && feedbackEl) {
+            if (req.notes) {
+                feedbackSection.classList.remove('d-none');
+                feedbackEl.className = (req.status === 'rejected' || req.status === 'declined')
+                    ? 'alert alert-danger py-2 px-3 mb-0'
+                    : 'alert alert-success py-2 px-3 mb-0';
+                feedbackEl.innerHTML = `<strong>${req.status === 'rejected' ? 'Rejection Reason:' : 'Feedback:'}</strong> ${escapeHtml(req.notes)}`;
+            } else {
+                feedbackSection.classList.add('d-none');
+            }
         }
 
-        // ─── Land Location Map inside Application Details ─────────────────────
+        // Modal Footer Action Buttons (Matching Landowner's modalPendingActions)
+        const actionButtonsEl = document.getElementById('modalOfferActionButtons');
+        if (actionButtonsEl) {
+            if (req.status === 'offer_sent') {
+                actionButtonsEl.innerHTML = `
+                    <button type="button" class="btn btn-outline-danger rounded-pill px-3.5 py-1.5 fw-semibold small" onclick="decideRentalOffer(${req.id}, 'declined')">
+                        <i class="bi bi-x-circle me-1"></i> Decline
+                    </button>
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-3.5 py-1.5 fw-semibold small" onclick="toggleCounterOfferForm()">
+                        <i class="bi bi-arrow-left-right me-1"></i> Counter-Offer
+                    </button>
+                    <button type="button" class="btn btn-success rounded-pill px-3.5 py-1.5 text-white fw-semibold small shadow-xs" onclick="decideRentalOffer(${req.id}, 'approved')">
+                        <i class="bi bi-check-circle-fill me-1"></i> Approve &amp; Lease
+                    </button>
+                `;
+            } else if (req.status === 'counter_offered') {
+                actionButtonsEl.innerHTML = `
+                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-1.5 small d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-hourglass-split"></i> Counter-Offer Submitted • Awaiting Landowner Response
+                    </span>
+                `;
+            } else if (req.status === 'approved') {
+                actionButtonsEl.innerHTML = `
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 small d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-check-circle-fill"></i> Lease Agreement Active
+                    </span>
+                `;
+            } else if (req.status === 'declined') {
+                actionButtonsEl.innerHTML = `
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 small d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-x-circle-fill"></i> Offer Declined
+                    </span>
+                `;
+            } else if (req.status === 'rejected') {
+                actionButtonsEl.innerHTML = `
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 small d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-x-circle-fill"></i> Application Rejected
+                    </span>
+                `;
+            } else {
+                actionButtonsEl.innerHTML = `
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 small d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-clock-history"></i> Awaiting Landowner Review
+                    </span>
+                `;
+            }
+        }
+
+        // Land Location Map
         const mapSection = document.getElementById('modal_map_section');
         const lat = parseFloat(req.latitude);
         const lng = parseFloat(req.longitude);
@@ -420,8 +691,10 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
-        const viewModal = new bootstrap.Modal(viewResponseModalEl);
-        viewModal.show();
+        if (viewResponseModalEl) {
+            const viewModal = bootstrap.Modal.getInstance(viewResponseModalEl) || new bootstrap.Modal(viewResponseModalEl);
+            viewModal.show();
+        }
     };
 
     function renderDetailsModalMap(lat, lng, title, plotNum) {
@@ -449,22 +722,18 @@ document.addEventListener("DOMContentLoaded", function() {
             L.circle([lat, lng], {
                 color: '#2D5A27',
                 fillColor: '#7FA668',
-                fillOpacity: 0.18,
-                weight: 2,
-                radius: 40
+                fillOpacity: 0.2,
+                radius: 45
             }).addTo(_detailsModalMap);
 
-            const pinIcon = L.divIcon({
+            const icon = L.divIcon({
                 className: '',
-                html: `<div style="width:28px;height:28px;background:#2D5A27;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);"></div>`,
-                iconSize: [28, 28],
-                iconAnchor: [14, 28]
+                html: `<div style="background:#2D5A27;width:12px;height:12px;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [12, 12]
             });
-
-            L.marker([lat, lng], { icon: pinIcon })
+            L.marker([lat, lng], { icon: icon })
                 .bindPopup(`<strong>${title}</strong><br>${plotNum}`)
-                .addTo(_detailsModalMap)
-                .openPopup();
+                .addTo(_detailsModalMap);
 
             setTimeout(() => {
                 if (_detailsModalMap) {
@@ -493,65 +762,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Keep openMapModal as an alias so any external calls continue working seamlessly
-    window.openMapModal = function(id) {
-        window.openDetailsModal(id);
-    };
-
-    // ─── Horizontal Scroll Drag & Wheel Support for Filter Chips ───────────
-    const filterChipsEl = document.getElementById('requestsFilterChips');
-    if (filterChipsEl) {
-        filterChipsEl.addEventListener('wheel', (e) => {
-            if (e.deltaY !== 0) {
-                e.preventDefault();
-                filterChipsEl.scrollLeft += e.deltaY;
-            }
-        }, { passive: false });
-
-        let isDown = false;
-        let startX = 0;
-        let scrollLeft = 0;
-        let hasMoved = false;
-
-        filterChipsEl.addEventListener('mousedown', (e) => {
-            isDown = true;
-            hasMoved = false;
-            startX = e.pageX - filterChipsEl.offsetLeft;
-            scrollLeft = filterChipsEl.scrollLeft;
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDown) {
-                isDown = false;
-                if (filterChipsEl) filterChipsEl.style.cursor = 'grab';
-            }
-        });
-
-        filterChipsEl.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            const x = e.pageX - filterChipsEl.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            if (Math.abs(walk) > 4) {
-                hasMoved = true;
-                filterChipsEl.style.cursor = 'grabbing';
-            }
-            filterChipsEl.scrollLeft = scrollLeft - walk;
-        });
-
-        // Prevent click firing if the user was dragging
-        filterChipsEl.addEventListener('click', (e) => {
-            if (hasMoved) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        }, true);
-    }
-
-    // ─── Rental Offer Approval/Decline Decision Handler ───────────────────
-    window.decideRentalOffer = async function(id, decision) {
+    // Rental Offer Approval/Decline Decision Handler
+    window.decideRentalOffer = async function (id, decision) {
         const req = requestsList.find(r => r.id === id);
-        const rateStr = req && req.offered_rental_rate 
-            ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/year` 
+        const rateStr = req && req.offered_rental_rate
+            ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/year`
             : '₱110,000/year';
 
         const confirmMsg = decision === 'approved'
@@ -572,23 +787,23 @@ document.addEventListener("DOMContentLoaded", function() {
             });
             const res = await response.json();
             if (res.status === 'success') {
-                // Hide modal if open
-                const modal = bootstrap.Modal.getInstance(viewResponseModalEl);
-                if (modal) modal.hide();
-
-                alert(res.message || (decision === 'approved' ? 'Rental offer approved! Your lease agreement is now active.' : 'Rental offer declined.'));
+                if (viewResponseModalEl) {
+                    const modal = bootstrap.Modal.getInstance(viewResponseModalEl);
+                    if (modal) modal.hide();
+                }
+                showToast(res.message || (decision === 'approved' ? 'Rental offer approved! Your lease agreement is now active.' : 'Rental offer declined.'));
                 await loadRequests();
             } else {
-                alert("Error: " + res.message);
+                showToast("Error: " + res.message, false);
             }
         } catch (err) {
             console.error("Rental decision failed:", err);
-            alert("Failed to submit rental decision. Please check your connection.");
+            showToast("Failed to submit rental decision. Please check your connection.", false);
         }
     };
 
-    // ─── Counter-Offer Handlers for Gardeners ─────────────────────────────
-    window.toggleCounterOfferForm = function(force) {
+    // Counter-Offer Handlers for Gardeners
+    window.toggleCounterOfferForm = function (force) {
         const container = document.getElementById('modal_counter_form_container');
         if (!container) return;
         if (typeof force === 'boolean') {
@@ -606,41 +821,42 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    window.updateCounterMonthlyCalc = function() {
+    window.updateCounterMonthlyCalc = function () {
         const input = document.getElementById('modal_counter_rate_input');
         const calcEl = document.getElementById('modal_counter_monthly_calc');
         if (!input || !calcEl) return;
         const val = parseFloat(input.value) || 0;
-        const monthly = val > 0 ? (val / 12) : 0;
-        calcEl.textContent = `~₱${monthly.toLocaleString('en-US', {maximumFractionDigits: 0})}/mo`;
+        const annual = val * 12;
+        calcEl.textContent = `/ mo (Annual: ~₱${annual.toLocaleString('en-US', { maximumFractionDigits: 0 })}/yr)`;
     };
 
-    window.openCounterOfferPrompt = function(id) {
+    window.openCounterOfferPrompt = function (id) {
         window.openDetailsModal(id);
         setTimeout(() => {
             window.toggleCounterOfferForm(true);
         }, 150);
     };
 
-    window.submitCurrentCounterOffer = async function() {
+    window.submitCurrentCounterOffer = async function () {
         const reqId = window._activeGardenerReqId;
         if (!reqId) {
-            alert("No active request selected.");
+            showToast("No active request selected.", false);
             return;
         }
 
         const rateInput = document.getElementById('modal_counter_rate_input');
         const notesInput = document.getElementById('modal_counter_notes_input');
-        const counterRate = parseFloat(rateInput ? rateInput.value : 0);
+        const counterMonthly = parseFloat(rateInput ? rateInput.value : 0);
         const counterNotes = notesInput ? notesInput.value.trim() : '';
 
-        if (!counterRate || counterRate <= 0) {
-            alert("Please enter a valid positive counter-offer amount (₱ / year).");
+        if (!counterMonthly || counterMonthly <= 0) {
+            showToast("Please enter a valid monthly counter-offer amount (₱ / month).", false);
             if (rateInput) rateInput.focus();
             return;
         }
 
-        const confirmMsg = `Submit rental counter-offer of ₱${counterRate.toLocaleString('en-US', {minimumFractionDigits: 2})}/year to the landowner?\n\nThis will send your proposed rate for the landowner to review and accept or adjust.`;
+        const counterAnnual = Math.round(counterMonthly * 12);
+        const confirmMsg = `Submit rental counter-offer of ₱${counterMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}/month (~₱${counterAnnual.toLocaleString()}/yr) to the landowner?\n\nThis will send your proposed rate for the landowner to review.`;
         if (!confirm(confirmMsg)) return;
 
         const btn = document.getElementById('btnSubmitCounterOffer');
@@ -656,22 +872,24 @@ document.addEventListener("DOMContentLoaded", function() {
                 body: JSON.stringify({
                     action: 'counter_offer',
                     id: reqId,
-                    counter_rate: counterRate,
+                    counter_rate: counterAnnual,
                     counter_notes: counterNotes
                 })
             });
             const res = await response.json();
             if (res.status === 'success') {
-                const modal = bootstrap.Modal.getInstance(viewResponseModalEl);
-                if (modal) modal.hide();
-                alert(res.message || 'Counter-offer submitted successfully!');
+                if (viewResponseModalEl) {
+                    const modal = bootstrap.Modal.getInstance(viewResponseModalEl);
+                    if (modal) modal.hide();
+                }
+                showToast(res.message || 'Counter-offer submitted successfully!');
                 await loadRequests();
             } else {
-                alert("Error: " + res.message);
+                showToast("Error: " + res.message, false);
             }
         } catch (err) {
             console.error("Counter-offer submission failed:", err);
-            alert("Failed to submit counter-offer. Please check your connection.");
+            showToast("Failed to submit counter-offer. Please check your connection.", false);
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -681,7 +899,5 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     window.loadRequests = loadRequests;
-
     loadRequests();
 });
-

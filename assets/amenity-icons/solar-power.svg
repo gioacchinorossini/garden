@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <!-- Amenity Icon: Solar Power -->
+  <defs>
+    <filter id="solarGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#f57f17" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Golden Sun in Upper Right -->
+  <g id="sun" filter="url(#solarGlow)">
+    <circle cx="48" cy="16" r="8" fill="#F57F17"/>
+    <circle cx="48" cy="16" r="6.8" fill="#FBC02D"/>
+    <circle cx="48" cy="16" r="5" fill="#FFF59D"/>
+    <!-- Sun rays -->
+    <line x1="48" y1="5" x2="48" y2="2" stroke="#F57F17" stroke-width="2" stroke-linecap="round"/>
+    <line x1="48" y1="27" x2="48" y2="30" stroke="#F57F17" stroke-width="2" stroke-linecap="round"/>
+    <line x1="37" y1="16" x2="34" y2="16" stroke="#F57F17" stroke-width="2" stroke-linecap="round"/>
+    <line x1="59" y1="16" x2="62" y2="16" stroke="#F57F17" stroke-width="2" stroke-linecap="round"/>
+    <line x1="40" y1="8" x2="38" y2="6" stroke="#F57F17" stroke-width="2" stroke-linecap="round"/>
+    <line x1="56" y1="24" x2="58" y2="26" stroke="#F57F17" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Ground Mound -->
+  <ellipse cx="28" cy="58" rx="22" ry="4" fill="#33691E" opacity="0.35"/>
+  <ellipse cx="28" cy="57" rx="20" ry="3" fill="#558B2F"/>
+
+  <!-- Metal Stand Mount -->
+  <path d="M 28 42 L 28 54" stroke="#455A64" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 28 42 L 28 54" stroke="#90A4AE" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 22 54 L 34 54" stroke="#37474F" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Angled Solar Photovoltaic Panel -->
+  <g id="panel">
+    <!-- Panel aluminum frame (Shadow) -->
+    <polygon points="6,45 42,45 52,24 16,24" fill="#1A237E"/>
+    <!-- Panel aluminum outer frame -->
+    <polygon points="7,44 41,44 51,25 17,25" fill="#B0BEC5"/>
+
+    <!-- Dark Silicon Blue Cell Surface -->
+    <polygon points="8.5,42.5 39.5,42.5 49.5,26.5 18.5,26.5" fill="#0D47A1"/>
+    <!-- Inner bright blue cell tiles -->
+    <polygon points="9.5,41.5 38.5,41.5 48.5,27.5 19.5,27.5" fill="#1565C0"/>
+
+    <!-- Grid lines across cells (perspective) -->
+    <!-- Horizontal busbars -->
+    <path d="M 12 37 L 41.5 37" stroke="#4FC3F7" stroke-width="1.2" opacity="0.8"/>
+    <path d="M 16 32 L 45.5 32" stroke="#4FC3F7" stroke-width="1.2" opacity="0.8"/>
+    <!-- Vertical cell dividers -->
+    <path d="M 19 42 L 27 27" stroke="#4FC3F7" stroke-width="1.2" opacity="0.8"/>
+    <path d="M 29 42 L 37 27" stroke="#4FC3F7" stroke-width="1.2" opacity="0.8"/>
+
+    <!-- Glass Reflection Slash Highlight -->
+    <polygon points="12,42 22,42 36,27 26,27" fill="#FFFFFF" opacity="0.3"/>
+    <line x1="28" y1="28" x2="38" y2="28" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+  </g>
+</svg>
+

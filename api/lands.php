@@ -40,6 +40,7 @@ if ($method === 'POST') {
         $area = isset($input['area']) ? floatval($input['area']) : 0.0;
         $description = isset($input['description']) ? htmlspecialchars(trim($input['description'])) : '';
         $crops = isset($input['crops']) ? (array)$input['crops'] : (isset($input['allowed_seeds']) ? (array)$input['allowed_seeds'] : ['Vegetables', 'Herbs']);
+        $amenities = isset($input['amenities']) ? (array)$input['amenities'] : [];
         $title_type = isset($input['title_type']) ? htmlspecialchars(trim($input['title_type'])) : '';
         $title_number = isset($input['title_number']) ? htmlspecialchars(trim($input['title_number'])) : '';
         $rod_name = isset($input['rod_name']) ? htmlspecialchars(trim($input['rod_name'])) : '';
@@ -67,26 +68,27 @@ if ($method === 'POST') {
         $owner_id = $_SESSION['user_id'] ?? 2;
         $landowner_name = $_SESSION['user_name'] ?? 'John Landowner';
         $seeds_json = json_encode(array_values($crops));
+        $amenities_json = json_encode(array_values(array_filter(array_map('trim', $amenities))));
 
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO `lands` 
-                (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon)
+                (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, amenities, plot_count, landowner_name, has_3d_view, polygon)
                 VALUES 
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $owner_id, $title, $title_type, $title_number, $rod_name, $epeb_type, $epeb_no,
                 $title_doc, $oct_doc, $receipt_doc,
-                $address, $latitude, $longitude, $area, $description, $seeds_json, $plot_count, $landowner_name, $has_3d, $polygon
+                $address, $latitude, $longitude, $area, $description, $seeds_json, $amenities_json, $plot_count, $landowner_name, $has_3d, $polygon
             ]);
             $new_id = (int)$pdo->lastInsertId();
 
-            // Auto-create partition plots with base rental prices
+            // Auto-create partition plots with base rental prices (unplanted; gardener decides crop)
             $plot_area = round($area / $plot_count, 1);
             $stmtPlot = $pdo->prepare("
                 INSERT INTO `plots` (land_id, plot_number, area_sqm, rental_price_per_year, status, crop, crop_icon, allowed_seeds, farmer_name)
-                VALUES (?, ?, ?, ?, 'available', ?, ?, ?, '')
+                VALUES (?, ?, ?, ?, 'available', '', '', ?, '')
             ");
 
             $inputPlots = $input['plots'] ?? null;
@@ -95,27 +97,21 @@ if ($method === 'POST') {
                     $pNum = $p['plot_number'] ?? ('Plot A-' . ($idx + 1));
                     $pArea = !empty($p['area_sqm']) ? floatval($p['area_sqm']) : $plot_area;
                     $pRent = !empty($p['rental_price_per_year']) ? floatval($p['rental_price_per_year']) : 110000.00;
-                    $pCrop = $p['crop'] ?? (!empty($crops) ? $crops[$idx % count($crops)] : 'Vegetables');
                     $stmtPlot->execute([
                         $new_id,
                         $pNum,
                         $pArea,
                         $pRent,
-                        $pCrop,
-                        'tomato/tomato.svg',
                         $seeds_json
                     ]);
                 }
             } else {
                 for ($i = 1; $i <= $plot_count; $i++) {
-                    $crop = !empty($crops) ? $crops[($i - 1) % count($crops)] : 'Vegetables';
                     $stmtPlot->execute([
                         $new_id,
                         'Plot A-' . $i,
                         $plot_area,
                         110000.00,
-                        $crop,
-                        'tomato/tomato.svg',
                         $seeds_json
                     ]);
                 }
@@ -172,6 +168,7 @@ if ($method === 'POST') {
         $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
         $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
         $crops = isset($input['crops']) ? (array)$input['crops'] : null;
+        $amenities = isset($input['amenities']) ? (array)$input['amenities'] : null;
 
         if (!$land_id || empty($title) || empty($address)) {
             http_response_code(400);
@@ -184,18 +181,20 @@ if ($method === 'POST') {
 
         try {
             $seeds_json = $crops !== null ? json_encode(array_values($crops)) : null;
+            $amenities_json = $amenities !== null ? json_encode(array_values(array_filter(array_map('trim', $amenities)))) : null;
             $stmt = $pdo->prepare("
                 UPDATE `lands`
                 SET `title` = ?, `address` = ?, `description` = ?,
                     `area_sqm` = COALESCE(?, `area_sqm`),
                     `latitude` = COALESCE(?, `latitude`),
                     `longitude` = COALESCE(?, `longitude`),
-                    `allowed_seeds` = COALESCE(?, `allowed_seeds`)
+                    `allowed_seeds` = COALESCE(?, `allowed_seeds`),
+                    `amenities` = COALESCE(?, `amenities`)
                 WHERE `id` = ?
             ");
             $stmt->execute([
                 $title, $address, $description,
-                $area, $latitude, $longitude, $seeds_json,
+                $area, $latitude, $longitude, $seeds_json, $amenities_json,
                 $land_id
             ]);
 
@@ -296,8 +295,6 @@ if ($method === 'POST') {
     if ($action === 'update_plot_crops') {
         $plot_id = isset($input['plot_id']) ? intval($input['plot_id']) : 0;
         $crops = isset($input['crops']) ? (array)$input['crops'] : [];
-        $crop = isset($input['crop']) ? htmlspecialchars(trim($input['crop'])) : (isset($crops[0]) ? htmlspecialchars(trim($crops[0])) : '');
-        $crop_icon = isset($input['crop_icon']) ? htmlspecialchars(trim($input['crop_icon'])) : '';
 
         if (!$plot_id) {
             http_response_code(400);
@@ -307,18 +304,54 @@ if ($method === 'POST') {
 
         try {
             $seeds_json = json_encode(array_values($crops));
+            // Landowner only configures allowed seeds (crops that can grow). Does not overwrite what gardener planted.
             $stmt = $pdo->prepare("
                 UPDATE `plots`
-                SET `allowed_seeds` = ?,
-                    `crop` = CASE WHEN ? != '' THEN ? ELSE `crop` END,
-                    `crop_icon` = CASE WHEN ? != '' THEN ? ELSE `crop_icon` END
+                SET `allowed_seeds` = ?
                 WHERE `id` = ?
             ");
-            $stmt->execute([$seeds_json, $crop, $crop, $crop_icon, $crop_icon, $plot_id]);
+            $stmt->execute([$seeds_json, $plot_id]);
 
             echo json_encode([
                 'status' => 'success',
-                'message' => 'Plot crop permissions updated successfully!'
+                'message' => 'Allowed crop permissions updated successfully!'
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'gardener_plant_crop') {
+        $plot_id = isset($input['plot_id']) ? intval($input['plot_id']) : 0;
+        $crops_arr = isset($input['crops']) && is_array($input['crops']) ? $input['crops'] : [];
+        if (empty($crops_arr) && !empty($input['crop'])) {
+            $crops_arr = array_map('trim', explode(',', $input['crop']));
+        }
+        $crops_arr = array_values(array_filter(array_unique($crops_arr)));
+        $crop = implode(', ', $crops_arr);
+
+        $crop_icon = isset($input['crop_icon']) ? htmlspecialchars(trim($input['crop_icon'])) : '';
+        if (isset($input['crop_icons']) && is_array($input['crop_icons'])) {
+            $crop_icon = json_encode($input['crop_icons']);
+        }
+
+        if (!$plot_id) {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Plot ID is required.']);
+            exit;
+        }
+
+        try {
+            $stmt = $pdo->prepare("UPDATE `plots` SET `crop` = ?, `crop_icon` = ? WHERE `id` = ?");
+            $stmt->execute([$crop, $crop_icon, $plot_id]);
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Planted crops updated successfully!',
+                'crop' => $crop,
+                'crops' => $crops_arr
             ]);
         } catch (\Exception $e) {
             http_response_code(500);
@@ -399,15 +432,23 @@ if ($method === 'POST') {
     }
 
     if ($action === 'delete_land') {
-        $land_id = isset($input['land_id']) ? intval($input['land_id']) : 0;
+        $land_id = isset($input['land_id']) ? intval($input['land_id']) : (isset($input['id']) ? intval($input['id']) : 0);
         if (!$land_id) {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Invalid land ID.']);
             exit;
         }
         try {
-            $pdo->prepare("DELETE FROM `plots` WHERE `land_id` = ?")->execute([$land_id]);
-            $pdo->prepare("DELETE FROM `lands` WHERE `id` = ?")->execute([$land_id]);
+            // Delete dependent records in case foreign key cascade is not active
+            try { $pdo->prepare("DELETE FROM `harvests` WHERE `land_id` = ?")->execute([$land_id]); } catch (\Exception $e) {}
+            try { $pdo->prepare("DELETE FROM `schedules` WHERE `land_id` = ?")->execute([$land_id]); } catch (\Exception $e) {}
+            try { $pdo->prepare("DELETE FROM `requests` WHERE `land_id` = ?")->execute([$land_id]); } catch (\Exception $e) {}
+            try { $pdo->prepare("DELETE FROM `land_images` WHERE `land_id` = ?")->execute([$land_id]); } catch (\Exception $e) {}
+            try { $pdo->prepare("DELETE FROM `plots` WHERE `land_id` = ?")->execute([$land_id]); } catch (\Exception $e) {}
+            
+            $stmt = $pdo->prepare("DELETE FROM `lands` WHERE `id` = ?");
+            $stmt->execute([$land_id]);
+            
             echo json_encode(['status' => 'success', 'message' => 'Land deleted successfully!']);
         } catch (\Exception $e) {
             http_response_code(500);

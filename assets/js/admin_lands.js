@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const viewLandModalEl = document.getElementById('viewLandModal');
     const rejectModalEl = document.getElementById('rejectModal');
     const rejectForm = document.getElementById('rejectForm');
+    const deleteLandModalEl = document.getElementById('deleteLandModal');
+    const confirmDeleteLandBtn = document.getElementById('confirmDeleteLandBtn');
 
     // Map instances
     let map;
@@ -126,6 +128,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 `;
             }
 
+            moderationButtons += `
+                <button onclick="openDeleteModal(${land.id})" class="btn icon-btn-pill" title="Delete Land">
+                    <i class="bi bi-trash3 text-danger"></i>
+                </button>
+            `;
+
             return `
                 <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom hover:bg-[#f8faff] text-sm text-dark transition-colors" style="min-height: 64px;">
                     <!-- Land Details -->
@@ -239,8 +247,9 @@ document.addEventListener("DOMContentLoaded", function() {
         // Quick Actions inside Modal
         const quickActions = document.getElementById('modal_quick_actions');
         if (quickActions) {
+            let actionsHtml = '';
             if (land.status === 'pending') {
-                quickActions.innerHTML = `
+                actionsHtml += `
                     <button onclick="approveLand(${land.id}); bootstrap.Modal.getInstance(viewLandModalEl).hide();" class="btn btn-success btn-sm px-3 rounded-pill fw-semibold">
                         <i class="bi bi-check-circle me-1"></i>Approve Land
                     </button>
@@ -248,9 +257,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <i class="bi bi-x-circle me-1"></i>Reject Land
                     </button>
                 `;
-            } else {
-                quickActions.innerHTML = '';
             }
+            actionsHtml += `
+                <button onclick="bootstrap.Modal.getInstance(viewLandModalEl).hide(); openDeleteModal(${land.id});" class="btn btn-outline-danger btn-sm px-3 rounded-pill fw-semibold">
+                    <i class="bi bi-trash3 me-1"></i>Delete Land
+                </button>
+            `;
+            quickActions.innerHTML = actionsHtml;
         }
 
         const reasonBlock = document.getElementById('modal_reason_block');
@@ -273,6 +286,77 @@ document.addEventListener("DOMContentLoaded", function() {
         const modal = new bootstrap.Modal(rejectModalEl);
         modal.show();
     };
+
+    // Open Delete Modal
+    window.openDeleteModal = function(id) {
+        const land = landsList.find(l => l.id === id);
+        if (!land) return;
+
+        document.getElementById('delete_land_id').value = id;
+        document.getElementById('delete_land_title').innerText = land.title;
+
+        if (deleteLandModalEl) {
+            const modal = new bootstrap.Modal(deleteLandModalEl);
+            modal.show();
+        } else {
+            window.deleteLand(id);
+        }
+    };
+
+    // Execute Delete API Call
+    async function executeDeleteLand(id) {
+        try {
+            const response = await fetch('../api/lands.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'delete_land',
+                    land_id: id,
+                    id: id
+                })
+            });
+            const res = await response.json();
+            if (res.status === 'success') {
+                if (deleteLandModalEl) {
+                    const modal = bootstrap.Modal.getInstance(deleteLandModalEl);
+                    if (modal) modal.hide();
+                }
+                loadLands();
+            } else {
+                alert("Error: " + res.message);
+            }
+        } catch (err) {
+            console.error("Delete land failed:", err);
+            alert("An error occurred while deleting the land.");
+        }
+    }
+
+    // Direct delete fallback
+    window.deleteLand = async function(id) {
+        const land = landsList.find(l => l.id === id);
+        const title = land ? `"${land.title}"` : 'this land';
+        if (!confirm(`Are you sure you want to permanently delete ${title} and all associated plots?`)) return;
+        await executeDeleteLand(id);
+    };
+
+    // Confirm button in Delete Modal
+    if (confirmDeleteLandBtn) {
+        confirmDeleteLandBtn.addEventListener('click', async function() {
+            const id = parseInt(document.getElementById('delete_land_id').value);
+            if (!id) return;
+
+            confirmDeleteLandBtn.disabled = true;
+            const originalHtml = confirmDeleteLandBtn.innerHTML;
+            confirmDeleteLandBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Deleting...';
+
+            try {
+                await executeDeleteLand(id);
+            } finally {
+                confirmDeleteLandBtn.disabled = false;
+                confirmDeleteLandBtn.innerHTML = originalHtml;
+            }
+        });
+    }
 
     // Submit Reject Form
     if (rejectForm) {

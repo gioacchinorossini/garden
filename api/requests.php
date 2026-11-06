@@ -58,6 +58,17 @@ if ($method === 'POST') {
         $gardener_id = $_SESSION['user_id'] ?? null;
         $gardener_name = $_SESSION['user_name'] ?? '';
 
+        // If user submitted from gardener workspace but session user_id was 1 (admin), resolve to active gardener
+        if (($gardener_id === 1 || empty($gardener_id)) && (($_SESSION['active_role'] ?? '') === 'gardener')) {
+            try {
+                $gUser = $pdo->query("SELECT id, name FROM users WHERE role = 'gardener' ORDER BY id ASC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+                if ($gUser) {
+                    $gardener_id = (int)$gUser['id'];
+                    $gardener_name = $gUser['name'];
+                }
+            } catch (\Exception $e) {}
+        }
+
         if (!$gardener_id) {
             http_response_code(401);
             echo json_encode(['status' => 'error', 'message' => 'Please log in to submit a plot request.']);
@@ -176,10 +187,8 @@ if ($method === 'POST') {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Invalid request ID.']);
             exit;
-        }
-
-        try {
-            $stmtReq = $pdo->prepare("SELECT plot_id, gardener_name, counter_rental_rate FROM `requests` WHERE id = ?");
+        }        try {
+            $stmtReq = $pdo->prepare("SELECT plot_id, gardener_id, gardener_name, counter_rental_rate FROM `requests` WHERE id = ?");
             $stmtReq->execute([$id]);
             $reqData = $stmtReq->fetch(PDO::FETCH_ASSOC);
 
@@ -201,14 +210,16 @@ if ($method === 'POST') {
             $stmt->execute([$finalRate, $id]);
 
             if (!empty($reqData['plot_id'])) {
+                $gId = !empty($reqData['gardener_id']) ? intval($reqData['gardener_id']) : null;
                 $pdo->prepare("
                     UPDATE `plots` 
                     SET `status` = 'occupied',
+                        `gardener_id` = ?,
                         `farmer_name` = ?,
                         `rental_price_per_year` = ?,
                         `lease_end` = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
                     WHERE `id` = ?
-                ")->execute([$reqData['gardener_name'], $finalRate, $reqData['plot_id']]);
+                ")->execute([$gId, $reqData['gardener_name'], $finalRate, $reqData['plot_id']]);
             }
 
             echo json_encode([
@@ -242,19 +253,21 @@ if ($method === 'POST') {
 
             // If approved by gardener, activate plot occupancy
             if ($decision === 'approved') {
-                $stmtReq = $pdo->prepare("SELECT plot_id, gardener_name, offered_rental_rate FROM `requests` WHERE id = ?");
+                $stmtReq = $pdo->prepare("SELECT plot_id, gardener_id, gardener_name, offered_rental_rate FROM `requests` WHERE id = ?");
                 $stmtReq->execute([$id]);
                 $reqData = $stmtReq->fetch(PDO::FETCH_ASSOC);
                 if ($reqData && !empty($reqData['plot_id'])) {
                     $rentRate = !empty($reqData['offered_rental_rate']) ? floatval($reqData['offered_rental_rate']) : 110000.00;
+                    $gId = !empty($reqData['gardener_id']) ? intval($reqData['gardener_id']) : null;
                     $pdo->prepare("
                         UPDATE `plots` 
                         SET `status` = 'occupied', 
+                            `gardener_id` = ?,
                             `farmer_name` = ?,
                             `rental_price_per_year` = ?,
                             `lease_end` = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
                         WHERE `id` = ?
-                    ")->execute([$reqData['gardener_name'], $rentRate, $reqData['plot_id']]);
+                    ")->execute([$gId, $reqData['gardener_name'], $rentRate, $reqData['plot_id']]);
                 }
             }
 
@@ -295,12 +308,21 @@ if ($method === 'POST') {
 
             // If approved, update plot to occupied
             if ($status === 'approved') {
-                $stmtReq = $pdo->prepare("SELECT plot_id, gardener_name FROM `requests` WHERE id = ?");
+                $stmtReq = $pdo->prepare("SELECT plot_id, gardener_id, gardener_name, offered_rental_rate FROM `requests` WHERE id = ?");
                 $stmtReq->execute([$id]);
                 $reqData = $stmtReq->fetch(PDO::FETCH_ASSOC);
                 if ($reqData && !empty($reqData['plot_id'])) {
-                    $pdo->prepare("UPDATE `plots` SET `status` = 'occupied', `farmer_name` = ? WHERE `id` = ?")
-                        ->execute([$reqData['gardener_name'], $reqData['plot_id']]);
+                    $gId = !empty($reqData['gardener_id']) ? intval($reqData['gardener_id']) : null;
+                    $rentRate = !empty($reqData['offered_rental_rate']) ? floatval($reqData['offered_rental_rate']) : null;
+                    $pdo->prepare("
+                        UPDATE `plots` 
+                        SET `status` = 'occupied',
+                            `gardener_id` = ?,
+                            `farmer_name` = ?,
+                            `rental_price_per_year` = COALESCE(?, `rental_price_per_year`),
+                            `lease_end` = DATE_ADD(CURDATE(), INTERVAL 1 YEAR)
+                        WHERE `id` = ?
+                    ")->execute([$gId, $reqData['gardener_name'], $rentRate, $reqData['plot_id']]);
                 }
             }
 

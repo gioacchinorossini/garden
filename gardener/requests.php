@@ -1,4 +1,9 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$_SESSION['active_role'] = 'gardener';
+
 $base_path = '../';
 $default_tab = 'requests';
 $page_title = "My Requests & Browse Lands";

@@ -34,6 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $seeds = ['Vegetables', 'Herbs'];
     }
 
+    $amenities = isset($_POST['amenities']) ? array_map('htmlspecialchars', (array)$_POST['amenities']) : [];
+    $amenities = array_values(array_filter(array_map('trim', $amenities)));
+    $amenities_json = json_encode($amenities);
+
     // Handle Document Upload
     $title_doc_path = '';
     $oct_file = $_FILES['oct_document'] ?? $_FILES['title_document'] ?? null;
@@ -59,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         $stmt = $pdo->prepare("
             INSERT INTO `lands` 
-            (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, plot_count, landowner_name, has_3d_view, polygon, harvest_share_type, landowner_share_percentage, landowner_share_kg)
+            (owner_id, title, title_type, title_number, rod_name, epeb_type, epeb_no, title_document_path, oct_document_path, lra_receipt_path, is_lra_verified, address, latitude, longitude, area_sqm, status, description, allowed_seeds, amenities, plot_count, landowner_name, has_3d_view, polygon, harvest_share_type, landowner_share_percentage, landowner_share_kg)
             VALUES 
-            (?, ?, '', '', '', '', '', ?, ?, '', 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (?, ?, '', '', '', '', '', ?, ?, '', 0, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $owner_id,
@@ -74,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $area,
             $desc,
             $seeds_json,
+            $amenities_json,
             $plot_count,
             $landowner_name,
             $has_3d,
@@ -96,29 +101,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             for ($i = 0; $i < $submitted_plots; $i++) {
                 $pNum = htmlspecialchars(trim($_POST['plot_numbers'][$i] ?? ('Plot A-' . ($i + 1))));
                 $pArea = max(1.0, floatval($_POST['plot_areas'][$i] ?? $plot_area));
-                $pRent = max(0.0, floatval($_POST['plot_base_rents'][$i] ?? 110000.00));
-                $pCrop = !empty($_POST['plot_crops'][$i]) ? htmlspecialchars(trim($_POST['plot_crops'][$i])) : (!empty($seeds) ? $seeds[$i % count($seeds)] : 'Vegetables');
+                if (isset($_POST['plot_monthly_rents'][$i]) && is_numeric($_POST['plot_monthly_rents'][$i])) {
+                    $pMonthly = max(0.0, floatval($_POST['plot_monthly_rents'][$i]));
+                    $pRent = round($pMonthly * 12, 2);
+                } else {
+                    $pRent = max(0.0, floatval($_POST['plot_base_rents'][$i] ?? 110000.00));
+                }
+                // Newly created plots are unplanted; gardener chooses crop upon renting
                 $stmtPlot->execute([
                     $new_id,
                     $pNum,
                     $pArea,
                     $pRent,
-                    $pCrop,
-                    'tomato/tomato.svg',
+                    '',
+                    '',
                     $seeds_json
                 ]);
             }
         } else {
-            // Fallback: auto-create plots with default ₱110k/yr base rent
+            // Fallback: auto-create plots with default ₱110k/yr base rent, unplanted
             for ($i = 1; $i <= $plot_count; $i++) {
-                $crop = !empty($seeds) ? $seeds[($i - 1) % count($seeds)] : 'Vegetables';
                 $stmtPlot->execute([
                     $new_id,
                     'Plot A-' . $i,
                     $plot_area,
                     110000.00,
-                    $crop,
-                    'tomato/tomato.svg',
+                    '',
+                    '',
                     $seeds_json
                 ]);
             }
@@ -240,32 +249,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </button>
                     </div>
 
-                    <button type="button"
-                        class="btn btn-xs bg-white bg-opacity-95 border rounded-pill px-2 py-0.5 text-xs fw-semibold text-dark shadow-sm d-none"
-                        id="btnRotateLeft" onclick="rotatePlot(-15)" title="Rotate plot 15° Counter-Clockwise"
-                        style="backdrop-filter: blur(10px);">
-                        <i class="bi bi-arrow-counterclockwise text-success me-0.5"></i>-15°
-                    </button>
-                    <button type="button"
-                        class="btn btn-xs bg-white bg-opacity-95 border rounded-pill px-2 py-0.5 text-xs fw-semibold text-dark shadow-sm d-none"
-                        id="btnRotateRight" onclick="rotatePlot(15)" title="Rotate plot 15° Clockwise"
-                        style="backdrop-filter: blur(10px);">
-                        <i class="bi bi-arrow-clockwise text-success me-0.5"></i>+15°
-                    </button>
+
 
                     <button type="button"
                         class="btn btn-xs btn-outline-danger bg-white bg-opacity-95 rounded-pill px-2 py-0.5 text-xs d-none shadow-sm"
                         id="btnClearDrawnPlot" onclick="clearDrawnPlot()" title="Clear drawn plot boundary"
                         style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
                         <i class="bi bi-trash3 me-1"></i>Clear
-                    </button>
-
-                    <button type="button"
-                        class="btn btn-xs btn-outline-success bg-white bg-opacity-95 rounded-pill px-2 py-0.5 text-xs d-none fw-semibold shadow-sm"
-                        id="btnEditPlotArea" onclick="openLandAreaModal()"
-                        title="Click to change target land area in square meters"
-                        style="backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
-                        <i class="bi bi-rulers me-1"></i><span id="targetAreaBadge">250 m²</span>
                     </button>
 
                     <!-- 2D / 3D Switcher -->
@@ -285,28 +275,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 <!-- Floating Drawing Status & Instruction Helper -->
                 <div class="map-drawing-helper-pill d-none" id="mapDrawingHelper"
-                    style="position: absolute; top: 48px; left: 10px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.14); box-shadow: 0 6px 18px rgba(0,0,0,0.15); border-radius: 50rem; padding: 4px 12px;">
-                    <div class="d-flex align-items-center gap-2">
-                        <span id="mapDrawingHelperText" class="text-xs fw-semibold text-dark">Click on the map to add
-                            boundary corners</span>
+                    style="position: absolute; top: 48px; left: 10px; z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.14); box-shadow: 0 4px 14px rgba(0,0,0,0.12); border-radius: 50rem; padding: 2px 10px; font-size: 0.72rem; max-width: calc(100% - 20px);">
+                    <div class="d-flex align-items-center gap-1.5 text-nowrap">
+                        <span id="mapDrawingHelperText" class="fw-semibold text-dark text-truncate" style="font-size: 0.72rem;">Click on the map to add boundary corners</span>
                         <button type="button"
-                            class="btn btn-xs btn-success rounded-pill px-2 py-0.5 text-xs fw-bold d-none"
-                            id="btnFinishPolygon" onclick="finishCurrentPolygon()">
+                            class="btn btn-xs btn-success rounded-pill px-2 py-0 fw-bold d-none flex-shrink-0"
+                            id="btnFinishPolygon" onclick="finishCurrentPolygon()" style="font-size: 0.7rem; height: 22px;">
                             <i class="bi bi-check-circle me-1"></i>Finish
                         </button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5 text-xs"
-                            onclick="cancelPlotDrawing()">
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0 flex-shrink-0"
+                            onclick="cancelPlotDrawing()" style="font-size: 0.7rem; height: 22px;">
                             Cancel
                         </button>
                     </div>
                 </div>
 
-                <!-- Floating Partition Plots Control Overlay (Pops up after plot boundary is drawn - Bottom Left) -->
-                <div class="position-absolute shadow-sm d-none" id="plotControlOverlay"
-                    style="bottom: 48px; left: 10px; z-index: 1000; width: auto; min-width: 190px; max-width: 220px;">
-                    <div class="card border rounded-3 bg-white bg-opacity-95 p-2 shadow-sm"
-                        style="backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-color: rgba(22, 163, 74, 0.25) !important;">
-                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
+                <!-- Floating Partition Plots Control Overlay (Centered horizontally over map area, elevated above status bar) -->
+                <div class="position-absolute" id="plotControlOverlay"
+                    style="bottom: 54px; left: 50%; transform: translateX(-50%); z-index: 1001; width: auto; min-width: 210px; max-width: 240px; pointer-events: auto;">
+                    <div class="bg-white rounded-3 p-2 shadow-sm border"
+                        style="border-color: var(--drive-border-subtle, #DFCFC2) !important;">
+                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1.5">
                             <span class="fw-bold text-dark d-flex align-items-center gap-1" style="font-size: 0.72rem;">
                                 <i class="bi bi-grid-3x3-gap-fill text-success"></i>
                                 <span>Plots</span>
@@ -316,39 +305,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 4 plots (~62.5 m²)
                             </span>
                         </div>
-                        <input type="hidden" id="plot_count" name="plot_count" value="4">
-                        <input type="hidden" id="singlePlotArea" value="62.5">
-                        <!-- Compact Plot Buttons instead of Dropdown -->
-                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1">
-                            <div class="btn-group btn-group-sm w-100 p-0.5 bg-light rounded-2 border" role="group"
-                                aria-label="Partition plots count">
-                                <button type="button"
-                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
-                                    data-count="1" onclick="selectPlotCount(1, this)"
-                                    style="font-size: 0.72rem;">1</button>
-                                <button type="button"
-                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
-                                    data-count="2" onclick="selectPlotCount(2, this)"
-                                    style="font-size: 0.72rem;">2</button>
-                                <button type="button"
-                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-success active text-white border-0"
-                                    data-count="4" onclick="selectPlotCount(4, this)"
-                                    style="font-size: 0.72rem;">4</button>
-                                <button type="button"
-                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
-                                    data-count="6" onclick="selectPlotCount(6, this)"
-                                    style="font-size: 0.72rem;">6</button>
-                                <button type="button"
-                                    class="btn btn-xs plot-count-btn py-0.5 px-1 rounded-1 fw-bold btn-light text-secondary border-0"
-                                    data-count="8" onclick="selectPlotCount(8, this)"
-                                    style="font-size: 0.72rem;">8</button>
-                            </div>
+                        <!-- Plot Count Buttons -->
+                        <div class="d-flex align-items-center justify-content-between gap-1 mb-1.5"
+                            role="group" aria-label="Partition plots count">
+                            <button type="button" class="plot-count-btn" data-count="1" onclick="selectPlotCount(1, this)">1</button>
+                            <button type="button" class="plot-count-btn" data-count="2" onclick="selectPlotCount(2, this)">2</button>
+                            <button type="button" class="plot-count-btn active" data-count="4" onclick="selectPlotCount(4, this)">4</button>
+                            <button type="button" class="plot-count-btn" data-count="6" onclick="selectPlotCount(6, this)">6</button>
+                            <button type="button" class="plot-count-btn" data-count="8" onclick="selectPlotCount(8, this)">8</button>
                         </div>
-                        <div class="pt-1 border-top d-flex align-items-center justify-content-between"
-                            style="font-size: 0.66rem;">
+                        <div class="pt-1.5 border-top d-flex align-items-center justify-content-between"
+                            style="font-size: 0.66rem; border-color: var(--drive-border-subtle, #DFCFC2) !important;">
                             <span class="text-muted" id="drawnBoundarySummary">Standard Grid</span>
                             <button type="button" class="btn btn-link text-success p-0 text-decoration-none fw-semibold"
-                                style="font-size: 0.68rem;" onclick="openLandAreaModal()" title="Resize plot area">
+                                style="font-size: 0.68rem; box-shadow: none !important; transform: none !important;" onclick="openLandAreaModal()" title="Resize plot area">
                                 <i class="bi bi-rulers me-0.5"></i>Change Area
                             </button>
                         </div>
@@ -356,11 +326,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
 
                 <!-- 2D Leaflet Map Canvas (Above the Form - Expanded Size) -->
-                <div id="pickerMap" style="height: 400px; min-height: 500px; background-color: #e9f2ff;"></div>
+                <div id="pickerMap" class="register-picker-map" style="height: 100%; min-height: 520px; background-color: #e9f2ff;"></div>
 
-                <!-- Floating GPS Go To My Location Button -->
+                <!-- Floating Map Controls: Satellite Toggle & GPS Go To My Location Button -->
                 <div class="position-absolute d-flex flex-column gap-2"
-                    style="bottom: 46px; right: 14px; z-index: 1001;">
+                    style="bottom: 24px; right: 14px; z-index: 1001;" id="mapFloatingFabControls">
+                    <button type="button" class="map-fab-btn" onclick="toggleSatelliteLayer()" title="Toggle Satellite View"
+                        id="btnToggleSatellite">
+                        <i class="bi bi-layers text-primary fs-5" id="btnToggleSatelliteIcon"></i>
+                    </button>
                     <button type="button" class="map-fab-btn" onclick="useCurrentLocation()" title="Go to My Location"
                         id="btnGoToMyLocation">
                         <i class="bi bi-crosshair text-success fs-5"></i>
@@ -368,12 +342,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
 
                 <!-- 3D City & Garden Visualization Container -->
-                <div id="register3DMapContainer" class="map3d-container" style="height: 40f0px; min-height: 500px;">
+                <div id="register3DMapContainer" class="map3d-container" style="height: 100%; min-height: 520px;">
                 </div>
 
-                <!-- Pinned Address / Coordinates Status Bar -->
-                <div class="map-picker-status-bar" id="mapStatusBar">
-                    <div class="d-flex align-items-center gap-1 text-truncate">
+                <!-- Pinned Address / Coordinates Floating Status Pill -->
+                <div class="map-picker-status-bar position-absolute shadow-sm" id="mapStatusBar"
+                    style="bottom: 14px; left: 14px; z-index: 1000; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1.5px solid rgba(0, 0, 0, 0.14); border-radius: 50rem; padding: 4px 12px; font-size: 0.76rem; font-weight: 600; color: var(--drive-text-main, #3E2B1E); max-width: min(420px, calc(100% - 150px)); pointer-events: auto; display: flex; align-items: center; gap: 8px;">
+                    <div class="d-flex align-items-center gap-1.5 text-truncate">
                         <i class="bi bi-pin-map-fill text-danger flex-shrink-0"></i>
                         <span class="text-truncate" id="pinnedAddressText">No location selected yet</span>
                     </div>
@@ -467,10 +442,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             rows="4" placeholder=""></textarea>
                     </div>
 
-                    <!-- Allowed Seed Types / Permitted Crops (col-md-6) -->
+                    <!-- Crops That Can Grow (col-md-6) -->
                     <div class="col-md-6">
                         <div class="d-flex align-items-center justify-content-between mb-1">
-                            <label class="form-label text-secondary m-0 fw-semibold text-xs">PERMITTED CROPS</label>
+                            <label class="form-label text-secondary m-0 fw-semibold text-xs">CROPS</label>
                             <button type="button"
                                 class="btn btn-sm btn-drive-secondary rounded-pill px-2.5 py-1 d-flex align-items-center gap-1.5 text-xs"
                                 data-bs-toggle="modal" data-bs-target="#permittedCropsModal">
@@ -483,73 +458,145 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div id="selectedCropsSummary"
                             class="p-3 border rounded-4 bg-light d-flex flex-wrap gap-2 align-items-center"
                             style="min-height: 100px; max-height: 120px; overflow-y: auto; border-color: var(--drive-border) !important;">
-                            <span class="text-muted text-xs italic" id="emptyCropsNotice">No specific crops selected
-                                (All crops permitted by default). Click "Select Crops" to restrict allowed crop
-                                types.</span>
+                            <span class="text-muted text-xs italic" id="emptyCropsNotice">No specific crops selected.
+                                Click "Select Crops" to specify crops that can grow on this land.</span>
                         </div>
 
                         <!-- Hidden container for checked inputs submitted with form -->
                         <div id="hiddenSeedInputs"></div>
                     </div>
 
+                    <!-- Available Amenities & Utilities (col-md-6) -->
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <label class="form-label text-secondary m-0 fw-semibold text-xs">AVAILABLE AMENITIES &amp; UTILITIES</label>
+                            <button type="button"
+                                class="btn btn-sm btn-drive-secondary rounded-pill px-2.5 py-1 d-flex align-items-center gap-1.5 text-xs"
+                                data-bs-toggle="modal" data-bs-target="#amenitiesModal">
+                                <i data-lucide="search" style="width: 13px; height: 13px;"></i>
+                                <span>Select Amenities</span>
+                            </button>
+                        </div>
+
+                        <!-- Selected Amenities Summary Box -->
+                        <div id="selectedAmenitiesSummary"
+                            class="p-3 border rounded-4 bg-light d-flex flex-wrap gap-2 align-items-center"
+                            style="min-height: 100px; max-height: 120px; overflow-y: auto; border-color: var(--drive-border) !important;">
+                            <span class="text-muted text-xs italic" id="emptyAmenitiesNotice">No amenities selected.
+                                Click "Select Amenities" to specify available water, electricity, and site facilities.</span>
+                        </div>
+
+                        <!-- Hidden container for submitted amenities[] -->
+                        <div id="hiddenAmenitiesInputs"></div>
+                    </div>
+
                     <!-- REQUIRED PLOT PARTITIONING & BASE RENT CONFIGURATION (col-12) -->
                     <div class="col-12 mt-3 pt-3 border-top">
-                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+                        <div
+                            class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
                             <div>
-                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2"
+                                    style="font-size: 0.95rem;">
                                     <i class="bi bi-grid-3x3-gap-fill text-success fs-5"></i>
                                     <span>Plot Partitioning &amp; Base Rent Specification</span>
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size: 10px; padding: 3px 8px;">Required</span>
+                                    <span
+                                        class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"
+                                        style="font-size: 10px; padding: 3px 8px;">Required</span>
                                 </h6>
                                 <p class="text-secondary mb-0 mt-1" style="font-size: 0.78rem;">
-                                    Partition this land into individual plots and set the required base rent (₱/year) for each plot. Gardeners will see this base rent and may submit counter-offers during lease negotiations.
+                                    Partition this land into individual plots and set the required base rent (₱/year)
+                                    for each plot. Gardeners will see this base rent and may submit counter-offers
+                                    during lease negotiations.
                                 </p>
                             </div>
                             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                <span class="badge bg-light text-secondary border rounded-pill px-3 py-1.5 text-xs font-medium" id="plotCalcSummaryBadge">
+                                <span
+                                    class="badge bg-light text-secondary border rounded-pill px-3 py-1.5 text-xs font-medium"
+                                    id="plotCalcSummaryBadge">
                                     <i class="bi bi-info-circle text-primary me-1"></i> Standard: ₱110,000/yr for ~50m²
                                 </span>
                             </div>
                         </div>
 
                         <!-- Plot Count Selector & Quick Presets -->
-                        <div class="p-3 rounded-4 bg-light border mb-3" style="border-color: var(--drive-border) !important;">
+                        <div class="p-3 rounded-4 bg-light border mb-3"
+                            style="border-color: var(--drive-border) !important;">
                             <div class="row g-3 align-items-center">
                                 <div class="col-sm-5 col-md-4">
-                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">NUMBER OF PLOTS (MIN: 1)</label>
+                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">NUMBER OF PLOTS
+                                        (MIN: 1)</label>
                                     <div class="input-group">
-                                        <button type="button" class="btn btn-outline-secondary px-3" onclick="adjustPlotCount(-1)">
+                                        <button type="button" class="btn btn-outline-secondary px-3"
+                                            onclick="adjustPlotCount(-1)">
                                             <i class="bi bi-dash-lg"></i>
                                         </button>
-                                        <input type="number" id="plot_count" name="plot_count" class="form-control text-center fw-bold text-dark" value="4" min="1" max="20" onchange="onPlotCountChanged(this.value)">
-                                        <button type="button" class="btn btn-outline-secondary px-3" onclick="adjustPlotCount(1)">
+                                        <input type="number" id="plot_count" name="plot_count"
+                                            class="form-control text-center fw-bold text-dark" value="4" min="1"
+                                            max="20" onchange="onPlotCountChanged(this.value)">
+                                        <button type="button" class="btn btn-outline-secondary px-3"
+                                            onclick="adjustPlotCount(1)">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="col-sm-7 col-md-8">
-                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">QUICK PARTITION PRESETS</label>
+                                    <label class="form-label text-secondary fw-semibold text-xs mb-1">QUICK PARTITION
+                                        PRESETS</label>
                                     <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(1, this)">1 Plot (Single)</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(2, this)">2 Plots</button>
-                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 text-xs text-white plot-preset-btn active" onclick="selectPlotCountPreset(4, this)">4 Plots</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(6, this)">6 Plots</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn" onclick="selectPlotCountPreset(8, this)">8 Plots</button>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn"
+                                            onclick="selectPlotCountPreset(1, this)">1 Plot (Single)</button>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn"
+                                            onclick="selectPlotCountPreset(2, this)">2 Plots</button>
+                                        <button type="button"
+                                            class="btn btn-sm btn-success rounded-pill px-3 py-1 text-xs text-white plot-preset-btn active"
+                                            onclick="selectPlotCountPreset(4, this)">4 Plots</button>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn"
+                                            onclick="selectPlotCountPreset(6, this)">6 Plots</button>
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 text-xs plot-preset-btn"
+                                            onclick="selectPlotCountPreset(8, this)">8 Plots</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Interactive Plot Breakdown Cards Table -->
-                        <div class="border rounded-4 overflow-hidden mb-3 bg-white" style="border-color: var(--drive-border) !important;">
+                        <div class="border rounded-4 overflow-hidden mb-3 bg-white"
+                            style="border-color: var(--drive-border) !important;">
+                            <div class="p-2.5 bg-light border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2"
+                                style="border-color: var(--drive-border) !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-xs fw-bold text-dark text-uppercase"
+                                        style="letter-spacing: 0.5px;">Partition Sizing &amp; Base Rent</span>
+                                    <span id="allocatedAreaBadge"
+                                        class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 text-xs fw-semibold">
+                                        <i class="bi bi-check-circle-fill me-1"></i>250 / 250 m² (100% Allocated)
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button"
+                                        class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 text-xs fw-semibold"
+                                        onclick="resetPlotsToEqualSizes()"
+                                        title="Redistribute total land area equally across all plots">
+                                        <i class="bi bi-distribute-vertical me-1 text-success"></i>Distribute Equally
+                                    </button>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0" id="plotsConfigTable">
-                                    <thead class="table-light text-xs text-secondary text-uppercase" style="letter-spacing: 0.5px;">
+                                    <thead class="table-light text-xs text-secondary text-uppercase"
+                                        style="letter-spacing: 0.5px;">
                                         <tr>
                                             <th style="width: 25%;" class="ps-3 py-2.5">Plot Identifier</th>
-                                            <th style="width: 20%;" class="py-2.5">Area (m²)</th>
-                                            <th style="width: 35%;" class="py-2.5">Base Annual Rent (₱ / Year) <span class="text-danger">*</span></th>
-                                            <th style="width: 20%;" class="pe-3 py-2.5 text-end">Monthly Rent</th>
+                                            <th style="width: 22%;" class="py-2.5">Area (m²) <span
+                                                    class="text-success text-xxs font-normal ms-1">(Auto-balancing)</span>
+                                            </th>
+                                            <th style="width: 33%;" class="py-2.5">Monthly Fee (₱ / Month) <span
+                                                    class="text-danger">*</span></th>
+                                            <th style="width: 20%;" class="pe-3 py-2.5 text-end">Annual Projection</th>
                                         </tr>
                                     </thead>
                                     <tbody id="plotsConfigTableBody" class="text-sm">
@@ -557,16 +604,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     </tbody>
                                 </table>
                             </div>
-                            <div class="p-3 bg-light border-top d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-color: var(--drive-border) !important;">
+                            <div class="p-3 bg-light border-top d-flex flex-wrap align-items-center justify-content-between gap-3"
+                                style="border-color: var(--drive-border) !important;">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="text-secondary text-xs fw-semibold">TOTAL PROJECTED RENTAL EARNINGS:</span>
-                                    <span class="fs-5 fw-bold text-success" id="totalProjectedAnnualRent">₱440,000.00</span>
-                                    <span class="text-muted text-xs">/ year</span>
+                                    <span class="text-secondary text-xs fw-semibold">TOTAL MONTHLY EARNINGS:</span>
+                                    <span class="fs-5 fw-bold text-success"
+                                        id="totalProjectedMonthlyRent">₱36,666.67</span>
+                                    <span class="text-muted text-xs">/ month</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="text-secondary text-xs fw-semibold">MONTHLY PROJECTION:</span>
-                                    <span class="fs-6 fw-bold text-dark" id="totalProjectedMonthlyRent">₱36,666.67</span>
-                                    <span class="text-muted text-xs">/ month</span>
+                                    <span class="text-secondary text-xs fw-semibold">ANNUAL PROJECTION:</span>
+                                    <span class="fs-6 fw-bold text-dark"
+                                        id="totalProjectedAnnualRent">₱440,000.00</span>
+                                    <span class="text-muted text-xs">/ year</span>
                                 </div>
                             </div>
                         </div>
@@ -614,6 +664,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 require_once __DIR__ . '/../includes/crops_library.php';
 $seedTypes = getPermittedCropsSeedList('../');
 $cropCategories = getCropCategories();
+$amenityTypes = get_standard_amenities('../');
 ?>
 
 <!-- Permitted Crops Selection Modal -->
@@ -625,10 +676,10 @@ $cropCategories = getCropCategories();
                     <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
                         <img src="../assets/crop-icons/generic-plant/generic-plant.svg" class="w-6 h-6 object-contain"
                             alt="Crops">
-                        Select Permitted Crops
+                        Select Crops
                     </h5>
-                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the crop types gardeners are
-                        allowed to cultivate on this land.</p>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the crops and plants you know can
+                        grow well on this land.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -653,14 +704,18 @@ $cropCategories = getCropCategories();
                 </div>
 
                 <!-- Category Filters Scrollable Pills -->
-                <div class="d-flex gap-1.5 overflow-x-auto pb-2 mb-3" id="cropCategoryFilters" style="white-space: nowrap;">
-                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-2.5 py-1 text-xs crop-cat-pill active flex-shrink-0"
+                <div class="d-flex gap-1.5 overflow-x-auto pb-2 mb-3" id="cropCategoryFilters"
+                    style="white-space: nowrap;">
+                    <button type="button"
+                        class="btn btn-xs btn-primary rounded-pill px-2.5 py-1 text-xs crop-cat-pill active flex-shrink-0"
                         onclick="setCropCategoryFilter('all', this)">All (<?php echo count($seedTypes); ?>)</button>
                     <?php foreach ($cropCategories as $catId => $cat): ?>
-                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs crop-cat-pill flex-shrink-0"
+                        <button type="button"
+                            class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs crop-cat-pill flex-shrink-0"
                             onclick="setCropCategoryFilter('<?php echo $catId; ?>', this)">
-                            <span><?php echo $cat['icon']; ?> <?php echo $cat['name']; ?></span>
-                            <span class="badge bg-light text-dark ms-1 rounded-pill" style="font-size: 10px;"><?php echo $cat['count']; ?></span>
+                            <span><?php echo $cat['icon']; ?>     <?php echo $cat['name']; ?></span>
+                            <span class="badge bg-light text-dark ms-1 rounded-pill"
+                                style="font-size: 10px;"><?php echo $cat['count']; ?></span>
                         </button>
                     <?php endforeach; ?>
                 </div>
@@ -682,8 +737,8 @@ $cropCategories = getCropCategories();
                                         <img src="<?php echo $seed['icon']; ?>" alt="<?php echo $seed['label']; ?>"
                                             class="w-5 h-5 object-contain" loading="lazy">
                                     </div>
-                                    <span
-                                        class="fw-semibold text-dark text-xs truncate" title="<?php echo $seed['label']; ?>"><?php echo $seed['label']; ?></span>
+                                    <span class="fw-semibold text-dark text-xs truncate"
+                                        title="<?php echo $seed['label']; ?>"><?php echo $seed['label']; ?></span>
                                 </div>
                                 <div class="crop-check-icon text-primary hidden">
                                     <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #1a73e8;"></i>
@@ -704,67 +759,181 @@ $cropCategories = getCropCategories();
     </div>
 </div>
 
-<!-- Modal to Ask for Square Meters Before Drawing -->
+<!-- Available Amenities Selection Modal -->
+<div class="modal fade" id="amenitiesModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
+            <div class="modal-header border-bottom px-4 py-3 bg-white">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
+                        <img src="../assets/amenity-icons/general.svg" class="w-6 h-6 object-contain" alt="Amenities">
+                        Select Amenities &amp; Utilities
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the utilities and infrastructure available for gardeners on this land.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light">
+                <!-- Search & Quick Selection Actions -->
+                <div class="d-flex flex-column flex-sm-row gap-3 align-items-center justify-content-between mb-3">
+                    <div class="position-relative w-100 me-sm-2">
+                        <i data-lucide="search" class="position-absolute text-secondary"
+                            style="left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                        <input type="text" id="amenitySearchInput"
+                            class="form-control drive-form-control ps-5 py-2 text-xs rounded-pill"
+                            placeholder="Search amenities (e.g. Water, Electricity, Irrigation, Storage, Fencing)..."
+                            onkeyup="filterAmenityChips()">
+                    </div>
+                    <div class="d-flex gap-1.5 flex-shrink-0">
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs"
+                            onclick="selectAllAmenities(true)">Select All</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs"
+                            onclick="selectAllAmenities(false)">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Custom Amenity Quick Adder -->
+                <div class="d-flex align-items-center gap-2 mb-3 bg-white p-2.5 border rounded-3" style="border-color: var(--drive-border) !important;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i data-lucide="plus" style="width: 14px; height: 14px;" class="text-success"></i>
+                        </span>
+                        <input type="text" id="modalCustomAmenityInput" class="form-control drive-form-control border-start-0 text-xs"
+                            placeholder="Add other amenity (e.g. CCTV, Deep Well, Greenhouse, Solar Lights)..."
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomAmenityFromModal();}">
+                        <button type="button" class="btn btn-drive-secondary px-3 text-xs fw-semibold" onclick="addCustomAmenityFromModal()">
+                            Add Amenity
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Amenity Grid Container -->
+                <div class="row g-2 overflow-y-auto" id="modalAmenityGrid" style="max-height: 320px;">
+                    <?php foreach ($amenityTypes as $amenity): ?>
+                        <div class="col-6 col-sm-4 col-md-3 amenity-grid-item"
+                            data-name="<?php echo strtolower($amenity['label'] . ' ' . ($amenity['desc'] ?? '')); ?>">
+                            <div class="modal-amenity-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2 h-100"
+                                data-value="<?php echo htmlspecialchars($amenity['value']); ?>"
+                                data-label="<?php echo htmlspecialchars($amenity['label']); ?>"
+                                data-icon="<?php echo htmlspecialchars($amenity['icon']); ?>"
+                                style="cursor: pointer; transition: all 0.15s; border-color: var(--drive-border) !important; user-select: none;"
+                                onclick="toggleAmenitySelection('<?php echo htmlspecialchars(addslashes($amenity['value'])); ?>', '<?php echo htmlspecialchars(addslashes($amenity['label'])); ?>', '<?php echo htmlspecialchars($amenity['icon']); ?>', this)">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center bg-drive-canvas border border-drive-border flex-shrink-0">
+                                        <img src="<?php echo $amenity['icon']; ?>" alt="<?php echo htmlspecialchars($amenity['label']); ?>"
+                                            class="w-5 h-5 object-contain" loading="lazy">
+                                    </div>
+                                    <span class="fw-semibold text-dark text-xs truncate"
+                                        title="<?php echo htmlspecialchars($amenity['label']); ?>"><?php echo htmlspecialchars($amenity['label']); ?></span>
+                                </div>
+                                <div class="amenity-check-icon text-primary hidden">
+                                    <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #1a73e8;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top bg-white px-3 py-2.5 d-flex justify-content-between align-items-center">
+                <span class="text-secondary text-xs fw-semibold"><span id="selectedAmenitiesCountText">0</span> amenities selected</span>
+                <button type="button" class="btn btn-sm btn-drive-primary rounded-pill px-3.5 py-1.5 text-xs"
+                    data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal to Set Land Area and Individual Plot Sizes Before Drawing -->
 <div class="modal fade" id="landAreaModal" tabindex="-1" aria-labelledby="landAreaModalLabel" aria-hidden="true"
     style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
         <div class="modal-content border-0 rounded-4 shadow-xl overflow-hidden">
             <div class="modal-header border-0 bg-success text-white py-3 px-4">
                 <div class="d-flex align-items-center gap-2.5">
                     <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center flex-shrink-0"
                         style="width: 34px; height: 34px;">
-                        <i class="bi bi-rulers fs-6"></i>
+                        <i class="bi bi-grid-3x3-gap-fill fs-6"></i>
                     </div>
                     <div>
-                        <h6 class="modal-title fw-bold text-white mb-0" id="landAreaModalLabel">Set Land Area (m²)</h6>
-                        <span class="text-white-50" style="font-size: 0.72rem;">Calibrate plot boundary size</span>
+                        <h6 class="modal-title fw-bold text-white mb-0" id="landAreaModalLabel">Set Land Area &amp; Plot
+                            Sizes</h6>
+                        <span class="text-white-50" style="font-size: 0.72rem;">Configure total parcel &amp; individual
+                            plot sizes</span>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
                     onclick="closeLandAreaModal()"></button>
             </div>
             <div class="modal-body p-4 bg-white">
-                <p class="text-secondary text-xs mb-3">
-                    Enter the total area of your land in square meters. Your plot drawing on the map will automatically
-                    be constrained to this exact size.
-                </p>
-
+                <!-- Total Land Area Input -->
                 <div class="mb-3">
-                    <label for="modalAreaInput" class="form-label text-dark fw-bold text-xs mb-1">TOTAL SQUARE METERS
-                        (m²)</label>
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="modalAreaInput" class="form-label text-dark fw-bold text-xs mb-0">TOTAL LAND AREA
+                            (m²)</label>
+                        <span class="text-muted text-xxs">Overall boundary size</span>
+                    </div>
                     <div class="input-group">
                         <input type="number" step="1" min="10" max="100000"
                             class="form-control drive-form-control form-control-lg fw-bold text-success fs-4"
                             id="modalAreaInput" value="250" placeholder="e.g. 250"
-                            oninput="updateModalButtonLabel(this.value)"
+                            oninput="onModalTotalAreaChanged(this.value)"
                             onkeydown="if(event.key==='Enter'){event.preventDefault();confirmLandAreaAndDraw();}"
                             required>
-                        <span class="input-group-text bg-light border text-muted fw-bold">m²</span>
+                        <span class="input-group-text fw-bold">m²</span>
                     </div>
                 </div>
 
-                <!-- Quick Presets -->
+                <!-- Number of Plots Selection inside Modal -->
+                <div class="mb-3 p-2.5 bg-light rounded-3 border">
+                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                        <span class="text-secondary fw-semibold text-xs">NUMBER OF PLOTS:</span>
+                        <div class="btn-group btn-group-sm" role="group" id="modalPlotCountButtons">
+                            <button type="button"
+                                class="btn btn-xs modal-count-btn btn-outline-secondary rounded-pill px-2.5 py-0.5 text-xs fw-bold"
+                                data-count="1" onclick="setModalPlotCount(1, this)">1</button>
+                            <button type="button"
+                                class="btn btn-xs modal-count-btn btn-outline-secondary rounded-pill px-2.5 py-0.5 text-xs fw-bold"
+                                data-count="2" onclick="setModalPlotCount(2, this)">2</button>
+                            <button type="button"
+                                class="btn btn-xs modal-count-btn btn-success text-white active rounded-pill px-2.5 py-0.5 text-xs fw-bold"
+                                data-count="4" onclick="setModalPlotCount(4, this)">4</button>
+                            <button type="button"
+                                class="btn btn-xs modal-count-btn btn-outline-secondary rounded-pill px-2.5 py-0.5 text-xs fw-bold"
+                                data-count="6" onclick="setModalPlotCount(6, this)">6</button>
+                            <button type="button"
+                                class="btn btn-xs modal-count-btn btn-outline-secondary rounded-pill px-2.5 py-0.5 text-xs fw-bold"
+                                data-count="8" onclick="setModalPlotCount(8, this)">8</button>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-0" style="font-size: 0.72rem;">
+                        Choose partition count, then modify any plot size below. Other plots auto-balance to total.
+                    </p>
+                </div>
+
+                <!-- Partition Plot Sizes Breakdown inside Modal -->
                 <div class="mb-3">
-                    <span class="text-muted text-xs d-block mb-1.5 fw-semibold">Quick Presets:</span>
-                    <div class="d-flex flex-wrap gap-1.5" id="presetAreaGroup">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <span class="fw-bold text-dark text-xs text-uppercase" style="letter-spacing: 0.5px;">Plot
+                                Sizes</span>
+                            <span id="modalAllocatedBadge"
+                                class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 text-xxs fw-semibold">
+                                250 / 250 m²
+                            </span>
+                        </div>
                         <button type="button"
-                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
-                            data-val="100" onclick="setPresetArea(100)">100 m²</button>
-                        <button type="button"
-                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
-                            data-val="150" onclick="setPresetArea(150)">150 m²</button>
-                        <button type="button"
-                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
-                            data-val="200" onclick="setPresetArea(200)">200 m²</button>
-                        <button type="button"
-                            class="btn btn-xs preset-area-btn btn-success text-white active rounded-pill px-2 py-0.5"
-                            data-val="250" onclick="setPresetArea(250)">250 m²</button>
-                        <button type="button"
-                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
-                            data-val="500" onclick="setPresetArea(500)">500 m²</button>
-                        <button type="button"
-                            class="btn btn-xs preset-area-btn btn-outline-secondary rounded-pill px-2 py-0.5"
-                            data-val="1000" onclick="setPresetArea(1000)">1,000 m²</button>
+                            class="btn btn-xs btn-link text-success p-0 text-decoration-none fw-semibold"
+                            style="font-size: 0.72rem;" onclick="resetModalPlotsEqual()">
+                            <i class="bi bi-distribute-vertical me-0.5"></i>Distribute Equally
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Plot Size Rows -->
+                    <div id="modalPlotsList" class="d-flex flex-column gap-2 p-2 bg-light rounded-3 border"
+                        style="max-height: 200px; overflow-y: auto;">
+                        <!-- Dynamically populated by renderModalPlotsList() -->
                     </div>
                 </div>
 
@@ -773,7 +942,7 @@ $cropCategories = getCropCategories();
                         class="btn btn-sm btn-success rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-sm text-xs"
                         onclick="confirmLandAreaAndDraw()">
                         <i class="bi bi-bounding-box"></i>
-                        <span>Set Area & Place Plot (<span id="modalBtnAreaText">250 m²</span>)</span>
+                        <span>Apply &amp; Place Plots (<span id="modalBtnAreaText">250 m²</span>)</span>
                     </button>
                 </div>
             </div>
@@ -873,7 +1042,7 @@ $cropCategories = getCropCategories();
         if (countText) countText.textContent = selectedCrops.size;
 
         if (selectedCrops.size === 0) {
-            summaryBox.innerHTML = `<span class="text-muted text-xs italic" id="emptyCropsNotice">No specific crops selected (All crops permitted by default). Click "Select Crops" to restrict allowed crop types.</span>`;
+            summaryBox.innerHTML = `<span class="text-muted text-xs italic" id="emptyCropsNotice">No specific crops selected. Click "Select Crops" to choose crops that can grow on this land.</span>`;
             hiddenInputs.innerHTML = '';
             return;
         }
@@ -899,6 +1068,163 @@ $cropCategories = getCropCategories();
             renderSubdivisions();
         }
     }
+
+    // Amenities & Utilities Selection Logic
+    const selectedAmenities = new Map();
+
+    window.getAmenityIcon = function(name) {
+        const lower = (name || '').toLowerCase();
+        let file = 'general.svg';
+        if (lower.includes('water') || lower.includes('well') || lower.includes('drain') || lower.includes('spigot') || lower.includes('tap')) file = 'water-source.svg';
+        else if (lower.includes('elect') || lower.includes('power') || lower.includes('grid') || lower.includes('light')) file = 'electricity.svg';
+        else if (lower.includes('irrig') || lower.includes('sprink') || lower.includes('hose') || lower.includes('drip')) file = 'irrigation.svg';
+        else if (lower.includes('tool') || lower.includes('shed') || lower.includes('stor') || lower.includes('barn') || lower.includes('equip')) file = 'tool-storage.svg';
+        else if (lower.includes('fenc') || lower.includes('gate') || lower.includes('secur') || lower.includes('wall') || lower.includes('perim')) file = 'perimeter-fencing.svg';
+        else if (lower.includes('compost') || lower.includes('recyc') || lower.includes('soil') || lower.includes('organic') || lower.includes('fertil')) file = 'compost-area.svg';
+        else if (lower.includes('rest') || lower.includes('toilet') || lower.includes('wash') || lower.includes('wc') || lower.includes('cr') || lower.includes('comfort')) file = 'restroom.svg';
+        else if (lower.includes('solar') || lower.includes('sun') || lower.includes('panel')) file = 'solar-power.svg';
+        return `../assets/amenity-icons/${file}`;
+    };
+
+    window.toggleAmenitySelection = function(val, label, icon, element) {
+        if (!icon) icon = getAmenityIcon(val);
+        const checkIcon = element ? element.querySelector('.amenity-check-icon') : null;
+        if (selectedAmenities.has(val)) {
+            selectedAmenities.delete(val);
+            if (element) {
+                element.classList.remove('border-primary', 'bg-blue-50/50');
+                element.style.borderColor = 'var(--drive-border)';
+            }
+            if (checkIcon) checkIcon.classList.add('hidden');
+        } else {
+            selectedAmenities.set(val, { value: val, label: label || val, icon: icon });
+            if (element) {
+                element.classList.add('border-primary', 'bg-blue-50/50');
+                element.style.borderColor = '#1a73e8';
+            }
+            if (checkIcon) checkIcon.classList.remove('hidden');
+        }
+        renderSelectedAmenitiesSummary();
+    };
+
+    window.selectAllAmenities = function(select) {
+        document.querySelectorAll('.modal-amenity-chip').forEach(chip => {
+            const val = chip.getAttribute('data-value');
+            const label = chip.getAttribute('data-label') || val;
+            const icon = chip.getAttribute('data-icon') || getAmenityIcon(val);
+            const checkIcon = chip.querySelector('.amenity-check-icon');
+
+            if (select) {
+                selectedAmenities.set(val, { value: val, label: label, icon: icon });
+                chip.classList.add('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = '#1a73e8';
+                if (checkIcon) checkIcon.classList.remove('hidden');
+            } else {
+                selectedAmenities.delete(val);
+                chip.classList.remove('border-primary', 'bg-blue-50/50');
+                chip.style.borderColor = 'var(--drive-border)';
+                if (checkIcon) checkIcon.classList.add('hidden');
+            }
+        });
+        renderSelectedAmenitiesSummary();
+    };
+
+    window.filterAmenityChips = function() {
+        const query = (document.getElementById('amenitySearchInput')?.value || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.amenity-grid-item');
+        items.forEach(item => {
+            const name = (item.getAttribute('data-name') || '').toLowerCase();
+            if (!query || name.includes(query)) {
+                item.classList.remove('d-none');
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+    };
+
+    window.addCustomAmenityFromModal = function() {
+        const input = document.getElementById('modalCustomAmenityInput');
+        if (!input) return;
+        const val = input.value.trim();
+        if (!val) return;
+
+        const formatted = val.charAt(0).toUpperCase() + val.slice(1);
+        const icon = getAmenityIcon(formatted);
+
+        let existingChip = document.querySelector(`.modal-amenity-chip[data-value="${CSS.escape(formatted)}"]`);
+        if (!existingChip) {
+            const grid = document.getElementById('modalAmenityGrid');
+            if (grid) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3 amenity-grid-item';
+                col.setAttribute('data-name', formatted.toLowerCase());
+                col.innerHTML = `
+                    <div class="modal-amenity-chip p-2.5 border rounded-3 bg-white d-flex align-items-center justify-content-between gap-2 h-100"
+                        data-value="${escapeHtml(formatted)}"
+                        data-label="${escapeHtml(formatted)}"
+                        data-icon="${icon}"
+                        style="cursor: pointer; transition: all 0.15s; border-color: var(--drive-border) !important; user-select: none;">
+                        <div class="d-flex align-items-center gap-2 text-truncate">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center bg-drive-canvas border border-drive-border flex-shrink-0">
+                                <img src="${icon}" alt="${escapeHtml(formatted)}" class="w-5 h-5 object-contain" loading="lazy">
+                            </div>
+                            <span class="fw-semibold text-dark text-xs truncate" title="${escapeHtml(formatted)}">${escapeHtml(formatted)}</span>
+                        </div>
+                        <div class="amenity-check-icon text-primary hidden">
+                            <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #1a73e8;"></i>
+                        </div>
+                    </div>
+                `;
+                existingChip = col.querySelector('.modal-amenity-chip');
+                existingChip.onclick = function() {
+                    toggleAmenitySelection(formatted, formatted, icon, existingChip);
+                };
+                grid.prepend(col);
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        if (!selectedAmenities.has(formatted)) {
+            toggleAmenitySelection(formatted, formatted, icon, existingChip);
+        }
+        input.value = '';
+    };
+
+    window.renderSelectedAmenitiesSummary = function() {
+        const summaryBox = document.getElementById('selectedAmenitiesSummary');
+        const hiddenInputs = document.getElementById('hiddenAmenitiesInputs');
+        const countText = document.getElementById('selectedAmenitiesCountText');
+
+        if (countText) countText.textContent = selectedAmenities.size;
+        if (!summaryBox || !hiddenInputs) return;
+
+        if (selectedAmenities.size === 0) {
+            summaryBox.innerHTML = `<span class="text-muted text-xs italic" id="emptyAmenitiesNotice">No amenities selected. Click "Select Amenities" to specify available water, electricity, and site facilities.</span>`;
+            hiddenInputs.innerHTML = '';
+            return;
+        }
+
+        let summaryHtml = '';
+        let inputsHtml = '';
+
+        selectedAmenities.forEach((item) => {
+            const iconSrc = item.icon || getAmenityIcon(item.value);
+            summaryHtml += `
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 border rounded-pill bg-white text-xs fw-semibold text-dark shadow-xs" style="border-color: var(--drive-border) !important;">
+                    <img src="${iconSrc}" alt="${escapeHtml(item.label)}" class="w-4 h-4 object-contain">
+                    <span>${escapeHtml(item.label)}</span>
+                    <button type="button" class="btn-close text-xs ms-1" style="width: 10px; height: 10px;"
+                        onclick="toggleAmenitySelection('${escapeHtml(item.value).replace(/'/g, "\\'")}', '${escapeHtml(item.label).replace(/'/g, "\\'")}', '${iconSrc}', document.querySelector('.modal-amenity-chip[data-value=\\'${CSS.escape(item.value)}\\']'))"></button>
+                </div>
+            `;
+            inputsHtml += `<input type="hidden" name="amenities[]" value="${escapeHtml(item.value)}">`;
+        });
+
+        summaryBox.innerHTML = summaryHtml;
+        hiddenInputs.innerHTML = inputsHtml;
+    };
 
     // Leaflet map with geocoding search, coordinate typing & 3D digital twin preview
     document.addEventListener("DOMContentLoaded", function () {
@@ -953,10 +1279,47 @@ $cropCategories = getCropCategories();
             attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
         });
 
-        L.control.layers({
-            "Map (OSM)": osmLayer,
-            "Satellite (High-Res)": satelliteLayer
-        }, null, { position: 'bottomright' }).addTo(map);
+        // Satellite layer toggle matching the UI floating above GPS button
+        let isSatelliteActive = false;
+        window.toggleSatelliteLayer = function () {
+            if (!map) return;
+            isSatelliteActive = !isSatelliteActive;
+            const btn = document.getElementById('btnToggleSatellite');
+            const icon = document.getElementById('btnToggleSatelliteIcon');
+
+            if (isSatelliteActive) {
+                if (map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
+                if (!map.hasLayer(satelliteLayer)) map.addLayer(satelliteLayer);
+                if (btn) {
+                    btn.classList.add('border-primary', 'shadow');
+                    btn.style.background = '#E8F0FE';
+                    btn.setAttribute('title', 'Switch to Standard Map');
+                }
+                if (icon) {
+                    icon.className = 'bi bi-map-fill text-primary fs-5';
+                }
+            } else {
+                if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+                if (!map.hasLayer(osmLayer)) map.addLayer(osmLayer);
+                if (btn) {
+                    btn.classList.remove('border-primary', 'shadow');
+                    btn.style.background = '';
+                    btn.setAttribute('title', 'Toggle Satellite View');
+                }
+                if (icon) {
+                    icon.className = 'bi bi-layers text-primary fs-5';
+                }
+            }
+        };
+
+        // Prevent Leaflet map dragging/clicking from swallowing clicks on floating map overlays
+        ['plotControlOverlay', 'plotDrawToolbar', 'mapDrawingHelper', 'mapFloatingFabControls', 'btnToggleSatellite', 'btnGoToMyLocation'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && typeof L !== 'undefined' && L.DomEvent) {
+                L.DomEvent.disableClickPropagation(el);
+                L.DomEvent.disableScrollPropagation(el);
+            }
+        });
 
         let marker = null;
         let boundaryPoly = null;
@@ -1039,45 +1402,251 @@ $cropCategories = getCropCategories();
             if (modal) modal.hide();
         };
 
-        function updatePresetButtons(val) {
-            const num = parseFloat(val);
-            document.querySelectorAll('#presetAreaGroup .preset-area-btn').forEach(btn => {
-                const btnVal = parseFloat(btn.getAttribute('data-val'));
-                if (btnVal === num) {
-                    btn.classList.add('btn-success', 'text-white', 'active');
+        let modalActivePlotCount = 4;
+        let modalPlotAreas = [];
+
+        window.openLandAreaModal = function (preferredMode = null) {
+            const currentTotal = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
+            const input = document.getElementById('modalAreaInput');
+            if (input) {
+                input.value = currentTotal;
+            }
+
+            // Sync current plot count
+            const currentCount = parseInt(document.getElementById('plot_count')?.value) || 4;
+            modalActivePlotCount = currentCount;
+
+            // Highlight modal count buttons
+            document.querySelectorAll('#modalPlotCountButtons .modal-count-btn').forEach(btn => {
+                const bCount = parseInt(btn.getAttribute('data-count'));
+                if (bCount === currentCount) {
                     btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-success', 'text-white', 'active');
                 } else {
                     btn.classList.remove('btn-success', 'text-white', 'active');
                     btn.classList.add('btn-outline-secondary');
                 }
             });
-        }
 
-        window.openLandAreaModal = function (preferredMode = null) {
-            const currentVal = targetSquareMeters || parseFloat(document.getElementById('area')?.value) || 250;
-            const input = document.getElementById('modalAreaInput');
-            if (input) {
-                input.value = currentVal;
+            // Read any existing plot areas from the main table
+            const mainAreaInputs = Array.from(document.querySelectorAll('.plot-area-input'));
+            if (mainAreaInputs.length === currentCount) {
+                modalPlotAreas = mainAreaInputs.map(inp => parseFloat(inp.value) || Math.round((currentTotal / currentCount) * 10) / 10);
+            } else {
+                const single = (currentTotal / currentCount);
+                let running = 0;
+                modalPlotAreas = [];
+                for (let i = 0; i < currentCount; i++) {
+                    if (i === currentCount - 1) {
+                        modalPlotAreas.push(Math.max(1, Math.round((currentTotal - running) * 10) / 10));
+                    } else {
+                        const a = Math.max(1, Math.round(single * 10) / 10);
+                        running += a;
+                        modalPlotAreas.push(a);
+                    }
+                }
             }
-            updatePresetButtons(currentVal);
-            updateModalButtonLabel(currentVal);
+
+            renderModalPlotsList();
+            updateModalButtonLabel(currentTotal);
 
             const modal = getLandAreaModal();
             if (modal) {
-                if (preferredMode) {
-                    modal._preferredMode = preferredMode;
-                }
+                if (preferredMode) modal._preferredMode = preferredMode;
                 modal.show();
             }
         };
 
-        window.setPresetArea = function (val) {
-            const input = document.getElementById('modalAreaInput');
-            if (input) {
-                input.value = val;
+        window.renderModalPlotsList = function () {
+            const container = document.getElementById('modalPlotsList');
+            if (!container) return;
+
+            const totalArea = parseFloat(document.getElementById('modalAreaInput')?.value) || 250;
+            const count = modalActivePlotCount;
+
+            if (!modalPlotAreas || modalPlotAreas.length !== count) {
+                const single = (totalArea / count);
+                let running = 0;
+                modalPlotAreas = [];
+                for (let i = 0; i < count; i++) {
+                    if (i === count - 1) {
+                        modalPlotAreas.push(Math.max(1, Math.round((totalArea - running) * 10) / 10));
+                    } else {
+                        const a = Math.max(1, Math.round(single * 10) / 10);
+                        running += a;
+                        modalPlotAreas.push(a);
+                    }
+                }
             }
-            updatePresetButtons(val);
-            updateModalButtonLabel(val);
+
+            container.innerHTML = modalPlotAreas.map((area, i) => {
+                const pct = totalArea > 0 ? Math.round((area / totalArea) * 100) : 0;
+                return `
+                    <div class="d-flex align-items-center justify-content-between p-2 px-3 bg-white rounded-3 border shadow-xs gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0" style="min-width: 100px;">
+                            <span class="badge bg-success text-white rounded-pill px-2.5 py-1 text-xs fw-bold font-monospace">Plot A-${i + 1}</span>
+                            <span class="badge bg-light text-muted border text-xxs font-medium">${pct}%</span>
+                        </div>
+                        <div class="input-group input-group-sm" style="max-width: 170px;">
+                            <input type="number" step="0.1" min="1" max="${totalArea}" 
+                                class="form-control form-control-sm text-end fw-bold text-dark modal-plot-area-input" 
+                                value="${area}" 
+                                data-index="${i}" 
+                                oninput="onModalPlotAreaChanged(${i}, this)">
+                            <span class="input-group-text bg-light text-muted" style="font-size: 11px;">m²</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateModalAllocatedBadge();
+        };
+
+        window.onModalPlotAreaChanged = function (changedIndex, changedInput) {
+            const totalArea = parseFloat(document.getElementById('modalAreaInput')?.value) || 250;
+            const allInputs = Array.from(document.querySelectorAll('.modal-plot-area-input'));
+            const N = allInputs.length;
+            if (N <= 1) {
+                if (allInputs[0]) allInputs[0].value = totalArea.toFixed(1);
+                modalPlotAreas = [totalArea];
+                updateModalAllocatedBadge();
+                return;
+            }
+
+            let rawVal = parseFloat(changedInput.value);
+            if (isNaN(rawVal)) {
+                updateModalAllocatedBadge();
+                return;
+            }
+
+            const minArea = 1.0;
+            const maxVal = Math.max(minArea, totalArea - (N - 1) * minArea);
+            let val = Math.min(Math.max(rawVal, minArea), maxVal);
+            val = Math.round(val * 10) / 10;
+            changedInput.value = val;
+            changedInput.setAttribute('data-manual', 'true');
+
+            let remainingArea = totalArea - val;
+            const otherInputs = allInputs.filter((inp, idx) => idx !== changedIndex);
+            const uneditedOthers = otherInputs.filter(inp => inp.getAttribute('data-manual') !== 'true');
+
+            if (uneditedOthers.length > 0) {
+                let manualSum = 0;
+                otherInputs.forEach(inp => {
+                    if (inp.getAttribute('data-manual') === 'true') {
+                        manualSum += (parseFloat(inp.value) || minArea);
+                    }
+                });
+
+                let availableForUnedited = totalArea - val - manualSum;
+                if (availableForUnedited < uneditedOthers.length * minArea) {
+                    otherInputs.forEach(inp => inp.removeAttribute('data-manual'));
+                    const perPlot = remainingArea / otherInputs.length;
+                    let running = 0;
+                    otherInputs.forEach((inp, i) => {
+                        if (i === otherInputs.length - 1) {
+                            inp.value = Math.max(minArea, Math.round((remainingArea - running) * 10) / 10).toFixed(1);
+                        } else {
+                            const a = Math.max(minArea, Math.round(perPlot * 10) / 10);
+                            running += a;
+                            inp.value = a.toFixed(1);
+                        }
+                    });
+                } else {
+                    const perPlot = availableForUnedited / uneditedOthers.length;
+                    let running = 0;
+                    uneditedOthers.forEach((inp, i) => {
+                        if (i === uneditedOthers.length - 1) {
+                            inp.value = Math.max(minArea, Math.round((availableForUnedited - running) * 10) / 10).toFixed(1);
+                        } else {
+                            const a = Math.max(minArea, Math.round(perPlot * 10) / 10);
+                            running += a;
+                            inp.value = a.toFixed(1);
+                        }
+                    });
+                }
+            } else {
+                let sumOthers = 0;
+                otherInputs.forEach(inp => sumOthers += (parseFloat(inp.value) || minArea));
+                let running = 0;
+                otherInputs.forEach((inp, i) => {
+                    if (i === otherInputs.length - 1) {
+                        inp.value = Math.max(minArea, Math.round((remainingArea - running) * 10) / 10).toFixed(1);
+                    } else {
+                        const ratio = sumOthers > 0 ? ((parseFloat(inp.value) || minArea) / sumOthers) : (1 / otherInputs.length);
+                        const a = Math.max(minArea, Math.round(remainingArea * ratio * 10) / 10);
+                        running += a;
+                        inp.value = a.toFixed(1);
+                    }
+                });
+            }
+
+            modalPlotAreas = allInputs.map(inp => parseFloat(inp.value) || minArea);
+            updateModalAllocatedBadge();
+        };
+
+        window.onModalTotalAreaChanged = function (val) {
+            const num = parseFloat(val);
+            if (isNaN(num) || num <= 0) return;
+            updateModalButtonLabel(num);
+            resetModalPlotsEqual();
+        };
+
+        window.setModalPlotCount = function (count, btn) {
+            modalActivePlotCount = count;
+            document.querySelectorAll('#modalPlotCountButtons .modal-count-btn').forEach(b => {
+                b.classList.remove('btn-success', 'active', 'text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            if (btn) {
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-success', 'active', 'text-white');
+            }
+            modalPlotAreas = [];
+            renderModalPlotsList();
+        };
+
+        window.resetModalPlotsEqual = function () {
+            const totalArea = parseFloat(document.getElementById('modalAreaInput')?.value) || 250;
+            const count = modalActivePlotCount;
+            const single = (totalArea / count);
+            let running = 0;
+            modalPlotAreas = [];
+            for (let i = 0; i < count; i++) {
+                if (i === count - 1) {
+                    modalPlotAreas.push(Math.max(1, Math.round((totalArea - running) * 10) / 10));
+                } else {
+                    const a = Math.max(1, Math.round(single * 10) / 10);
+                    running += a;
+                    modalPlotAreas.push(a);
+                }
+            }
+            const allInputs = document.querySelectorAll('.modal-plot-area-input');
+            allInputs.forEach((inp, idx) => {
+                inp.removeAttribute('data-manual');
+                if (modalPlotAreas[idx] !== undefined) {
+                    inp.value = modalPlotAreas[idx].toFixed(1);
+                }
+            });
+            updateModalAllocatedBadge();
+        };
+
+        window.updateModalAllocatedBadge = function () {
+            const badge = document.getElementById('modalAllocatedBadge');
+            if (!badge) return;
+            const totalArea = parseFloat(document.getElementById('modalAreaInput')?.value) || 250;
+            const allInputs = Array.from(document.querySelectorAll('.modal-plot-area-input'));
+            let sum = 0;
+            allInputs.forEach(inp => sum += (parseFloat(inp.value) || 0));
+            sum = Math.round(sum * 10) / 10;
+            const diff = Math.abs(sum - totalArea);
+            if (diff <= 0.2) {
+                badge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 text-xxs fw-semibold';
+                badge.innerHTML = `<i class="bi bi-check-circle-fill me-0.5"></i>${sum.toFixed(1)} / ${totalArea} m²`;
+            } else {
+                badge.className = 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5 text-xxs fw-semibold';
+                badge.innerHTML = `<i class="bi bi-info-circle-fill me-0.5"></i>${sum.toFixed(1)} / ${totalArea} m²`;
+            }
         };
 
         window.updateModalButtonLabel = function (val) {
@@ -1105,10 +1674,43 @@ $cropCategories = getCropCategories();
             const editBtn = document.getElementById('btnEditPlotArea');
             if (editBtn) editBtn.classList.remove('d-none');
 
+            // Apply plot count from modal
+            const plotCountInput = document.getElementById('plot_count');
+            if (plotCountInput) plotCountInput.value = modalActivePlotCount;
+            const formPlotCount = document.getElementById('form_plot_count');
+            if (formPlotCount) formPlotCount.value = modalActivePlotCount;
+
+            // Sync preset buttons in form and map overlay
+            document.querySelectorAll('.plot-preset-btn').forEach(b => {
+                const bCount = parseInt(b.textContent);
+                if (bCount === modalActivePlotCount) {
+                    b.classList.remove('btn-outline-secondary');
+                    b.classList.add('btn-success', 'active', 'text-white');
+                } else {
+                    b.classList.remove('btn-success', 'active', 'text-white');
+                    b.classList.add('btn-outline-secondary');
+                }
+            });
+            document.querySelectorAll('.plot-count-btn').forEach(b => {
+                const bCount = parseInt(b.getAttribute('data-count'));
+                if (bCount === modalActivePlotCount) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+
+            // Read the modal's plot area inputs and sync to main form table
+            const modalInputs = Array.from(document.querySelectorAll('.modal-plot-area-input'));
+            const customAreas = modalInputs.map(inp => parseFloat(inp.value) || (targetSquareMeters / modalActivePlotCount));
+
+            // Render main plots table with these exact areas
+            renderPlotsConfigTable(true, customAreas);
+
             const modal = getLandAreaModal();
             if (modal) modal.hide();
 
-            // Automatically put the drawing immediately with fixed square meters!
+            // Automatically place drawing with fixed square meters and custom subdivisions
             placeFixedPlotOnMap(targetSquareMeters);
         };
 
@@ -1981,7 +2583,7 @@ $cropCategories = getCropCategories();
             const helper = document.getElementById('mapDrawingHelper');
             const helperText = document.getElementById('mapDrawingHelperText');
             if (helper && helperText) {
-                helperText.innerHTML = `<i class="bi bi-arrows-move text-success me-1"></i><strong>${targetSquareMeters} m² Fixed</strong> &mdash; Drag plot or corners to position &bull; Drag top handle or use ↺ ↻ to rotate`;
+                helperText.innerHTML = `<i class="bi bi-arrows-move text-success me-1"></i><strong>${targetSquareMeters} m²</strong> &bull; Drag to position &bull; Top handle to rotate`;
                 helper.classList.remove('d-none');
             }
 
@@ -2271,6 +2873,10 @@ $cropCategories = getCropCategories();
             const singlePlotArea = totalArea > 0 ? (totalArea / count).toFixed(1) : Math.round(totalArea / count);
             const permittedCrops = Array.from(selectedCrops.values()).map(c => c.label);
 
+            const areaInputs = Array.from(document.querySelectorAll('.plot-area-input'));
+            const customAreas = areaInputs.map(inp => parseFloat(inp.value)).filter(v => !isNaN(v) && v > 0);
+            const hasCustomAreas = (customAreas.length === count);
+
             let subPlotPolygons = [];
 
             // Case A: 4-Point Quadrilateral (Standard or Irregularlot)
@@ -2297,18 +2903,6 @@ $cropCategories = getCropCategories();
                     Math.hypot(quadPts[2].lat - quadPts[1].lat, quadPts[2].lng - quadPts[1].lng)) / 2;
                 const isTaller = heightDist > widthDist * 1.15;
 
-                let cols, rows;
-                if (count === 1) { cols = 1; rows = 1; }
-                else if (count === 2) { cols = isTaller ? 1 : 2; rows = isTaller ? 2 : 1; }
-                else if (count === 3) { cols = isTaller ? 1 : 3; rows = isTaller ? 3 : 1; }
-                else if (count === 4) { cols = 2; rows = 2; }
-                else if (count === 6) { cols = isTaller ? 2 : 3; rows = isTaller ? 3 : 2; }
-                else if (count === 8) { cols = isTaller ? 2 : 4; rows = isTaller ? 4 : 2; }
-                else {
-                    cols = Math.ceil(Math.sqrt(count));
-                    rows = Math.ceil(count / cols);
-                }
-
                 // Bilinear mapping function on the irregular 4-point quadrilateral
                 const interpPoint = (u, v) => {
                     const lat = (1 - v) * ((1 - u) * quadPts[0].lat + u * quadPts[1].lat) +
@@ -2318,23 +2912,85 @@ $cropCategories = getCropCategories();
                     return [lat, lng];
                 };
 
-                let idx = 1;
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        if (idx > count) break;
-                        const u0 = c / cols;
-                        const u1 = (c + 1) / cols;
-                        const v0 = r / rows;
-                        const v1 = (r + 1) / rows;
+                if (count === 1) {
+                    subPlotPolygons.push({
+                        index: 1,
+                        points: [interpPoint(0, 0), interpPoint(1, 0), interpPoint(1, 1), interpPoint(0, 1)]
+                    });
+                } else if (count === 2 && hasCustomAreas) {
+                    const r0 = Math.min(0.9, Math.max(0.1, customAreas[0] / (customAreas[0] + customAreas[1] || 1)));
+                    if (isTaller) {
+                        subPlotPolygons.push({
+                            index: 1,
+                            points: [interpPoint(0, 0), interpPoint(1, 0), interpPoint(1, r0), interpPoint(0, r0)]
+                        });
+                        subPlotPolygons.push({
+                            index: 2,
+                            points: [interpPoint(0, r0), interpPoint(1, r0), interpPoint(1, 1), interpPoint(0, 1)]
+                        });
+                    } else {
+                        subPlotPolygons.push({
+                            index: 1,
+                            points: [interpPoint(0, 0), interpPoint(r0, 0), interpPoint(r0, 1), interpPoint(0, 1)]
+                        });
+                        subPlotPolygons.push({
+                            index: 2,
+                            points: [interpPoint(r0, 0), interpPoint(1, 0), interpPoint(1, 1), interpPoint(r0, 1)]
+                        });
+                    }
+                } else if (count === 4 && hasCustomAreas) {
+                    const sumR0 = customAreas[0] + customAreas[1];
+                    const sumR1 = customAreas[2] + customAreas[3];
+                    const vSplit = Math.min(0.85, Math.max(0.15, sumR0 / (sumR0 + sumR1 || 1)));
+                    const uSplit0 = Math.min(0.85, Math.max(0.15, customAreas[0] / (sumR0 || 1)));
+                    const uSplit1 = Math.min(0.85, Math.max(0.15, customAreas[2] / (sumR1 || 1)));
 
-                        const cellQuad = [
-                            interpPoint(u0, v0),
-                            interpPoint(u1, v0),
-                            interpPoint(u1, v1),
-                            interpPoint(u0, v1)
-                        ];
-                        subPlotPolygons.push({ index: idx, points: cellQuad });
-                        idx++;
+                    subPlotPolygons.push({
+                        index: 1,
+                        points: [interpPoint(0, 0), interpPoint(uSplit0, 0), interpPoint(uSplit0, vSplit), interpPoint(0, vSplit)]
+                    });
+                    subPlotPolygons.push({
+                        index: 2,
+                        points: [interpPoint(uSplit0, 0), interpPoint(1, 0), interpPoint(1, vSplit), interpPoint(uSplit0, vSplit)]
+                    });
+                    subPlotPolygons.push({
+                        index: 3,
+                        points: [interpPoint(0, vSplit), interpPoint(uSplit1, vSplit), interpPoint(uSplit1, 1), interpPoint(0, 1)]
+                    });
+                    subPlotPolygons.push({
+                        index: 4,
+                        points: [interpPoint(uSplit1, vSplit), interpPoint(1, vSplit), interpPoint(1, 1), interpPoint(uSplit1, 1)]
+                    });
+                } else {
+                    let cols, rows;
+                    if (count === 2) { cols = isTaller ? 1 : 2; rows = isTaller ? 2 : 1; }
+                    else if (count === 3) { cols = isTaller ? 1 : 3; rows = isTaller ? 3 : 1; }
+                    else if (count === 4) { cols = 2; rows = 2; }
+                    else if (count === 6) { cols = isTaller ? 2 : 3; rows = isTaller ? 3 : 2; }
+                    else if (count === 8) { cols = isTaller ? 2 : 4; rows = isTaller ? 4 : 2; }
+                    else {
+                        cols = Math.ceil(Math.sqrt(count));
+                        rows = Math.ceil(count / cols);
+                    }
+
+                    let idx = 1;
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            if (idx > count) break;
+                            const u0 = c / cols;
+                            const u1 = (c + 1) / cols;
+                            const v0 = r / rows;
+                            const v1 = (r + 1) / rows;
+
+                            const cellQuad = [
+                                interpPoint(u0, v0),
+                                interpPoint(u1, v0),
+                                interpPoint(u1, v1),
+                                interpPoint(u0, v1)
+                            ];
+                            subPlotPolygons.push({ index: idx, points: cellQuad });
+                            idx++;
+                        }
                     }
                 }
             } else {
@@ -2427,12 +3083,13 @@ $cropCategories = getCropCategories();
                 }).addTo(map);
 
                 const plotName = `Plot A-${index}`;
+                const thisPlotArea = (hasCustomAreas && customAreas[index - 1]) ? customAreas[index - 1] : singlePlotArea;
                 const cropName = permittedCrops.length > 0 ? permittedCrops[(index - 1) % permittedCrops.length] : 'Available for Gardeners';
 
                 plotPoly.bindTooltip(
                     `<div style="font-family:'Outfit',sans-serif;font-size:11px;line-height:1.3;padding:1px;">
                         <strong class="text-success"><i class="bi bi-grid-3x3-gap-fill me-1"></i>${plotName}</strong><br>
-                        <span class="text-dark font-monospace">${singlePlotArea} m²</span><br>
+                        <span class="text-dark font-monospace fw-bold">${thisPlotArea} m²</span><br>
                         <span class="badge bg-success-subtle text-success mt-1" style="font-size:9px;">${cropName}</span>
                     </div>`,
                     { permanent: false, direction: 'center' }
@@ -2444,7 +3101,7 @@ $cropCategories = getCropCategories();
                 const centerLabel = L.marker([centerLat, centerLng], {
                     icon: L.divIcon({
                         className: 'partition-plot-label',
-                        html: `<div style="background:rgba(22,163,74,0.85);color:#fff;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.25);pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);">${plotName}</div>`,
+                        html: `<div style="background:rgba(22,163,74,0.88);color:#fff;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.25);pointer-events:none;white-space:nowrap;transform:translate(-50%,-50%);">${plotName} • ${thisPlotArea}m²</div>`,
                         iconSize: [0, 0]
                     }),
                     interactive: false
@@ -2564,7 +3221,7 @@ $cropCategories = getCropCategories();
         }
 
         // ─── Partition Plots Setup, Table Rendering & Base Rent Calculation ───
-        window.adjustPlotCount = function(delta) {
+        window.adjustPlotCount = function (delta) {
             const input = document.getElementById('plot_count');
             let count = parseInt(input ? input.value : 4) || 4;
             count = Math.max(1, Math.min(20, count + delta));
@@ -2572,21 +3229,17 @@ $cropCategories = getCropCategories();
             onPlotCountChanged(count);
         };
 
-        window.selectPlotCountPreset = function(count, btn) {
+        window.selectPlotCount = function (count, btn) {
+            selectPlotCountPreset(count, btn);
+        };
+
+        window.selectPlotCountPreset = function (count, btn) {
             const input = document.getElementById('plot_count');
             if (input) input.value = count;
-            document.querySelectorAll('.plot-preset-btn').forEach(b => {
-                b.classList.remove('btn-success', 'active', 'text-white');
-                b.classList.add('btn-outline-secondary');
-            });
-            if (btn) {
-                btn.classList.remove('btn-outline-secondary');
-                btn.classList.add('btn-success', 'active', 'text-white');
-            }
             onPlotCountChanged(count);
         };
 
-        window.onPlotCountChanged = function(val) {
+        window.onPlotCountChanged = function (val) {
             let count = parseInt(val) || 4;
             count = Math.max(1, Math.min(20, count));
             const input = document.getElementById('plot_count');
@@ -2594,7 +3247,7 @@ $cropCategories = getCropCategories();
             const formPlotCount = document.getElementById('form_plot_count');
             if (formPlotCount) formPlotCount.value = count;
 
-            // Highlight corresponding preset if matching
+            // Highlight corresponding preset button in form below
             document.querySelectorAll('.plot-preset-btn').forEach(b => {
                 const bCount = parseInt(b.textContent);
                 if (bCount === count) {
@@ -2606,34 +3259,213 @@ $cropCategories = getCropCategories();
                 }
             });
 
-            renderPlotsConfigTable();
+            // Highlight corresponding button in map overlay (#plotControlOverlay)
+            document.querySelectorAll('.plot-count-btn').forEach(b => {
+                const bCount = parseInt(b.getAttribute('data-count'));
+                if (bCount === count) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+
+            // Update badge on map overlay
+            const plotCalcBadge = document.getElementById('plotCalcBadge');
+            const areaInput = document.getElementById('area');
+            const totalArea = parseFloat(areaInput ? areaInput.value : 0) || 250;
+            const singleArea = (totalArea / count).toFixed(1);
+            if (plotCalcBadge) {
+                plotCalcBadge.textContent = `${count} plots (~${singleArea} m²)`;
+            }
+
+            renderPlotsConfigTable(false);
             updatePlotCalculation(false);
         };
 
-        window.calculateTotalRent = function() {
-            let totalAnnual = 0;
-            const rentInputs = document.querySelectorAll('.plot-base-rent-input');
+        window.calculateTotalRent = function () {
+            let totalMonthly = 0;
+            const rentInputs = document.querySelectorAll('.plot-monthly-rent-input');
             rentInputs.forEach(input => {
                 const val = parseFloat(input.value) || 0;
-                totalAnnual += val;
+                totalMonthly += val;
                 const row = input.closest('tr');
                 if (row) {
-                    const monthlyEl = row.querySelector('.plot-monthly-rent-display');
-                    if (monthlyEl) {
-                        const monthly = val > 0 ? (val / 12) : 0;
-                        monthlyEl.textContent = `₱${monthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo`;
+                    const annualEl = row.querySelector('.plot-annual-rent-display');
+                    const hiddenAnnual = row.querySelector('.plot-base-rent-hidden');
+                    const annual = val > 0 ? (val * 12) : 0;
+                    if (annualEl) {
+                        annualEl.textContent = `₱${annual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/yr`;
+                    }
+                    if (hiddenAnnual) {
+                        hiddenAnnual.value = annual.toFixed(2);
                     }
                 }
             });
 
-            const totalMonthly = totalAnnual / 12;
+            const totalAnnual = totalMonthly * 12;
             const elAnnual = document.getElementById('totalProjectedAnnualRent');
             const elMonthly = document.getElementById('totalProjectedMonthlyRent');
-            if (elAnnual) elAnnual.textContent = `₱${totalAnnual.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            if (elMonthly) elMonthly.textContent = `₱${totalMonthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            if (elMonthly) elMonthly.textContent = `₱${totalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (elAnnual) elAnnual.textContent = `₱${totalAnnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         };
 
-        window.renderPlotsConfigTable = function() {
+        window.onPlotAreaChanged = function (changedIndex, changedInput) {
+            const areaInput = document.getElementById('area');
+            const totalArea = parseFloat(areaInput ? areaInput.value : 250) || 250;
+            const allAreaInputs = Array.from(document.querySelectorAll('.plot-area-input'));
+            const N = allAreaInputs.length;
+            if (N <= 1) {
+                if (allAreaInputs[0]) allAreaInputs[0].value = totalArea.toFixed(1);
+                updateAllocatedAreaBadge();
+                calculateTotalRent();
+                renderSubdivisions();
+                return;
+            }
+
+            let rawVal = parseFloat(changedInput.value);
+            if (isNaN(rawVal)) {
+                updateAllocatedAreaBadge();
+                return; // User is in the middle of clearing or typing a number
+            }
+
+            const minArea = 1.0;
+            const maxVal = Math.max(minArea, totalArea - (N - 1) * minArea);
+            let val = Math.min(Math.max(rawVal, minArea), maxVal);
+            val = Math.round(val * 10) / 10;
+            changedInput.value = val;
+            changedInput.setAttribute('data-manual', 'true');
+
+            let remainingArea = totalArea - val;
+
+            // Other inputs
+            const otherInputs = allAreaInputs.filter((inp, idx) => idx !== changedIndex);
+            const uneditedOthers = otherInputs.filter(inp => inp.getAttribute('data-manual') !== 'true');
+
+            if (uneditedOthers.length > 0) {
+                // Sum any other inputs that were already manually set
+                let manualSum = 0;
+                otherInputs.forEach(inp => {
+                    if (inp.getAttribute('data-manual') === 'true') {
+                        manualSum += (parseFloat(inp.value) || minArea);
+                    }
+                });
+
+                let availableForUnedited = totalArea - val - manualSum;
+                if (availableForUnedited < uneditedOthers.length * minArea) {
+                    // Reset manual flag on others to avoid negative/zero areas
+                    otherInputs.forEach(inp => inp.removeAttribute('data-manual'));
+                    const perPlot = remainingArea / otherInputs.length;
+                    let running = 0;
+                    otherInputs.forEach((inp, i) => {
+                        if (i === otherInputs.length - 1) {
+                            inp.value = Math.max(minArea, Math.round((remainingArea - running) * 10) / 10).toFixed(1);
+                        } else {
+                            const a = Math.max(minArea, Math.round(perPlot * 10) / 10);
+                            running += a;
+                            inp.value = a.toFixed(1);
+                        }
+                    });
+                } else {
+                    const perPlot = availableForUnedited / uneditedOthers.length;
+                    let running = 0;
+                    uneditedOthers.forEach((inp, i) => {
+                        if (i === uneditedOthers.length - 1) {
+                            inp.value = Math.max(minArea, Math.round((availableForUnedited - running) * 10) / 10).toFixed(1);
+                        } else {
+                            const a = Math.max(minArea, Math.round(perPlot * 10) / 10);
+                            running += a;
+                            inp.value = a.toFixed(1);
+                        }
+                    });
+                }
+            } else {
+                // All other inputs were previously edited: scale proportionally to absorb the delta
+                let sumOthers = 0;
+                otherInputs.forEach(inp => sumOthers += (parseFloat(inp.value) || minArea));
+                let running = 0;
+                otherInputs.forEach((inp, i) => {
+                    if (i === otherInputs.length - 1) {
+                        inp.value = Math.max(minArea, Math.round((remainingArea - running) * 10) / 10).toFixed(1);
+                    } else {
+                        const ratio = sumOthers > 0 ? ((parseFloat(inp.value) || minArea) / sumOthers) : (1 / otherInputs.length);
+                        const a = Math.max(minArea, Math.round(remainingArea * ratio * 10) / 10);
+                        running += a;
+                        inp.value = a.toFixed(1);
+                    }
+                });
+            }
+
+            // Update recommended monthly rent automatically for rows where user hasn't explicitly entered a custom rent
+            allAreaInputs.forEach(areaInp => {
+                const row = areaInp.closest('tr');
+                if (row) {
+                    const rentInp = row.querySelector('.plot-monthly-rent-input');
+                    if (rentInp && rentInp.getAttribute('data-custom-rent') !== 'true') {
+                        const a = parseFloat(areaInp.value) || 0;
+                        rentInp.value = Math.max(2000, Math.round(a * (2200 / 12)));
+                    }
+                }
+            });
+
+            updateAllocatedAreaBadge();
+            calculateTotalRent();
+            renderSubdivisions();
+        };
+
+        window.updateAllocatedAreaBadge = function () {
+            const badge = document.getElementById('allocatedAreaBadge');
+            if (!badge) return;
+            const areaInput = document.getElementById('area');
+            const totalArea = parseFloat(areaInput ? areaInput.value : 250) || 250;
+            const allAreaInputs = Array.from(document.querySelectorAll('.plot-area-input'));
+            let sumAllocated = 0;
+            allAreaInputs.forEach(inp => sumAllocated += (parseFloat(inp.value) || 0));
+            sumAllocated = Math.round(sumAllocated * 10) / 10;
+
+            const diff = Math.abs(sumAllocated - totalArea);
+            if (diff <= 0.2) {
+                badge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 text-xs fw-semibold';
+                badge.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${sumAllocated.toFixed(1)} / ${totalArea} m² (100% Allocated)`;
+            } else if (sumAllocated > totalArea) {
+                badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-0.5 text-xs fw-semibold';
+                badge.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i>${sumAllocated.toFixed(1)} / ${totalArea} m² (+${(sumAllocated - totalArea).toFixed(1)} m² Over)`;
+            } else {
+                badge.className = 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5 text-xs fw-semibold';
+                badge.innerHTML = `<i class="bi bi-info-circle-fill me-1"></i>${sumAllocated.toFixed(1)} / ${totalArea} m² (${(totalArea - sumAllocated).toFixed(1)} m² Remaining)`;
+            }
+        };
+
+        window.resetPlotsToEqualSizes = function () {
+            const areaInput = document.getElementById('area');
+            const totalArea = parseFloat(areaInput ? areaInput.value : 250) || 250;
+            const allAreaInputs = Array.from(document.querySelectorAll('.plot-area-input'));
+            const N = allAreaInputs.length;
+            if (N === 0) return;
+            const single = (totalArea / N);
+            let running = 0;
+            allAreaInputs.forEach((inp, idx) => {
+                inp.removeAttribute('data-manual');
+                if (idx === N - 1) {
+                    inp.value = Math.max(1, Math.round((totalArea - running) * 10) / 10).toFixed(1);
+                } else {
+                    const a = Math.max(1, Math.round(single * 10) / 10);
+                    running += a;
+                    inp.value = a.toFixed(1);
+                }
+                const row = inp.closest('tr');
+                if (row) {
+                    const rentInp = row.querySelector('.plot-monthly-rent-input');
+                    if (rentInp && rentInp.getAttribute('data-custom-rent') !== 'true') {
+                        rentInp.value = Math.max(2000, Math.round(parseFloat(inp.value) * (2200 / 12)));
+                    }
+                }
+            });
+            updateAllocatedAreaBadge();
+            calculateTotalRent();
+            renderSubdivisions();
+        };
+
+        window.renderPlotsConfigTable = function (preserveManual = true, explicitAreas = null) {
             const tableBody = document.getElementById('plotsConfigTableBody');
             if (!tableBody) return;
 
@@ -2643,23 +3475,28 @@ $cropCategories = getCropCategories();
             const totalArea = parseFloat(areaInput ? areaInput.value : 250) || 250;
             const singleArea = (totalArea / count).toFixed(1);
 
-            // Default benchmark: 50m² = ₱110,000/yr (₱2,200/m²), min ₱25,000
-            const defaultRent = Math.max(25000, Math.round(parseFloat(singleArea) * 2200));
+            // Default benchmark monthly rent: 50m² = ~₱9,167/mo (₱2,200/yr per m²), minimum ₱2,000/mo
+            const defaultMonthly = Math.max(2000, Math.round(parseFloat(singleArea) * (2200 / 12)));
 
             // Retain any existing values user typed
-            const existingRents = Array.from(document.querySelectorAll('.plot-base-rent-input')).map(i => i.value);
+            const existingMonthlyRents = Array.from(document.querySelectorAll('.plot-monthly-rent-input')).map(i => i.value);
+            const existingCustomRentFlags = Array.from(document.querySelectorAll('.plot-monthly-rent-input')).map(i => i.getAttribute('data-custom-rent'));
             const existingAreas = Array.from(document.querySelectorAll('.plot-area-input')).map(i => i.value);
+            const existingManualFlags = Array.from(document.querySelectorAll('.plot-area-input')).map(i => i.getAttribute('data-manual'));
             const existingNames = Array.from(document.querySelectorAll('.plot-name-input')).map(i => i.value);
-
-            const permittedCrops = Array.from(selectedCrops.values()).map(c => c.label);
-            const defaultCrop = permittedCrops.length > 0 ? permittedCrops[0] : 'Vegetables';
 
             let rowsHtml = '';
             for (let i = 0; i < count; i++) {
                 const plotNum = existingNames[i] || `Plot A-${i + 1}`;
-                const plotArea = existingAreas[i] || singleArea;
-                const plotRent = existingRents[i] || defaultRent;
-                const plotMonthly = (parseFloat(plotRent) / 12);
+                const plotArea = (explicitAreas && explicitAreas[i] !== undefined)
+                    ? parseFloat(explicitAreas[i]).toFixed(1)
+                    : ((preserveManual && existingAreas[i]) ? existingAreas[i] : singleArea);
+                const isManual = (explicitAreas && explicitAreas[i] !== undefined)
+                    ? 'data-manual="true"'
+                    : ((preserveManual && existingManualFlags[i] === 'true') ? 'data-manual="true"' : '');
+                const isCustomRent = (preserveManual && existingCustomRentFlags[i] === 'true') ? 'data-custom-rent="true"' : '';
+                const plotMonthly = existingMonthlyRents[i] || Math.max(2000, Math.round(parseFloat(plotArea) * (2200 / 12)));
+                const plotAnnual = parseFloat(plotMonthly) * 12;
 
                 rowsHtml += `
                     <tr>
@@ -2673,20 +3510,27 @@ $cropCategories = getCropCategories();
                         </td>
                         <td class="py-2">
                             <div class="input-group input-group-sm">
-                                <input type="number" step="0.1" name="plot_areas[]" class="form-control form-control-sm plot-area-input" value="${plotArea}" required oninput="calculateTotalRent()">
+                                <input type="number" step="0.1" min="1" max="${totalArea}" name="plot_areas[]" 
+                                    class="form-control form-control-sm plot-area-input fw-bold text-dark" 
+                                    value="${plotArea}" ${isManual} required 
+                                    oninput="onPlotAreaChanged(${i}, this)">
                                 <span class="input-group-text bg-light text-muted" style="font-size: 11px;">m²</span>
                             </div>
                         </td>
                         <td class="py-2">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-success-subtle text-success fw-bold">₱</span>
-                                <input type="number" step="100" name="plot_base_rents[]" class="form-control form-control-sm plot-base-rent-input fw-bold text-dark" value="${plotRent}" required min="1000" oninput="calculateTotalRent()">
-                                <span class="input-group-text bg-light text-muted" style="font-size: 11px;">/ yr</span>
+                                <input type="number" step="50" min="100" name="plot_monthly_rents[]" 
+                                    class="form-control form-control-sm plot-monthly-rent-input fw-bold text-dark" 
+                                    value="${plotMonthly}" ${isCustomRent} required 
+                                    oninput="this.setAttribute('data-custom-rent', 'true'); calculateTotalRent();">
+                                <span class="input-group-text bg-light text-muted" style="font-size: 11px;">/ mo</span>
                             </div>
+                            <input type="hidden" name="plot_base_rents[]" class="plot-base-rent-hidden" value="${plotAnnual.toFixed(2)}">
                         </td>
                         <td class="pe-3 py-2 text-end">
-                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 text-xs plot-monthly-rent-display fw-semibold">
-                                ₱${plotMonthly.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo
+                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 text-xs plot-annual-rent-display fw-semibold">
+                                ₱${plotAnnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/yr
                             </span>
                         </td>
                     </tr>
@@ -2694,6 +3538,7 @@ $cropCategories = getCropCategories();
             }
 
             tableBody.innerHTML = rowsHtml;
+            updateAllocatedAreaBadge();
             calculateTotalRent();
         };
 
@@ -2770,6 +3615,8 @@ $cropCategories = getCropCategories();
                 if (plotOverlay) plotOverlay.classList.add('d-none');
                 if (scrim) scrim.classList.add('d-none');
                 if (statusBar) statusBar.classList.add('d-none');
+                const fabControls = document.getElementById('mapFloatingFabControls');
+                if (fabControls) fabControls.classList.add('d-none');
                 if (map2D) map2D.style.display = 'none';
                 if (container3D) container3D.classList.add('active');
 
@@ -2814,6 +3661,8 @@ $cropCategories = getCropCategories();
                 if (plotOverlay && drawnPolygonLayer) plotOverlay.classList.remove('d-none');
                 if (scrim) scrim.classList.remove('d-none');
                 if (statusBar) statusBar.classList.remove('d-none');
+                const fabControls2D = document.getElementById('mapFloatingFabControls');
+                if (fabControls2D) fabControls2D.classList.remove('d-none');
                 if (container3D) container3D.classList.remove('active');
                 if (map2D) {
                     map2D.style.display = 'block';

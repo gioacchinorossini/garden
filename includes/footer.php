@@ -70,10 +70,10 @@ function get_dock_link_class($page_name, $bottom_page)
             <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
         </a>
 
-        <a href="<?php echo $base; ?>landowner/schedules.php"
-            class="<?php echo get_dock_link_class('schedules.php', $bottom_page); ?>">
-            <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
-            <span class="hidden sm:inline">Schedules</span>
+        <a href="<?php echo $base; ?>landowner/reports.php"
+            class="<?php echo get_dock_link_class('reports.php', $bottom_page); ?>">
+            <i data-lucide="bar-chart-3" style="width: 20px; height: 20px;"></i>
+            <span class="hidden sm:inline">Earnings</span>
         </a>
         <a href="<?php echo $base; ?>landowner/profile.php"
             class="<?php echo get_dock_link_class('profile.php', $bottom_page); ?>">
@@ -165,7 +165,7 @@ function get_dock_link_class($page_name, $bottom_page)
                 </a>
 
                 <!-- Notification 2 -->
-                <a href="<?php echo $base; ?><?php echo $bottom_role === 'gardener' ? 'gardener/schedules.php' : ($bottom_role === 'landowner' ? 'landowner/schedules.php' : 'admin/dashboard.php'); ?>"
+                <a href="<?php echo $base; ?><?php echo $bottom_role === 'gardener' ? 'gardener/schedules.php' : ($bottom_role === 'landowner' ? 'landowner/requests.php' : 'admin/dashboard.php'); ?>"
                     class="flex items-start gap-2.5 px-3.5 py-2.5 hover:bg-drive-surface-hover text-decoration-none transition-colors group">
                     <div
                         class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs">

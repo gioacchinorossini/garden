@@ -7,38 +7,28 @@ include '../includes/sidebar.php';
 ?>
 
 <main class="workspace-surface">
-    <!-- Desktop Toolbar (Title and actions, borderless) -->
-    <div class="toolbar d-none d-md-flex justify-content-between align-items-center">
-        <div>
+    <!-- Desktop Toolbar (Title and actions) -->
+    <div class="toolbar requests-toolbar d-none d-md-flex">
+        <div class="toolbar-title-wrap">
             <h1 class="fs-5 fw-semibold m-0 text-dark">Plot Requests</h1>
             <p class="text-muted mb-0" style="font-size: 0.78rem;">Review and manage gardener applications for your plots</p>
         </div>
-        <div class="d-flex align-items-center gap-3">
+
+        <div class="toolbar-actions-wrap">
             <!-- Search bar -->
-            <div class="position-relative" style="width: 220px;">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem;"></i>
-                <input type="text" id="requestsSearchInput" class="form-control form-control-sm ps-5 rounded-pill border-light-subtle bg-light"
+            <div class="position-relative toolbar-search-wrap">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem; pointer-events: none;"></i>
+                <input type="text" id="requestsSearchInput" class="form-control rounded-pill ps-5"
                     placeholder="Search gardener, land...">
             </div>
 
             <!-- Filter tabs -->
-            <!-- Filter tabs -->
-            <!-- Filter tabs -->
             <div class="filter-pill-track" role="group">
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn active" data-filter="all" id="filterAllBtn">
-                    All <span class="badge rounded-pill bg-secondary ms-1" id="countAll">0</span>
+                <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="approved" id="filterApprovedBtn">
+                    Approved <span class="badge rounded-pill bg-success ms-1" id="countApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="pending" id="filterPendingBtn">
                     Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="countPending">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="offer_sent" id="filterOfferBtn">
-                    Offers Sent <span class="badge rounded-pill text-dark ms-1" style="background:#FEE7AA;" id="countOffer">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="counter_offered" id="filterCounterBtn">
-                    Counter-Offers <span class="badge rounded-pill text-white ms-1" style="background:#0284C7;" id="countCounter">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="approved" id="filterApprovedBtn">
-                    Approved <span class="badge rounded-pill bg-success ms-1" id="countApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn text-secondary" data-filter="rejected" id="filterRejectedBtn">
                     Rejected <span class="badge rounded-pill bg-danger ms-1" id="countRejected">0</span>
@@ -60,20 +50,11 @@ include '../includes/sidebar.php';
 
             <!-- Mobile Filter Pills (Horizontal Scroll) -->
             <div class="d-flex align-items-center gap-2 overflow-x-auto py-1.5 px-0.5 no-scrollbar">
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn active flex-shrink-0" data-filter="all">
-                    All <span class="badge rounded-pill bg-secondary ms-1" id="mCountAll">0</span>
+                <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="approved">
+                    Approved <span class="badge rounded-pill bg-success ms-1" id="mCountApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="pending">
                     Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="mCountPending">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="offer_sent">
-                    Offers <span class="badge rounded-pill text-dark ms-1" style="background:#FEE7AA;" id="mCountOffer">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="counter_offered">
-                    Counter <span class="badge rounded-pill text-white ms-1" style="background:#0284C7;" id="mCountCounter">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="approved">
-                    Approved <span class="badge rounded-pill bg-success ms-1" id="mCountApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill request-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="rejected">
                     Rejected <span class="badge rounded-pill bg-danger ms-1" id="mCountRejected">0</span>
@@ -86,11 +67,11 @@ include '../includes/sidebar.php';
             <!-- Header Row -->
             <div class="d-flex align-items-center justify-content-between px-4 py-3 request-table-header"
                 style="font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;">
-                <div style="width: 28%;">GARDENER</div>
-                <div style="width: 28%;">PLOT & PROPERTY</div>
-                <div style="width: 16%;">PURPOSE & DURATION</div>
-                <div style="width: 14%;">STATUS</div>
-                <div style="width: 14%;" class="text-end">ACTION</div>
+                <div style="width: 23%; min-width: 170px;">GARDENER</div>
+                <div style="width: 23%; min-width: 170px;">PLOT &amp; PROPERTY</div>
+                <div style="width: 17%; min-width: 130px;">PURPOSE &amp; DURATION</div>
+                <div style="width: 13%; min-width: 100px;">STATUS</div>
+                <div style="width: 24%; min-width: 215px;" class="text-end pe-1">ACTION</div>
             </div>
 
             <!-- Request Rows Placeholder -->
@@ -106,7 +87,7 @@ include '../includes/sidebar.php';
 
 <!-- Details Modal -->
 <div class="modal fade" id="viewRequestModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content drive-modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-0 pb-0">
                 <div class="d-flex align-items-center gap-2">
@@ -160,9 +141,9 @@ include '../includes/sidebar.php';
                             <span class="text-muted small" style="font-size:11px;" id="view_counter_time"></span>
                         </div>
                         <div class="d-flex align-items-baseline gap-2 mb-1">
-                            <span class="fs-4 fw-bolder text-dark" id="view_counter_rate">₱95,000.00</span>
-                            <span class="text-secondary small fw-medium">/ Year</span>
-                            <span class="text-muted small" id="view_counter_monthly">(₱7,916.67/mo)</span>
+                            <span class="fs-4 fw-bolder text-dark" id="view_counter_rate">₱7,916.67</span>
+                            <span class="text-secondary small fw-medium">/ Month</span>
+                            <span class="text-muted small" id="view_counter_monthly">(₱95,000.00/yr)</span>
                         </div>
                         <div class="small text-secondary p-2.5 rounded-3 bg-white border border-light-subtle" id="view_counter_notes">
                             No explanation provided.
@@ -194,11 +175,11 @@ include '../includes/sidebar.php';
                 </div>
 
                 <!-- Modal footer actions -->
-                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                    <div id="modalPendingActions" class="d-flex gap-2">
+                <div class="d-flex align-items-center justify-content-between pt-3 border-top flex-wrap gap-2">
+                    <div id="modalPendingActions" class="d-flex align-items-center gap-2 flex-wrap">
                         <!-- Dynamic Approve & Reject buttons injected here if pending -->
                     </div>
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-light rounded-pill px-4 ms-auto" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -238,7 +219,7 @@ include '../includes/sidebar.php';
                             required placeholder="Provide clear feedback on why this request cannot be accepted..."></textarea>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end gap-2 flex-wrap">
                         <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-danger rounded-pill px-4">Confirm Rejection</button>
                     </div>
@@ -276,16 +257,18 @@ include '../includes/sidebar.php';
                         <div class="small text-muted" id="offer_plot_desc">Plot &amp; Property</div>
                     </div>
 
-                    <!-- Rental Rate Field -->
+                    <!-- Rental Rate Field (Monthly Fee matching Register Land Page) -->
                     <div class="mb-3">
                         <label for="offer_rental_rate" class="form-label text-secondary d-flex justify-content-between mb-1" style="font-size: 0.75rem; font-weight: 700;">
-                            <span>PROPOSED ANNUAL RENTAL FEE (₱)</span>
-                            <span class="text-muted font-normal">Benchmark: 50 m² @ ₱110k/yr</span>
+                            <span>PROPOSED MONTHLY RENTAL FEE (₱ / MO)</span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" id="offer_annual_projection">~₱110,000.00 / yr</span>
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-light-subtle fw-bold text-muted">₱</span>
-                            <input type="number" step="100" min="0" class="form-control rounded-end-pill border-light-subtle ps-2 fw-bold"
-                                id="offer_rental_rate" name="rental_rate" required placeholder="110000" value="110000">
+                            <span class="input-group-text fw-bold">₱</span>
+                            <input type="number" step="50" min="100" class="form-control drive-form-control fw-bold"
+                                id="offer_rental_rate" name="rental_rate" required placeholder="9167" value="9167"
+                                oninput="updateOfferAnnualCalc()">
+                            <span class="input-group-text bg-light text-muted" style="font-size: 11px;">/ mo</span>
                         </div>
                     </div>
 
@@ -310,7 +293,7 @@ include '../includes/sidebar.php';
                             placeholder="Permitted crops, plot guidelines, and water access included.">Standard 50 sq. m. community plot lease. Organic vegetables and herbs permitted. Water spigot access provided.</textarea>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end gap-2 flex-wrap">
                         <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold shadow-xs">
                             <i class="bi bi-send-fill me-1"></i> Send Offer to Renter

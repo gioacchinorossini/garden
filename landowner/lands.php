@@ -159,7 +159,8 @@ include '../includes/sidebar.php';
 
 /* Crop Selection Chips */
 .plot-crop-chip,
-.edit-modal-crop-chip {
+.edit-modal-crop-chip,
+.edit-modal-amenity-chip {
     cursor: pointer;
     transition: all 0.15s ease;
     border: 2px solid var(--drive-border-subtle, #DFCFC2) !important;
@@ -168,16 +169,44 @@ include '../includes/sidebar.php';
 }
 
 .plot-crop-chip:hover,
-.edit-modal-crop-chip:hover {
+.edit-modal-crop-chip:hover,
+.edit-modal-amenity-chip:hover {
     background: #F4EFE6 !important;
     border-color: #7FA668 !important;
 }
 
 .plot-crop-chip.selected,
-.edit-modal-crop-chip.selected {
+.edit-modal-crop-chip.selected,
+.edit-modal-amenity-chip.selected {
     background: #EAF3E7 !important;
     border-color: #523E31 !important;
     box-shadow: 0 2.5px 0 #523E31 !important;
+}
+
+/* Land Listing Cards (Tactile 3D Shadow Matching Theme) */
+.land-listing-card {
+    background: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 0 #523E31 !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.land-listing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #523E31 !important;
+}
+.land-listing-card.is-selected {
+    border-color: #7FA668 !important;
+    box-shadow: 0 0 0 3px #BBD6B8, 0 5px 0 #523E31 !important;
+}
+
+/* Ensure button text in cards is pure white */
+a.btn-drive-primary,
+a.btn-drive-primary:hover,
+a.btn-drive-primary:focus,
+a.btn-drive-primary:active,
+a.btn-drive-primary:visited {
+    color: #ffffff !important;
 }
 </style>
 
@@ -199,14 +228,11 @@ include '../includes/sidebar.php';
 
             <!-- Filter tabs -->
             <div class="filter-pill-track" role="group">
-                <button type="button" class="btn btn-sm rounded-pill land-filter-btn active" data-filter="all" id="filterAllBtn">
-                    All <span class="badge rounded-pill bg-secondary ms-1" id="countAll">0</span>
+                <button type="button" class="btn btn-sm rounded-pill land-filter-btn text-secondary" data-filter="approved" id="filterApprovedBtn">
+                    Approved <span class="badge rounded-pill bg-success ms-1" id="countApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill land-filter-btn text-secondary" data-filter="pending" id="filterPendingBtn">
                     Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="countPending">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill land-filter-btn text-secondary" data-filter="approved" id="filterApprovedBtn">
-                    Approved <span class="badge rounded-pill bg-success ms-1" id="countApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill land-filter-btn text-secondary" data-filter="rejected" id="filterRejectedBtn">
                     Rejected <span class="badge rounded-pill bg-danger ms-1" id="countRejected">0</span>
@@ -228,14 +254,11 @@ include '../includes/sidebar.php';
 
             <!-- Mobile Filter Pills (Horizontal Scroll) -->
             <div class="d-flex align-items-center gap-2 overflow-x-auto py-1.5 px-0.5 no-scrollbar">
-                <button type="button" class="btn btn-sm rounded-pill land-filter-btn active flex-shrink-0" data-filter="all">
-                    All <span class="badge rounded-pill bg-secondary ms-1" id="mCountAll">0</span>
+                <button type="button" class="btn btn-sm rounded-pill land-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="approved">
+                    Approved <span class="badge rounded-pill bg-success ms-1" id="mCountApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill land-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="pending">
                     Pending <span class="badge rounded-pill bg-warning text-dark ms-1" id="mCountPending">0</span>
-                </button>
-                <button type="button" class="btn btn-sm rounded-pill land-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="approved">
-                    Approved <span class="badge rounded-pill bg-success ms-1" id="mCountApproved">0</span>
                 </button>
                 <button type="button" class="btn btn-sm rounded-pill land-filter-btn bg-white border flex-shrink-0 text-secondary" data-filter="rejected">
                     Rejected <span class="badge rounded-pill bg-danger ms-1" id="mCountRejected">0</span>
@@ -287,8 +310,10 @@ include '../includes/sidebar.php';
 
 <?php
 require_once __DIR__ . '/../includes/crops_library.php';
+require_once __DIR__ . '/../includes/lands_helper.php';
 $seedTypes = getPermittedCropsSeedList('../');
 $cropCategories = getCropCategories();
+$amenityTypes = get_standard_amenities('../');
 ?>
 
 <!-- Single Edit Land Details Modal -->
@@ -358,11 +383,11 @@ $cropCategories = getCropCategories();
                                     name="description" rows="3"></textarea>
                             </div>
 
-                            <!-- Allowed Seed Types / Permitted Crops -->
+                            <!-- Crops That Can Grow -->
                             <div class="mb-3">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                     <label class="form-label text-secondary m-0"
-                                        style="font-size:0.75rem;font-weight:600;">PERMITTED CROPS</label>
+                                        style="font-size:0.75rem;font-weight:600;">CROPS</label>
                                     <button type="button"
                                         class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1 d-flex align-items-center gap-1.5"
                                         data-bs-toggle="modal" data-bs-target="#editPermittedCropsModal"
@@ -375,10 +400,31 @@ $cropCategories = getCropCategories();
                                 <div id="editSelectedCropsSummary"
                                     class="p-3 border rounded-4 bg-white d-flex flex-wrap gap-2 align-items-center"
                                     style="min-height:52px;border-color:var(--drive-border) !important;">
-                                    <span class="text-muted text-xs italic" id="editEmptyCropsNotice">No specific crops
-                                        selected (All crops permitted by default).</span>
+                                    <span class="text-muted text-xs italic" id="editEmptyCropsNotice">No specific crops selected.</span>
                                 </div>
                                 <div id="editHiddenSeedInputs"></div>
+                            </div>
+
+                            <!-- Available Amenities & Utilities in Edit Modal -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label text-secondary m-0"
+                                        style="font-size:0.75rem;font-weight:600;">AVAILABLE AMENITIES &amp; UTILITIES</label>
+                                    <button type="button"
+                                        class="btn btn-sm btn-drive-secondary rounded-pill px-3 py-1 d-flex align-items-center gap-1.5"
+                                        data-bs-toggle="modal" data-bs-target="#editAmenitiesModal"
+                                        style="font-size:0.75rem;">
+                                        <i class="bi bi-search" style="font-size:12px;"></i>
+                                        <span>Select Amenities</span>
+                                    </button>
+                                </div>
+
+                                <div id="editSelectedAmenitiesSummary"
+                                    class="p-3 border rounded-4 bg-white d-flex flex-wrap gap-2 align-items-center"
+                                    style="min-height:52px;border-color:var(--drive-border) !important;">
+                                    <span class="text-muted text-xs italic" id="editEmptyAmenitiesNotice">No amenities selected.</span>
+                                </div>
+                                <div id="editHiddenAmenitiesInputs"></div>
                             </div>
                         </div>
 
@@ -417,10 +463,9 @@ $cropCategories = getCropCategories();
                     <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
                         <img src="../assets/crop-icons/generic-plant/generic-plant.svg" class="w-6 h-6 object-contain"
                             alt="Crops" style="width:20px;height:20px;">
-                        Select Permitted Crops
+                        Select Crops
                     </h5>
-                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the crop types gardeners are
-                        allowed to cultivate on this land.</p>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the crops and plants for this land.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -494,6 +539,92 @@ $cropCategories = getCropCategories();
     </div>
 </div>
 
+<!-- Edit Available Amenities Modal -->
+<div class="modal fade" id="editAmenitiesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content drive-modal-content rounded-4 overflow-hidden border-0 shadow">
+            <div class="modal-header border-bottom px-4 py-3 bg-white">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 1rem;">
+                        <img src="../assets/amenity-icons/general.svg" class="w-6 h-6 object-contain"
+                            alt="Amenities" style="width:20px;height:20px;">
+                        Select Amenities &amp; Utilities
+                    </h5>
+                    <p class="text-secondary mb-0" style="font-size: 0.75rem;">Choose the utilities and infrastructure available for gardeners on this land.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light">
+                <div class="d-flex flex-column flex-sm-row gap-3 align-items-center justify-content-between mb-3">
+                    <div class="position-relative w-100 me-sm-2">
+                        <i class="bi bi-search position-absolute text-secondary"
+                            style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px;"></i>
+                        <input type="text" id="editAmenitySearchInput"
+                            class="form-control drive-form-control ps-5 py-2 text-xs rounded-pill"
+                            placeholder="Search amenities (e.g. Water, Electricity, Irrigation, Storage, Fencing)..."
+                            onkeyup="filterEditAmenityChips()">
+                    </div>
+                    <div class="d-flex gap-1.5 flex-shrink-0">
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs"
+                            onclick="selectAllEditAmenities(true)">Select All</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 text-xs"
+                            onclick="selectAllEditAmenities(false)">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Custom Amenity Quick Adder -->
+                <div class="d-flex align-items-center gap-2 mb-3 bg-white p-2.5 border rounded-3" style="border-color: var(--drive-border) !important;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="bi bi-plus-circle text-success"></i>
+                        </span>
+                        <input type="text" id="editModalCustomAmenityInput" class="form-control drive-form-control border-start-0 text-xs"
+                            placeholder="Add other amenity (e.g. CCTV, Deep Well, Solar Power, Greenhouse)..."
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();addEditCustomAmenityFromModal();}">
+                        <button type="button" class="btn btn-drive-secondary px-3 text-xs fw-semibold" onclick="addEditCustomAmenityFromModal()">
+                            Add Amenity
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-2 overflow-y-auto" id="editModalAmenityGrid" style="max-height: 340px;">
+                    <?php foreach ($amenityTypes as $amenity): ?>
+                        <div class="col-6 col-sm-4 col-md-3 edit-amenity-grid-item"
+                            data-name="<?php echo strtolower($amenity['label'] . ' ' . ($amenity['desc'] ?? '')); ?>">
+                            <div class="edit-modal-amenity-chip p-2.5 d-flex align-items-center justify-content-between gap-2"
+                                data-value="<?php echo htmlspecialchars($amenity['value']); ?>"
+                                data-label="<?php echo htmlspecialchars($amenity['label']); ?>"
+                                data-icon="<?php echo htmlspecialchars($amenity['icon']); ?>"
+                                style="user-select: none;"
+                                onclick="toggleEditAmenitySelection('<?php echo htmlspecialchars(addslashes($amenity['value'])); ?>', '<?php echo htmlspecialchars(addslashes($amenity['label'])); ?>', '<?php echo htmlspecialchars($amenity['icon']); ?>', this)">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-light border flex-shrink-0"
+                                        style="width:32px;height:32px;">
+                                        <img src="<?php echo $amenity['icon']; ?>" alt="<?php echo htmlspecialchars($amenity['label']); ?>"
+                                            style="width:20px;height:20px;object-fit:contain;" loading="lazy">
+                                    </div>
+                                    <span class="fw-semibold text-dark text-xs truncate"
+                                        title="<?php echo htmlspecialchars($amenity['label']); ?>"><?php echo htmlspecialchars($amenity['label']); ?></span>
+                                </div>
+                                <div class="edit-amenity-check-icon text-primary d-none">
+                                    <i class="bi bi-check-circle-fill text-primary" style="font-size: 14px;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
+                <span class="text-secondary text-xs fw-semibold"><span id="editSelectedAmenitiesCountText">0</span> amenities selected</span>
+                <button type="button" class="btn btn-drive-primary rounded-pill px-4"
+                    data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Plot Modal (Single instance) -->
 <div class="modal fade" id="addPlotModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -538,11 +669,10 @@ $cropCategories = getCropCategories();
                 <div>
                     <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2"
                         style="font-size:1.05rem;">
-                        <i class="bi bi-sprout text-success"></i> Permitted Crops for <span id="modalPlotTitle"
+                        <i class="bi bi-sprout text-success"></i> Crops for <span id="modalPlotTitle"
                             class="text-primary"></span>
                     </h5>
-                    <p class="text-muted mb-0" style="font-size:0.75rem;">Select which crop types gardeners are
-                        allowed to plant in this specific plot grid.</p>
+                    <p class="text-muted mb-0" style="font-size:0.75rem;">Select crops for this plot.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -577,8 +707,7 @@ $cropCategories = getCropCategories();
             </div>
             <div
                 class="modal-footer border-top bg-white px-4 py-3 d-flex justify-content-between align-items-center">
-                <span class="text-secondary text-xs fw-semibold"><span id="plotSelectedCropCount">0</span> crops
-                    permitted for this plot</span>
+                <span class="text-secondary text-xs fw-semibold"><span id="plotSelectedCropCount">0</span> crops selected for this plot</span>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-drive-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-drive-primary rounded-pill px-4"

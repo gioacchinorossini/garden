@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <!-- Amenity Icon: Electricity -->
+  <defs>
+    <filter id="electricGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#f57f17" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Golden Sparkle Aura -->
+  <circle cx="34" cy="32" r="24" fill="#FFF9C4" opacity="0.6"/>
+
+  <!-- Energy Power Plug Body (Base) -->
+  <g id="plug">
+    <!-- Flexible cable loop -->
+    <path d="M 12 56 C 14 48 18 45 22 46" stroke="#455A64" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <path d="M 12 56 C 14 48 18 45 22 46" stroke="#78909C" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    
+    <!-- Plug housing contour shadow -->
+    <path d="M 19 36 L 31 24 C 33 22 37 22 39 24 L 43 28 C 45 30 45 34 43 36 L 31 48 C 29 50 25 50 23 48 L 19 44 C 17 42 17 38 19 36 Z" fill="#263238"/>
+    <!-- Plug housing main -->
+    <path d="M 20 36.5 L 31 25.5 C 32.5 24 35.5 24 37 25.5 L 41.5 30 C 43 31.5 43 34.5 41.5 36 L 30.5 47 C 29 48.5 26 48.5 24.5 47 L 20 42.5 C 18.5 41 18.5 38 20 36.5 Z" fill="#546E7A"/>
+    <!-- Plug grip ribs -->
+    <line x1="24" y1="36" x2="28" y2="40" stroke="#37474F" stroke-width="2" stroke-linecap="round"/>
+    <line x1="28" y1="32" x2="32" y2="36" stroke="#37474F" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Dynamic Golden Lightning Bolt -->
+  <g id="bolt" filter="url(#electricGlow)">
+    <!-- Bolt shadow contour -->
+    <path d="M 38 5 L 21 31 L 32 31 L 24 57 L 51 25 L 38 25 Z" fill="#E65100"/>
+    <!-- Bolt vibrant orange/amber body -->
+    <path d="M 38 6.5 L 22.5 31 L 32.5 31 L 26 54 L 48.5 26.5 L 37.5 26.5 Z" fill="#FF8F00"/>
+    <!-- Main golden yellow core -->
+    <path d="M 38 8 L 24 31 L 33 31 L 28 50 L 46 28 L 37 28 Z" fill="#FFD600"/>
+    <!-- Inner bright light core -->
+    <path d="M 37.5 11 L 26.5 30 L 34 30 L 30 44 L 43 29 L 36.5 29 Z" fill="#FFF59D"/>
+
+    <!-- Glossy reflection highlights -->
+    <path d="M 36 12 L 28 27" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.95"/>
+    <circle cx="34" cy="33" r="1.5" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+
+  <!-- Tiny Electric Spark stars -->
+  <g id="sparks">
+    <!-- Spark 1 -->
+    <circle cx="49" cy="14" r="2" fill="#FFD600"/>
+    <circle cx="49" cy="14" r="1.2" fill="#FFFFFF"/>
+    <!-- Spark 2 -->
+    <circle cx="16" cy="24" r="2.2" fill="#FFD600"/>
+    <circle cx="16" cy="24" r="1.2" fill="#FFFFFF"/>
+    <!-- Spark 3 -->
+    <circle cx="44" cy="51" r="2" fill="#FFD600"/>
+    <circle cx="44" cy="51" r="1" fill="#FFFFFF"/>
+  </g>
+</svg>
+

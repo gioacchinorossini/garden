@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%">
+  <!-- Amenity Icon: Perimeter Fencing -->
+  <defs>
+    <filter id="fenceGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#4e342e" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Ground Mound with Grass -->
+  <ellipse cx="32" cy="57" rx="26" ry="4.5" fill="#33691E" opacity="0.4"/>
+  <ellipse cx="32" cy="56" rx="24" ry="3.5" fill="#558B2F"/>
+
+  <!-- Fence Assembly -->
+  <g id="fence" filter="url(#fenceGlow)">
+    <!-- Horizontal Crossbars (Shadow) -->
+    <rect x="5" y="24" width="54" height="6" rx="2" fill="#4E342E"/>
+    <rect x="5" y="40" width="54" height="6" rx="2" fill="#4E342E"/>
+    <!-- Horizontal Crossbars (Main Timber) -->
+    <rect x="6" y="25" width="52" height="4.5" rx="1.5" fill="#8D6E63"/>
+    <rect x="6" y="41" width="52" height="4.5" rx="1.5" fill="#8D6E63"/>
+    <!-- Highlight sheen on rails -->
+    <path d="M 8 26 L 56 26" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 8 42 L 56 42" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Picket 1 (Left) -->
+    <g id="picket1">
+      <path d="M 10 16 L 15 10 L 20 16 L 20 54 L 10 54 Z" fill="#4E342E"/>
+      <path d="M 11 16.5 L 15 11.5 L 19 16.5 L 19 53 L 11 53 Z" fill="#EFEBE9"/>
+      <path d="M 12 18 L 15 14 L 18 18 L 18 52 L 12 52 Z" fill="#FFFFFF"/>
+      <path d="M 13 18 L 13 50" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="15" cy="27" r="1.2" fill="#8D6E63"/>
+      <circle cx="15" cy="43" r="1.2" fill="#8D6E63"/>
+    </g>
+
+    <!-- Picket 2 (Center Left) -->
+    <g id="picket2">
+      <path d="M 22 14 L 27 8 L 32 14 L 32 54 L 22 54 Z" fill="#4E342E"/>
+      <path d="M 23 14.5 L 27 9.5 L 31 14.5 L 31 53 L 23 53 Z" fill="#EFEBE9"/>
+      <path d="M 24 16 L 27 12 L 30 16 L 30 52 L 24 52 Z" fill="#FFFFFF"/>
+      <path d="M 25 16 L 25 50" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="27" cy="27" r="1.2" fill="#8D6E63"/>
+      <circle cx="27" cy="43" r="1.2" fill="#8D6E63"/>
+    </g>
+
+    <!-- Picket 3 (Center Right) -->
+    <g id="picket3">
+      <path d="M 34 14 L 39 8 L 44 14 L 44 54 L 34 54 Z" fill="#4E342E"/>
+      <path d="M 35 14.5 L 39 9.5 L 43 14.5 L 43 53 L 35 53 Z" fill="#EFEBE9"/>
+      <path d="M 36 16 L 39 12 L 42 16 L 42 52 L 36 52 Z" fill="#FFFFFF"/>
+      <path d="M 37 16 L 37 50" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="39" cy="27" r="1.2" fill="#8D6E63"/>
+      <circle cx="39" cy="43" r="1.2" fill="#8D6E63"/>
+    </g>
+
+    <!-- Picket 4 (Right) -->
+    <g id="picket4">
+      <path d="M 46 16 L 51 10 L 56 16 L 56 54 L 46 54 Z" fill="#4E342E"/>
+      <path d="M 47 16.5 L 51 11.5 L 55 16.5 L 55 53 L 47 53 Z" fill="#EFEBE9"/>
+      <path d="M 48 18 L 51 14 L 54 18 L 54 52 L 48 52 Z" fill="#FFFFFF"/>
+      <path d="M 49 18 L 49 50" stroke="#D7CCC8" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="51" cy="27" r="1.2" fill="#8D6E63"/>
+      <circle cx="51" cy="43" r="1.2" fill="#8D6E63"/>
+    </g>
+  </g>
+
+  <!-- Little green climbing leaf sprig on post -->
+  <path d="M 44 48 Q 47 43 45 38" stroke="#2E7D32" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <path d="M 45 38 C 47 36 50 38 49 41 C 47 41 45 39 45 38 Z" fill="#4CAF50"/>
+  <path d="M 46 45 C 49 44 51 47 49 49 C 47 48 46 46 46 45 Z" fill="#81C784"/>
+</svg>
+

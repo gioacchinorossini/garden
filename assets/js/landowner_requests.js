@@ -139,8 +139,12 @@ document.addEventListener("DOMContentLoaded", function () {
     function getFilteredList() {
         return requestsList.filter(req => {
             // Status filter
-            if (currentFilter !== 'all' && req.status !== currentFilter) {
-                return false;
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'rejected') {
+                    if (req.status !== 'rejected' && req.status !== 'declined') return false;
+                } else if (req.status !== currentFilter) {
+                    return false;
+                }
             }
             // Search filter
             if (searchQuery.trim() !== '') {
@@ -181,10 +185,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     } else if (req.status === 'pending') {
                         statusBadge = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1"><i class="bi bi-clock-history"></i> Pending</span>`;
                     } else if (req.status === 'offer_sent') {
-                        const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
-                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Offer ${rateStr} sent to renter"><i class="bi bi-tag-fill text-warning"></i> Offer Sent</span>`;
+                        const monthlyRate = req.offered_rental_rate ? Math.round(parseFloat(req.offered_rental_rate) / 12) : 9167;
+                        const rateStr = `₱${monthlyRate.toLocaleString()}/mo`;
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Offer ${rateStr} sent to renter"><i class="bi bi-tag-fill text-warning"></i> Offer (${rateStr})</span>`;
                     } else if (req.status === 'counter_offered') {
-                        const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
+                        const counterMonthly = req.counter_rental_rate ? Math.round(parseFloat(req.counter_rental_rate) / 12) : 0;
+                        const counterRateStr = counterMonthly ? `₱${counterMonthly.toLocaleString()}/mo` : '₱.../mo';
                         statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;" title="Counter-Offer: ${counterRateStr}"><i class="bi bi-arrow-left-right text-primary"></i> Counter: ${counterRateStr}</span>`;
                     } else if (req.status === 'declined') {
                         statusBadge = `<span class="badge rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1 bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill"></i> Declined</span>`;
@@ -201,32 +207,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (req.status === 'pending') {
                         actionsHtml += `
-                            <button onclick="openRentalOfferModal(${req.id})" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-xs fw-semibold d-inline-flex align-items-center gap-1 ms-1 shadow-xs" title="Send Rental Offer">
+                            <button onclick="openRentalOfferModal(${req.id})" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-xs fw-semibold d-inline-flex align-items-center gap-1 shadow-xs flex-shrink-0" title="Send Rental Offer">
                                 <i class="bi bi-tag-fill"></i> Offer
                             </button>
-                            <button onclick="openRejectModal(${req.id})" class="request-action-btn request-btn-reject ms-1" title="Reject Request">
+                            <button onclick="openRejectModal(${req.id})" class="request-action-btn request-btn-reject flex-shrink-0" title="Reject Request">
                                 <i class="bi bi-x-lg"></i>
                             </button>
-                            <button onclick="approveRequest(${req.id})" class="request-action-btn request-btn-approve ms-1" title="Direct Approve">
+                            <button onclick="approveRequest(${req.id})" class="request-action-btn request-btn-approve flex-shrink-0" title="Direct Approve">
                                 <i class="bi bi-check-lg"></i>
                             </button>
                         `;
                     } else if (req.status === 'offer_sent') {
                         actionsHtml += `
-                            <span class="text-[11px] text-muted font-medium ms-1 text-nowrap d-inline-flex align-items-center gap-1" title="Awaiting gardener decision">
+                            <span class="text-[11px] text-muted font-medium text-nowrap d-inline-flex align-items-center gap-1 flex-shrink-0" title="Awaiting gardener decision">
                                 <i class="bi bi-hourglass-split text-warning"></i> Awaiting Renter
                             </span>
                         `;
                     } else if (req.status === 'counter_offered') {
-                        const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}` : '';
                         actionsHtml += `
-                            <button onclick="acceptCounterOffer(${req.id})" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-xs fw-semibold text-white d-inline-flex align-items-center gap-1 ms-1 shadow-xs" title="Accept Counter-Offer & Lease Plot">
+                            <button onclick="acceptCounterOffer(${req.id})" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-xs fw-semibold text-white d-inline-flex align-items-center gap-1 shadow-xs flex-shrink-0" title="Accept Counter-Offer & Lease Plot">
                                 <i class="bi bi-check-circle-fill"></i> Accept
                             </button>
-                            <button onclick="openRentalOfferModal(${req.id})" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold ms-1" title="Counter Back / Propose Adjusted Rate">
+                            <button onclick="openRentalOfferModal(${req.id})" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 text-xs fw-semibold flex-shrink-0" title="Counter Back / Propose Adjusted Rate">
                                 <i class="bi bi-arrow-left-right"></i> Counter
                             </button>
-                            <button onclick="declineCounterOffer(${req.id})" class="request-action-btn request-btn-reject ms-1" title="Decline Counter-Offer">
+                            <button onclick="declineCounterOffer(${req.id})" class="request-action-btn request-btn-reject flex-shrink-0" title="Decline Counter-Offer">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                         `;
@@ -235,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return `
                         <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom request-table-row">
                             <!-- Gardener -->
-                            <div style="width: 28%;" class="d-flex align-items-center gap-2.5 min-w-0 pe-2">
+                            <div style="width: 23%; min-width: 170px;" class="d-flex align-items-center gap-2.5 min-w-0 pe-2">
                                 <div class="request-avatar" style="background-color: ${color.bg}; color: ${color.text};">
                                     ${initials}
                                 </div>
@@ -248,8 +253,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
 
                             <!-- Land & Plot -->
-                            <div style="width: 28%;" class="pe-2">
-                                <div class="fw-semibold text-dark text-truncate">${req.land_title}</div>
+                            <div style="width: 23%; min-width: 170px;" class="pe-2 min-w-0">
+                                <div class="fw-semibold text-dark text-truncate" title="${req.land_title}">${req.land_title}</div>
                                 <div class="d-flex align-items-center gap-1.5 mt-0.5">
                                     <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5" style="font-size: 10px;">
                                         <i class="bi bi-grid-3x3 text-success me-1"></i>${req.plot_num}
@@ -259,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
 
                             <!-- Purpose / Term -->
-                            <div style="width: 16%;" class="pe-2">
+                            <div style="width: 17%; min-width: 130px;" class="pe-2">
                                 <span class="badge bg-light text-dark border rounded-pill px-2 py-1 mb-1 font-monospace" style="font-size: 10px;">
                                     ${req.duration}
                                 </span>
@@ -269,12 +274,12 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
 
                             <!-- Status -->
-                            <div style="width: 14%;">
+                            <div style="width: 13%; min-width: 100px;">
                                 ${statusBadge}
                             </div>
 
                             <!-- Actions -->
-                            <div style="width: 14%;" class="text-end d-flex align-items-center justify-content-end gap-1.5">
+                            <div style="width: 24%; min-width: 215px;" class="text-end d-flex align-items-center justify-content-end gap-1 flex-shrink-0 flex-nowrap pe-1">
                                 ${actionsHtml}
                             </div>
                         </div>
@@ -305,10 +310,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     } else if (req.status === 'pending') {
                         statusBadge = `<span class="badge request-badge-pending rounded-pill px-2.5 py-1 text-xs fw-semibold"><i class="bi bi-clock-history me-1"></i>Pending</span>`;
                     } else if (req.status === 'offer_sent') {
-                        const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
-                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Offer ${rateStr} sent"><i class="bi bi-tag-fill me-1 text-warning"></i>Offer Sent</span>`;
+                        const monthlyRate = req.offered_rental_rate ? Math.round(parseFloat(req.offered_rental_rate) / 12) : 9167;
+                        const rateStr = `₱${monthlyRate.toLocaleString()}/mo`;
+                        statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;" title="Offer ${rateStr} sent"><i class="bi bi-tag-fill me-1 text-warning"></i>Offer (${rateStr})</span>`;
                     } else if (req.status === 'counter_offered') {
-                        const counterRateStr = req.counter_rental_rate ? `₱${parseFloat(req.counter_rental_rate).toLocaleString()}/yr` : '₱.../yr';
+                        const counterMonthly = req.counter_rental_rate ? Math.round(parseFloat(req.counter_rental_rate) / 12) : 0;
+                        const counterRateStr = counterMonthly ? `₱${counterMonthly.toLocaleString()}/mo` : '₱.../mo';
                         statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold" style="background:#E0F2FE;color:#0369A1;border:1px solid #BAE6FD;"><i class="bi bi-arrow-left-right me-1 text-primary"></i>Counter: ${counterRateStr}</span>`;
                     } else if (req.status === 'declined') {
                         statusBadge = `<span class="badge rounded-pill px-2.5 py-1 text-xs fw-semibold bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i>Declined</span>`;
@@ -378,9 +385,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             <!-- Land & Plot meta -->
                             <div class="p-2.5 bg-light rounded-3 mb-2.5 border border-light-subtle">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <strong class="text-dark small text-truncate"><i class="bi bi-geo-alt text-success me-1"></i>${req.land_title}</strong>
-                                    <span class="badge bg-white text-success border rounded-pill px-2 py-0.5" style="font-size: 10px;">${req.plot_num}</span>
+                                <div class="d-flex align-items-center justify-content-between mb-1 min-w-0">
+                                    <div class="min-w-0 flex-grow-1 me-2">
+                                        <strong class="text-dark small text-truncate d-block" title="${req.land_title}">
+                                            <i class="bi bi-geo-alt text-success me-1"></i>${req.land_title}
+                                        </strong>
+                                    </div>
+                                    <span class="badge bg-white text-success border rounded-pill px-2 py-0.5 flex-shrink-0" style="font-size: 10px;">${req.plot_num}</span>
                                 </div>
                                 <div class="text-muted small mt-1" style="font-size: 0.78rem;">
                                     <i class="bi bi-calendar3 me-1"></i>Term: <strong class="text-dark">${req.duration}</strong>
@@ -404,12 +415,17 @@ document.addEventListener("DOMContentLoaded", function () {
     // Filter Buttons Event Delegation
     document.querySelectorAll('.request-filter-btn').forEach(btn => {
         btn.addEventListener('click', function () {
-            const filter = this.getAttribute('data-filter') || 'all';
-            currentFilter = filter;
+            const filter = this.getAttribute('data-filter');
+            // Toggle filter: clicking active filter returns to default ('all')
+            if (currentFilter === filter) {
+                currentFilter = 'all';
+            } else {
+                currentFilter = filter;
+            }
 
             // Sync all filter buttons across desktop and mobile
             document.querySelectorAll('.request-filter-btn').forEach(b => {
-                if (b.getAttribute('data-filter') === filter) {
+                if (currentFilter !== 'all' && b.getAttribute('data-filter') === currentFilter) {
                     b.classList.add('active');
                     b.classList.remove('text-secondary', 'bg-white');
                 } else {
@@ -547,8 +563,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const cNotesEl = document.getElementById('view_counter_notes');
                 const cTimeEl = document.getElementById('view_counter_time');
 
-                if (cRateEl) cRateEl.innerText = `₱${cRate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-                if (cMonthlyEl) cMonthlyEl.innerText = `(₱${(cRate / 12).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo)`;
+                if (cRateEl) cRateEl.innerText = `₱${(cRate / 12).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                if (cMonthlyEl) cMonthlyEl.innerText = `(₱${cRate.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/yr)`;
                 if (cNotesEl) cNotesEl.innerText = req.counter_notes ? `"${escapeHtml(req.counter_notes)}"` : 'No additional notes provided.';
                 if (cTimeEl) cTimeEl.innerText = req.counter_at ? timeAgo(req.counter_at) : '';
             } else {
@@ -616,7 +632,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     </button>
                 `;
             } else if (req.status === 'offer_sent') {
-                const rateStr = req.offered_rental_rate ? `₱${parseFloat(req.offered_rental_rate).toLocaleString()}/yr` : '₱110,000/yr';
+                const monthlyRate = req.offered_rental_rate ? Math.round(parseFloat(req.offered_rental_rate) / 12) : 9167;
+                const rateStr = `₱${monthlyRate.toLocaleString()}/mo`;
                 modalPendingActions.innerHTML = `
                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 small d-inline-flex align-items-center gap-1.5">
                         <i class="bi bi-hourglass-split"></i> Rental Offer Sent: ${rateStr} (${req.rental_duration || '1 Year'}) • Waiting for Gardener Decision
@@ -624,9 +641,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 `;
             } else if (req.status === 'counter_offered') {
                 const counterRate = req.counter_rental_rate ? parseFloat(req.counter_rental_rate) : 0;
+                const counterMonthly = Math.round(counterRate / 12);
                 modalPendingActions.innerHTML = `
                     <button type="button" class="btn btn-success rounded-pill px-3.5 py-1.5 text-white fw-semibold small shadow-xs" onclick="acceptCounterOffer(${req.id})">
-                        <i class="bi bi-check-circle-fill me-1"></i> Accept Counter-Offer (₱${counterRate.toLocaleString()}/yr)
+                        <i class="bi bi-check-circle-fill me-1"></i> Accept Counter-Offer (₱${counterMonthly.toLocaleString()}/mo)
                     </button>
                     <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold small" onclick="openRentalOfferModal(${req.id})">
                         <i class="bi bi-arrow-left-right me-1"></i> Propose New Offer
@@ -846,6 +864,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Live Annual Projection Calculator in Send Rental Offer Modal
+    window.updateOfferAnnualCalc = function () {
+        const rateInput = document.getElementById('offer_rental_rate');
+        const badge = document.getElementById('offer_annual_projection');
+        if (!rateInput || !badge) return;
+        const monthly = parseFloat(rateInput.value) || 0;
+        const annual = monthly * 12;
+        badge.textContent = `~₱${annual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / yr`;
+    };
+
     // Open Rental Offer Modal
     window.openRentalOfferModal = function (id) {
         // Hide view modal if open
@@ -866,9 +894,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (nameEl) nameEl.textContent = req.gardener || 'Gardener';
         if (descEl) descEl.innerHTML = `<i class="bi bi-geo-alt text-success me-1"></i>${req.land_title} • <strong>${req.plot_num}</strong>`;
 
-        // Default rental price: benchmark is ₱110,000/yr for 50 sq. m.
-        const defaultRate = req.counter_rental_rate || req.offered_rental_rate || req.rental_price_per_year || 110000;
-        if (rateInput) rateInput.value = parseFloat(defaultRate);
+        // Monthly rental price matching register land page (DB stores annual)
+        const defaultAnnual = parseFloat(req.counter_rental_rate || req.offered_rental_rate || req.rental_price_per_year || 110000);
+        const defaultMonthly = Math.round(defaultAnnual / 12);
+        if (rateInput) rateInput.value = defaultMonthly;
+        window.updateOfferAnnualCalc();
 
         if (durationSelect && req.duration) {
             // Pick duration if matches
@@ -894,7 +924,8 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const id = parseInt(document.getElementById('offer_request_id').value);
-            const rentalRate = parseFloat(document.getElementById('offer_rental_rate').value) || 110000;
+            const monthlyRate = parseFloat(document.getElementById('offer_rental_rate').value) || 9167;
+            const annualRate = Math.round(monthlyRate * 12);
             const duration = document.getElementById('offer_rental_duration').value || '1 Year';
             const terms = document.getElementById('offer_terms').value || '';
 
@@ -905,7 +936,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     body: JSON.stringify({
                         action: 'make_rental_offer',
                         id: id,
-                        offered_rental_rate: rentalRate,
+                        offered_rental_rate: annualRate,
                         rental_duration: duration,
                         terms_conditions: terms
                     })
@@ -915,7 +946,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const modal = bootstrap.Modal.getInstance(sendRentalOfferModalEl);
                     if (modal) modal.hide();
                     sendOfferForm.reset();
-                    showToast(`Rental offer of ₱${rentalRate.toLocaleString()}/yr sent to gardener!`);
+                    showToast(`Rental offer of ₱${monthlyRate.toLocaleString()}/mo sent to gardener!`);
                     await loadRequests();
                 } else {
                     showToast("Error: " + res.message, false);

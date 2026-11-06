@@ -4,7 +4,7 @@
    ========================================================================== */
 
 :root {
-    --drive-canvas: #F8F3EC;
+    --drive-canvas: #f5fbfd;
     --drive-surface: #FFFDF9;
     --drive-surface-hover: #F4EFE6;
     --drive-surface-active: #EAE1D2;
@@ -25,7 +25,7 @@
     /* Cats & Soup Game Specific Tokens */
     --cs-cocoa: #785D4D;
     --cs-cocoa-dark: #4A3528;
-    --cs-parchment: #F8F3EC;
+    --cs-parchment: #f5fbfd;
     --cs-cream: #FFFDF9;
     --cs-matcha: #BBD6B8;
     --cs-matcha-dark: #7FA668;
@@ -63,7 +63,7 @@ body {
 /* ─── Cats & Soup Game Header & Sidebar ─── */
 #mainHeader {
     height: 3.25rem !important;
-    background: #FAF5ED !important;
+    background: #f5fbfd !important;
     border-bottom: 2px solid var(--cs-cocoa, #785D4D) !important;
     box-shadow: 0 2px 0 rgba(120, 93, 77, 0.12) !important;
     color: var(--drive-text-main) !important;
@@ -71,7 +71,7 @@ body {
 }
 
 #mainSidebar {
-    background: #F5EEE4 !important;
+    background: #f5fbfd !important;
     border-right: 2px solid var(--cs-cocoa, #785D4D) !important;
     box-shadow: 2px 0 0 rgba(120, 93, 77, 0.06) !important;
     color: var(--drive-text-main) !important;
@@ -87,7 +87,7 @@ body {
 }
 
 #mainSidebar .sidebar-nav-link:hover {
-    background: #FAF5ED !important;
+    background: #e5f4f8 !important;
     border-color: #DFCFC2 !important;
     color: #3E2B1E !important;
 }
@@ -427,7 +427,7 @@ body:has(.gardener-map-page) .gardener-map-page .toolbar {
 /* Workspace Area */
 .workspace-surface {
     flex: 1;
-    background-color: var(--drive-surface);
+    background-color: var(--drive-canvas);
     border-radius: 0;
     display: flex;
     flex-direction: column;
@@ -643,6 +643,152 @@ input.ps-4 {
     color: var(--drive-text-main, #3E2B1E) !important;
 }
 
+/* ─── Seamless Connected Input Groups ─── */
+.input-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+.input-group>.form-control,
+.input-group>.drive-form-control,
+.input-group>.form-select,
+.input-group>.input-group-text,
+.input-group>.btn {
+    position: relative !important;
+    margin-bottom: 0 !important;
+}
+
+.input-group>.form-control,
+.input-group>.drive-form-control,
+.input-group>.form-select {
+    flex: 1 1 auto !important;
+    width: 1% !important;
+    min-width: 0 !important;
+}
+
+.input-group>.input-group-text,
+.input-group>.btn {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+
+/* Addon Text */
+.input-group-text {
+    background-color: #F4EFE6 !important;
+    border: 2px solid var(--drive-border-subtle, #DFCFC2) !important;
+    color: var(--drive-text-sub, #6B5446) !important;
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    padding: 0.6rem 0.95rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+/* Input group sizing */
+.input-group-sm>.input-group-text,
+.input-group-sm>.form-control,
+.input-group-sm>.btn {
+    padding: 0.35rem 0.65rem !important;
+    font-size: 0.8rem !important;
+}
+
+.input-group-lg>.input-group-text,
+.input-group>.form-control-lg+.input-group-text,
+.input-group>.form-control-lg~.input-group-text {
+    padding: 0.65rem 1.15rem !important;
+    font-size: 1.1rem !important;
+}
+
+/* Buttons inside Input Group */
+.input-group>.btn {
+    border: 2px solid var(--drive-border-subtle, #DFCFC2) !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.input-group>.btn:hover {
+    background-color: #EAE1D2 !important;
+    color: var(--drive-text-main, #3E2B1E) !important;
+}
+
+.input-group>.btn-outline-success:hover,
+.input-group>.btn-success {
+    background-color: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border-color: #7FA668 !important;
+}
+
+/* 1. First Child in Input Group: Rounded left corners, zero right corners */
+.input-group> :first-child,
+.input-group>.form-control:first-child,
+.input-group>.drive-form-control:first-child,
+.input-group>.input-group-text:first-child,
+.input-group>.btn:first-child {
+    border-top-left-radius: 14px !important;
+    border-bottom-left-radius: 14px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* 2. Last Child in Input Group: Rounded right corners, zero left corners */
+.input-group> :last-child,
+.input-group>.form-control:last-child,
+.input-group>.drive-form-control:last-child,
+.input-group>.input-group-text:last-child,
+.input-group>.btn:last-child {
+    border-top-right-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    margin-left: -2px !important;
+    /* Seamlessly joins the 2px border */
+}
+
+/* 3. Middle Children: Zero all corners */
+.input-group> :not(:first-child):not(:last-child),
+.input-group>.form-control:not(:first-child):not(:last-child),
+.input-group>.drive-form-control:not(:first-child):not(:last-child),
+.input-group>.input-group-text:not(:first-child):not(:last-child),
+.input-group>.btn:not(:first-child):not(:last-child) {
+    border-radius: 0 !important;
+    margin-left: -2px !important;
+}
+
+/* 4. Rounded-pill input groups */
+.input-group.rounded-pill> :first-child,
+.input-group>.rounded-start-pill {
+    border-top-left-radius: 9999px !important;
+    border-bottom-left-radius: 9999px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.input-group.rounded-pill> :last-child,
+.input-group>.rounded-end-pill {
+    border-top-right-radius: 9999px !important;
+    border-bottom-right-radius: 9999px !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    margin-left: -2px !important;
+}
+
+/* Elevation on focus so focused border isn't covered by neighbor */
+.input-group>.form-control:focus,
+.input-group>.drive-form-control:focus,
+.input-group>.btn:focus {
+    z-index: 5 !important;
+}
+
 .drive-modal-content,
 .modal-content {
     border-radius: 26px !important;
@@ -654,12 +800,19 @@ input.ps-4 {
 }
 
 /* ─── Cats & Soup General Cards ─── */
-.card {
+.card,
+.land-listing-card {
     background-color: #FFFDF9 !important;
     border: 2px solid var(--cs-cocoa, #785D4D) !important;
-    border-radius: 22px !important;
+    border-radius: 20px !important;
     box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D) !important;
     overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.land-listing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--cs-cocoa, #785D4D) !important;
 }
 
 .card-header {
@@ -670,7 +823,7 @@ input.ps-4 {
 }
 
 .card-footer {
-    background-color: #FAF5ED !important;
+    background-color: #f5fbfd !important;
     border-top: 2px dashed #DFCFC2 !important;
 }
 
@@ -1474,6 +1627,58 @@ a.text-decoration-none:hover {
     transform: scale(0.97);
 }
 
+/* ─── Floating Partition Plots Control Overlay ─── */
+.plot-count-btn {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    flex: 1 1 0 !important;
+    padding: 4px 0 !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    border-radius: 6px !important;
+    border: 1.5px solid var(--drive-border-subtle, #DFCFC2) !important;
+    background: #FFFDF9 !important;
+    color: #523E31 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    outline: none !important;
+    cursor: pointer !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.plot-count-btn:hover {
+    background: #F4EFE6 !important;
+    border-color: #B5A293 !important;
+    color: #2D241E !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.plot-count-btn:active {
+    background: #EAE1D2 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.plot-count-btn.active,
+.plot-count-btn.active:hover,
+.plot-count-btn.active:focus {
+    background: #7FA668 !important;
+    background-color: #7FA668 !important;
+    border: 1.5px solid #523E31 !important;
+    color: #FFFDF9 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+#plotControlOverlay {
+    bottom: 54px !important;
+}
+
 @media (max-width: 576px) {
     .map-register-fab span {
         display: none;
@@ -2223,8 +2428,8 @@ header,
 .map-picker-wrapper {
     position: relative;
     width: 100%;
-    height: 100%;
-    min-height: 560px;
+    height: 520px;
+    min-height: 520px;
 }
 
 .map-picker-search-box {
@@ -2350,23 +2555,36 @@ header,
 }
 
 .map-picker-status-bar {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    padding: 6px 12px;
-    font-size: 0.72rem;
+    position: absolute !important;
+    bottom: 14px !important;
+    left: 14px !important;
+    max-width: min(440px, calc(100% - 150px));
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1.5px solid rgba(0, 0, 0, 0.14) !important;
+    border-radius: 50rem !important;
+    padding: 4px 12px !important;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--drive-text-main, #3E2B1E) !important;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    z-index: 1000;
-    pointer-events: none;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    z-index: 1000 !important;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+    .map-picker-status-bar {
+        bottom: 10px !important;
+        left: 10px !important;
+        max-width: calc(100% - 70px) !important;
+        padding: 4px 10px !important;
+        font-size: 0.72rem !important;
+    }
 }
 
 /* ==========================================================================
@@ -2379,16 +2597,18 @@ header,
 
 .map-drawing-helper-pill {
     position: absolute;
-    top: 68px;
-    left: 14px;
+    top: 48px;
+    left: 10px;
     z-index: 1000;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     border-radius: 50rem;
-    padding: 6px 14px;
+    padding: 2px 10px;
+    font-size: 0.72rem;
+    max-width: calc(100% - 20px);
     animation: fadeInSlideDown 0.2s ease-out;
 }
 
@@ -2482,14 +2702,15 @@ header,
         font-size: 0.8125rem !important;
     }
 
-    /* Plot control overlay adjustments on mobile - positioned at bottom left */
+    /* Plot control overlay adjustments on mobile - centered horizontally */
     #plotControlOverlay {
         bottom: 48px !important;
-        left: 10px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
         top: auto !important;
         right: auto !important;
-        min-width: 160px !important;
-        max-width: 190px !important;
+        min-width: 180px !important;
+        max-width: 220px !important;
     }
 }
 
@@ -2672,7 +2893,7 @@ header,
 }
 
 .stewardship-card-header {
-    background: #FAF5ED;
+    background: #f5fbfd;
     border-bottom: 1.5px solid var(--drive-border-subtle, #DFCFC2);
     padding: 1.15rem 1.25rem;
 }
@@ -3067,9 +3288,61 @@ header,
     }
 }
 
-/* ==========================================================================
-   Landowner Plot Requests - Cats & Soup Game Table & Mobile Card System
-   ========================================================================== */
+/* ─── Requests Page Dedicated Toolbar (Landowner & Gardener) ─── */
+.requests-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem 0.5rem;
+    gap: 1rem;
+    background: transparent;
+}
+
+.requests-toolbar .toolbar-title-wrap {
+    flex-shrink: 0;
+}
+
+.requests-toolbar .toolbar-actions-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.requests-toolbar .toolbar-search-wrap {
+    width: 210px;
+    flex-shrink: 0;
+}
+
+.requests-toolbar .toolbar-search-wrap .form-control {
+    height: 36px;
+    font-size: 0.82rem;
+    background: #F4EFE6 !important;
+    border: 1.5px solid var(--drive-border-subtle, #DFCFC2) !important;
+    color: var(--drive-text-main, #3E2B1E) !important;
+}
+
+.requests-toolbar .toolbar-search-wrap .form-control:focus {
+    background: #FFFFFF !important;
+    border-color: #7FA668 !important;
+    box-shadow: 0 0 0 3px rgba(127, 166, 104, 0.25) !important;
+}
+
+@media (max-width: 1199.98px) {
+    .requests-toolbar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .requests-toolbar .toolbar-actions-wrap {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+}
+
 /* ─── Shared Filter Pill Track & Buttons (Lands & Requests Pages) ─── */
 .filter-pill-track {
     background: #F4EFE6 !important;
@@ -3079,7 +3352,15 @@ header,
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    overflow: visible !important;
+    max-width: 100%;
+    overflow-x: auto !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+}
+
+.filter-pill-track::-webkit-scrollbar {
+    display: none;
 }
 
 .request-filter-btn,
@@ -3087,7 +3368,7 @@ header,
     border: 2px solid transparent !important;
     font-size: 0.78rem;
     font-weight: 700;
-    padding: 5px 13px;
+    padding: 5px 12px;
     border-radius: 9999px !important;
     -webkit-border-radius: 9999px !important;
     border-top-left-radius: 9999px !important;
@@ -3100,7 +3381,7 @@ header,
     margin: 0 !important;
     flex-shrink: 0;
     line-height: 1.4;
-    overflow: visible !important;
+    white-space: nowrap;
     text-decoration: none !important;
 }
 
@@ -3142,10 +3423,10 @@ header,
 }
 
 /* Override any legacy .btn-group specificity that forces straight corners */
-.btn-group > .request-filter-btn,
-.btn-group > .land-filter-btn,
-.btn-group-sm > .request-filter-btn,
-.btn-group-sm > .land-filter-btn {
+.btn-group>.request-filter-btn,
+.btn-group>.land-filter-btn,
+.btn-group-sm>.request-filter-btn,
+.btn-group-sm>.land-filter-btn {
     border-radius: 9999px !important;
     border-top-left-radius: 9999px !important;
     border-top-right-radius: 9999px !important;
@@ -3176,7 +3457,15 @@ header,
     border: 2.5px solid var(--cs-cocoa, #785D4D) !important;
     border-radius: 24px !important;
     box-shadow: 0 4px 0 var(--cs-cocoa, #785D4D) !important;
-    overflow: hidden;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+.request-table-header,
+.request-table-row {
+    min-width: 920px;
 }
 
 .request-table-header {
@@ -3195,7 +3484,7 @@ header,
 }
 
 .request-table-row:hover {
-    background-color: #FAF5ED !important;
+    background-color: #f5fbfd !important;
 }
 
 .request-mobile-card {
@@ -3263,6 +3552,7 @@ header,
     max-width: 34px !important;
     min-height: 34px !important;
     max-height: 34px !important;
+    flex-shrink: 0 !important;
     padding: 0 !important;
     border-radius: 50% !important;
     display: inline-flex !important;
@@ -3357,27 +3647,29 @@ header,
 
 .gardener-request-card {
     background: #FFFDF9 !important;
-    border: 1.5px solid #DFCFC2 !important;
-    border-radius: 18px !important;
-    padding: 0.9rem 1.15rem;
-    box-shadow: 0 2px 6px rgba(62, 43, 30, 0.04);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+    border: 2px solid #523E31 !important;
+    border-radius: 20px !important;
+    padding: 1.05rem 1.25rem;
+    box-shadow: 0 4px 0 #523E31 !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.15rem;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    margin-bottom: 0.95rem;
 }
 
 .gardener-request-card:hover {
     transform: translateY(-2px);
-    border-color: #BDDAB8 !important;
-    box-shadow: 0 6px 18px rgba(62, 43, 30, 0.08);
+    border-color: #523E31 !important;
+    box-shadow: 0 6px 0 #523E31 !important;
 }
 
 .gardener-request-card:active {
-    transform: scale(0.99);
+    transform: translateY(2px) scale(0.99);
+    box-shadow: 0 1.5px 0 #523E31 !important;
     background: #F7EFE6 !important;
 }
 
@@ -3478,39 +3770,53 @@ header,
 }
 
 .request-filter-chip {
-    background: #FFFDF9;
-    border: 1.5px solid #DFCFC2;
-    color: #5C4033;
+    border: 2px solid transparent !important;
     font-size: 0.78rem;
+    font-weight: 700;
+    padding: 5px 13px;
+    border-radius: 9999px !important;
+    color: var(--drive-text-sub, #6B5446) !important;
+    background: transparent;
+    transition: all 0.15s ease;
+    margin: 0 !important;
     flex-shrink: 0;
+    line-height: 1.4;
     white-space: nowrap;
     user-select: none;
-    transition: all 0.15s ease;
 }
 
 .request-filter-chip:hover {
-    background: #F7EFE6;
-    border-color: #785D4D;
-    color: #3E2B1E;
+    color: var(--drive-text-main, #3E2B1E) !important;
+    background: #EAE1D2 !important;
+    border-color: transparent !important;
+    border-radius: 9999px !important;
 }
 
 .request-filter-chip.active {
-    background: #2D5A27 !important;
-    border-color: #2D5A27 !important;
-    color: #ffffff !important;
-    box-shadow: 0 2px 4px rgba(45, 90, 39, 0.2);
+    background: #7FA668 !important;
+    color: #FFFDF9 !important;
+    border: 2px solid #523E31 !important;
+    box-shadow: 0 2.5px 0 #523E31 !important;
+    border-radius: 9999px !important;
+}
+
+.request-filter-chip.active:hover {
+    background: #71975B !important;
+    color: #FFFDF9 !important;
 }
 
 .request-filter-chip.active .badge {
-    background: rgba(255, 255, 255, 0.25) !important;
+    background: rgba(255, 255, 255, 0.3) !important;
     color: #ffffff !important;
 }
 
 @media (max-width: 767.98px) {
     .gardener-request-card {
-        padding: 0.75rem 0.85rem;
-        gap: 0.75rem;
-        border-radius: 16px !important;
+        padding: 0.85rem 1rem;
+        gap: 0.85rem;
+        border: 2px solid #523E31 !important;
+        border-radius: 18px !important;
+        box-shadow: 0 3.5px 0 #523E31 !important;
     }
 
     .gardener-request-icon-wrap {
@@ -3626,19 +3932,23 @@ header,
 }
 
 @media (max-width: 767.98px) {
+
     .floating-action-fab,
     .floating-land-fab,
     .floating-task-fab {
-        bottom: 5.5rem; /* Float above mobile bottom navigation dock */
+        bottom: 5.5rem;
+        /* Float above mobile bottom navigation dock */
         right: 1.25rem;
         width: 50px;
         height: 50px;
     }
+
     .floating-action-fab i,
     .floating-land-fab i,
     .floating-task-fab i {
         font-size: 1.35rem;
     }
+
     .floating-action-fab .fab-tooltip,
     .floating-land-fab .fab-tooltip,
     .floating-task-fab .fab-tooltip {
